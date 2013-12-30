@@ -1,4 +1,4 @@
 Twixel
 ======
 
-A C# library for Twitch.TV
+An unofficial C# library for Twitch.TV
