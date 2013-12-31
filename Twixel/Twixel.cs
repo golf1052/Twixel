@@ -29,9 +29,16 @@ namespace TwixelAPI
         public string accessToken = "";
         public List<Scope> authorizedScopes;
 
+        /// <summary>
+        /// The next games url
+        /// </summary>
         public WebUrl nextGames;
         public int maxGames;
 
+        /// <summary>
+        /// The next streams url
+        /// </summary>
+        /// <remarks>Used by RetrieveStreams()</remarks>
         public WebUrl nextStreams;
 
         public int summaryViewers;
@@ -139,10 +146,25 @@ namespace TwixelAPI
             }
         }
 
-        public async Task<List<Stream>> RetrieveStreams()
+        public async Task<List<Stream>> RetrieveStreams(bool getNext)
         {
             Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/streams");
+            if (!getNext)
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/streams");
+            }
+            else
+            {
+                if (nextStreams != null)
+                {
+                    uri = nextStreams.url;
+                }
+                else
+                {
+                    uri = new Uri("https://api.twitch.tv/kraken/streams");
+                }
+            }
+
             string responseString = await GetWebData(uri);
             return LoadStreams(JObject.Parse(responseString));
         }
@@ -153,7 +175,6 @@ namespace TwixelAPI
             uri = new Uri("https://api.twitch.tv/kraken/streams?game=" + game);
             string responseString = await GetWebData(uri);
             return LoadStreams(JObject.Parse(responseString));
-            //return LoadStreams(JObject.Parse(streamsString));
         }
 
         public async Task<List<Stream>> RetrieveStreams(string game, List<string> channels, int limit, bool embeddable, bool hls)
