@@ -44,6 +44,8 @@ namespace TwixelAPI
         public int summaryViewers;
         public int summaryChannels;
 
+        public List<Emoticon> emoticons;
+
         public enum Scope
         {
             None,
@@ -69,6 +71,7 @@ namespace TwixelAPI
         public Twixel(string id, string secret)
         {
             authorizedScopes = new List<Scope>();
+            emoticons = new List<Emoticon>();
             clientID = id;
             clientSecret = secret;
         }
@@ -335,6 +338,14 @@ namespace TwixelAPI
             }
         }
 
+        public async Task<List<Emoticon>> RetrieveEmoticons()
+        {
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken/chat/emoticons");
+            string responseString = await GetWebData(uri);
+            return LoadEmoticons(JObject.Parse(responseString));
+        }
+
         List<Game> LoadGames(JObject o)
         {
             List<Game> games = new List<Game>();
@@ -390,6 +401,17 @@ namespace TwixelAPI
             }
 
             return streams;
+        }
+
+        List<Emoticon> LoadEmoticons(JObject o)
+        {
+            foreach (JObject obj in (JArray)o["emoticons"])
+            {
+                emoticons.Add(new Emoticon((string)obj["regex"],
+                    (JArray)obj["images"]));
+            }
+
+            return emoticons;
         }
 
         public static async Task<string> GetWebData(Uri uri)

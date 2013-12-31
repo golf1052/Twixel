@@ -34,6 +34,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Channel.cs" />
+    <Compile Include="Emoticon.cs" />
+    <Compile Include="EmoticonImage.cs" />
     <Compile Include="FeaturedStream.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
