@@ -10,6 +10,6 @@ C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\bin\Debug\System.Net.Http.xml
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\bin\Debug\System.Net.Http.Extensions.xml
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\bin\Debug\System.Net.Http.Primitives.xml
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.csproj.App.config
-C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.csprojResolveAssemblyReference.cache
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.dll
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.pdb
+C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.csprojResolveAssemblyReference.cache

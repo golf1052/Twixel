@@ -20,12 +20,12 @@ namespace TwixelAPI
         public WebUrl logoMedium;
         public WebUrl logoSmall;
         public WebUrl logoTemplate;
-        public int id;
-        public int giantBombId;
-        public int viewers;
-        public int channels;
+        public long? id;
+        public long? giantBombId;
+        public int? viewers;
+        public int? channels;
 
-        public Game(string name, JObject boxO, JObject logoO, int id, int giantBombId, int viewers, int channels)
+        public Game(string name, JObject boxO, JObject logoO, long? id, long? giantBombId, int? viewers, int? channels)
         {
             this.name = name;
             boxLarge = new WebUrl((string)boxO["large"]);
