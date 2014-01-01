@@ -3,19 +3,19 @@ Twixel
 
 An unofficial C# library for Twitch.TV
 
-Stuff Added:
-/games
-/search
-/streams
-/users
+Stuff Added:  
+/games  
+/search  
+/streams  
+/users  
 
-ToDo:
-/blocks
-/channels
-/chat
-/follows
-/ingests
-/root
-/subscriptions
-/teams
-/videos
+ToDo:  
+/blocks  
+/channels  
+/chat  
+/follows  
+/ingests  
+/root  
+/subscriptions  
+/teams  
+/videos  
