@@ -34,6 +34,7 @@ namespace TwixelAPI
             LoadImages(imagesO);
         }
 
+        // Also a little note Twitch NEVER uses this...
         void LoadImages(JObject o)
         {
             if (o != null)
