@@ -33,7 +33,7 @@ namespace TwixelAPI
         /// The next games url
         /// </summary>
         public WebUrl nextGames;
-        public int maxGames;
+        public int? maxGames;
 
         /// <summary>
         /// The next streams url
@@ -346,11 +346,44 @@ namespace TwixelAPI
             return LoadEmoticons(JObject.Parse(responseString));
         }
 
+        public async Task<List<Stream>> SearchStreams(string query)
+        {
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query);
+            string responseString = await GetWebData(uri);
+            return LoadStreams(JObject.Parse(responseString));
+        }
+
+        public async Task<List<Stream>> SearchStreams(string query, int limit)
+        {
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query + "&limit=" + limit.ToString());
+            string responseString = await GetWebData(uri);
+            return LoadStreams(JObject.Parse(responseString));
+        }
+
+        public async Task<List<SearchedGame>> SearchGames(string query, bool live)
+        {
+            Uri uri;
+            
+            if (live)
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=true");
+            }
+            else
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=false");
+            }
+
+            string responseString = await GetWebData(uri);
+            return LoadSearchedGames(JObject.Parse(responseString));
+        }
+
         List<Game> LoadGames(JObject o)
         {
             List<Game> games = new List<Game>();
             nextGames = new WebUrl((string)o["_links"]["next"]);
-            maxGames = (int)o["_total"];
+            maxGames = (int?)o["_total"];
 
             foreach (JObject obj in (JArray)o["top"])
             {
@@ -363,6 +396,24 @@ namespace TwixelAPI
                     (int?)obj["channels"]));
             }
 
+            return games;
+        }
+
+        List<SearchedGame> LoadSearchedGames(JObject o)
+        {
+            List<SearchedGame> games = new List<SearchedGame>();
+            foreach (JObject obj in (JArray)o["games"])
+            {
+                games.Add(new SearchedGame((string)obj["name"],
+                    (JObject)obj["box"],
+                    (JObject)obj["logo"],
+                    (long?)obj["_id"],
+                    (long?)obj["giantbomb_id"],
+                    (int?)obj["viewers"],
+                    (int?)obj["channels"],
+                    (JObject)obj["images"],
+                    (int)obj["popularity"]));
+            }
             return games;
         }
 
