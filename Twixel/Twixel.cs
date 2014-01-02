@@ -35,6 +35,8 @@ namespace TwixelAPI
 
         public List<User> users;
 
+        public List<Team> teams;
+
         /// <summary>
         /// The next streams url
         /// </summary>
@@ -43,6 +45,8 @@ namespace TwixelAPI
 
         public int summaryViewers;
         public int summaryChannels;
+
+        public WebUrl nextTeams;
 
         public List<Emoticon> emoticons;
 
@@ -54,6 +58,7 @@ namespace TwixelAPI
         public Twixel(string id, string secret)
         {
             users = new List<User>();
+            teams = new List<Team>();
             emoticons = new List<Emoticon>();
             clientID = id;
             clientSecret = secret;
@@ -386,6 +391,81 @@ namespace TwixelAPI
             return LoadSearchedGames(JObject.Parse(responseString));
         }
 
+        public async Task<List<Team>> RetrieveTeams(bool getNext)
+        {
+            Uri uri;
+            if (!getNext)
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/teams");
+            }
+            else
+            {
+                if (nextTeams != null)
+                {
+                    uri = nextTeams.url;
+                }
+                else
+                {
+                    uri = new Uri("https://api.twitch.tv/kraken/teams");
+                }
+            }
+            string responseString = await GetWebData(uri);
+            nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+            foreach (JObject o in JObject.Parse(responseString)["teams"])
+            {
+                if (!ContainsTeam((string)o["name"]))
+                {
+                    teams.Add(LoadTeam(o));
+                }
+            }
+            return teams;
+        }
+
+        public async Task<List<Team>> RetrieveTeams(int limit)
+        {
+            Uri uri;
+            if (limit <= 100)
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/teams?limit=" + limit.ToString());
+            }
+            else
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/teams?limit=100");
+                errorString = "The max number of teams you can get at once is 100";
+            }
+            string responseString = await GetWebData(uri);
+            nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+            foreach (JObject o in JObject.Parse(responseString)["teams"])
+            {
+                if (!ContainsTeam((string)o["name"]))
+                {
+                    teams.Add(LoadTeam(o));
+                }
+            }
+            return teams;
+        }
+
+        public async Task<Team> RetrieveTeam(string name)
+        {
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken/teams/" + name);
+            string responseString = await GetWebData(uri);
+            return LoadTeam(JObject.Parse(responseString));
+        }
+
+        bool ContainsTeam(string name)
+        {
+            foreach (Team team in teams)
+            {
+                if (team.name == name)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         List<Game> LoadGames(JObject o)
         {
             List<Game> games = new List<Game>();
@@ -495,6 +575,18 @@ namespace TwixelAPI
                 (bool?)o["partnered"]);
             users.Add(user);
             return user;
+        }
+
+        Team LoadTeam(JObject o)
+        {
+            Team team = new Team((string)o["info"],
+                (string)o["background"],
+                (string)o["banner"],
+                (string)o["name"],
+                (long)o["_id"],
+                (string)o["display_name"],
+                (string)o["logo"]);
+            return team;
         }
 
         public static async Task<string> GetWebData(Uri uri)
