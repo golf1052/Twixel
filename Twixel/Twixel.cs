@@ -424,7 +424,7 @@ namespace TwixelAPI
             return games;
         }
 
-        public List<Stream> LoadStreams(JObject o)
+        internal List<Stream> LoadStreams(JObject o)
         {
             List<Stream> streams = new List<Stream>();
             nextStreams = new WebUrl((string)o["_links"]["next"]);
@@ -472,7 +472,7 @@ namespace TwixelAPI
             return emoticons;
         }
 
-        User LoadUser(JObject o)
+        internal User LoadUser(JObject o)
         {
             User user = new User((string)o["name"],
                 (string)o["logo"],
@@ -569,6 +569,58 @@ namespace TwixelAPI
             {
                 // 500 - Internal server error
                 return "500";
+            }
+            else
+            {
+                return "Unknown status code";
+            }
+        }
+
+        public static async Task<string> PutWebData(Uri uri, string accessToken, string content)
+        {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            client.DefaultRequestHeaders.Add("Client-ID", clientID);
+            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
+            StringContent stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.PutAsync(uri, stringContent);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string responseString = await response.Content.ReadAsStringAsync();
+                return responseString;
+            }
+            else
+            {
+                return "Unknown status code";
+            }
+        }
+
+        public static async Task<string> DeleteWebData(Uri uri, string accessToken)
+        {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            client.DefaultRequestHeaders.Add("Client-ID", clientID);
+            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
+            HttpResponseMessage response = await client.DeleteAsync(uri);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string responseString = await response.Content.ReadAsStringAsync();
+                return responseString;
+            }
+            else if (response.StatusCode == HttpStatusCode.NoContent)
+            {
+                string responseString = "";
+                return responseString;
+            }
+            else if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return "404";
+            }
+            else if ((int)response.StatusCode == 422)
+            {
+                return "422";
             }
             else
             {
