@@ -8,9 +8,9 @@ Stuff Added:
 /search  
 /streams  
 /users  
+/blocks  
 
 ToDo:  
-/blocks  
 /channels  
 /chat  
 /follows  
