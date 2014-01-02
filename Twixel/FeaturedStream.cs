@@ -15,22 +15,11 @@ namespace TwixelAPI
         public string text;
         public Stream stream;
 
-        public FeaturedStream(string image, string text, JObject streamO)
+        public FeaturedStream(string channelUrl, string image, string text, JObject streamO, Twixel twixel)
         {
             this.image = new WebUrl(image);
             this.text = text;
-            this.stream = LoadStream(streamO);
-        }
-
-        Stream LoadStream(JObject o)
-        {
-            return new Stream((string)o["broadcaster"],
-                    (long)o["_id"],
-                    (string)o["preview"],
-                    (string)o["game"],
-                    (JObject)o["channel"],
-                    (string)o["name"],
-                    (int)o["viewers"]);
+            this.stream = twixel.LoadStream(streamO, channelUrl);
         }
     }
 }

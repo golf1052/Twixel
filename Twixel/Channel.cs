@@ -41,6 +41,7 @@ namespace TwixelAPI
             string background,
             string updatedAt,
             long id,
+            JArray teamsA,
             string status,
             string logo,
             string url,
@@ -58,8 +59,17 @@ namespace TwixelAPI
             string videos,
             string self,
             string follows,
-            string createdAt)
+            string createdAt,
+            Twixel twixel)
         {
+            teams = new List<Team>();
+            if (teamsA != null)
+            {
+                foreach (JObject team in teamsA)
+                {
+                    teams.Add(twixel.LoadTeam(team));
+                }
+            }
             this.mature = mature;
             if (background != null)
             {

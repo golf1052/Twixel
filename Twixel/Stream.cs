@@ -11,6 +11,7 @@ namespace TwixelAPI
 {
     public class Stream
     {
+        public WebUrl channelUrl;
         public string broadcaster;
         public long id;
         public WebUrl preview;
@@ -19,23 +20,25 @@ namespace TwixelAPI
         public string name;
         public int viewers;
 
-        public Stream(string broadcaster, long id, string preview, string game, JObject channelO, string name, int viewers)
+        public Stream(string channelUrl, string broadcaster, long id, string preview, string game, JObject channelO, string name, int viewers, Twixel twixel)
         {
+            this.channelUrl = new WebUrl(channelUrl);
             this.broadcaster = broadcaster;
             this.id = id;
             this.preview = new WebUrl(preview);
             this.game = game;
-            LoadChannel(channelO);
+            LoadChannel(channelO, twixel);
             this.name = name;
             this.viewers = viewers;
         }
 
-        void LoadChannel(JObject o)
+        void LoadChannel(JObject o, Twixel twixel)
         {
             channel = new Channel((string)o["mature"],
                 (string)o["background"],
                 (string)o["updated_at"],
                 (long)o["_id"],
+                (JArray)o["teams"],
                 (string)o["status"],
                 (string)o["logo"],
                 (string)o["url"],
@@ -53,7 +56,8 @@ namespace TwixelAPI
                 (string)o["_links"]["videos"],
                 (string)o["_links"]["self"],
                 (string)o["_links"]["follows"],
-                (string)o["created_at"]);
+                (string)o["created_at"],
+                twixel);
         }
     }
 }

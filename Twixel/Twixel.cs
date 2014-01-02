@@ -129,10 +129,11 @@ namespace TwixelAPI
             JObject stream = JObject.Parse(responseString);
             if (stream["stream"].ToString() != "")
             {
-                return LoadStream((JObject)stream["stream"]);
+                return LoadStream((JObject)stream["stream"], (string)stream["_links"]["channel"]);
             }
             else
             {
+                errorString = channelName + " is offline";
                 return null;
             }
         }
@@ -511,21 +512,23 @@ namespace TwixelAPI
 
             foreach (JObject obj in (JArray)o["streams"])
             {
-                streams.Add(LoadStream(obj));
+                streams.Add(LoadStream(obj, (string)o["_links"]["channel"]));
             }
 
             return streams;
         }
 
-        Stream LoadStream(JObject o)
+        internal Stream LoadStream(JObject o, string channel)
         {
-            return new Stream((string)o["broadcaster"],
+            return new Stream(channel,
+                (string)o["broadcaster"],
                     (long)o["_id"],
                     (string)o["preview"],
                     (string)o["game"],
                     (JObject)o["channel"],
                     (string)o["name"],
-                    (int)o["viewers"]);
+                    (int)o["viewers"],
+                    this);
         }
 
         List<FeaturedStream> LoadFeaturedStreams(JObject o)
@@ -535,7 +538,7 @@ namespace TwixelAPI
 
             foreach (JObject obj in (JArray)o["featured"])
             {
-                streams.Add(new FeaturedStream((string)obj["image"], (string)obj["text"], (JObject)obj["stream"]));
+                streams.Add(new FeaturedStream((string)obj["channel"]["_links"]["self"], (string)obj["image"], (string)obj["text"], (JObject)obj["stream"], this));
             }
 
             return streams;
@@ -577,7 +580,7 @@ namespace TwixelAPI
             return user;
         }
 
-        Team LoadTeam(JObject o)
+        internal Team LoadTeam(JObject o)
         {
             Team team = new Team((string)o["info"],
                 (string)o["background"],
