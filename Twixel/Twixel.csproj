@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Channel.cs" />
+    <Compile Include="Ingest.cs" />
     <Compile Include="Subscription.cs" />
     <Compile Include="TwitchConstants.cs" />
     <Compile Include="Emoticon.cs" />

@@ -667,6 +667,29 @@ namespace TwixelAPI
             return null;
         }
 
+        public async Task<List<Ingest>> RetrieveIngests()
+        {
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken/ingests");
+            string responseString = await GetWebData(uri);
+            if (responseString != "503")
+            {
+                List<Ingest> ingests = new List<Ingest>();
+                foreach (JObject o in (JArray)JObject.Parse(responseString)["ingests"])
+                {
+                    ingests.Add(LoadIngest(o));
+                }
+
+                return ingests;
+            }
+            else if (responseString == "503")
+            {
+                errorString = "Error retrieving ingest status";
+            }
+
+            return null;
+        }
+
         bool ContainsTeam(string name)
         {
             foreach (Team team in teams)
@@ -870,6 +893,16 @@ namespace TwixelAPI
             return channel;
         }
 
+        Ingest LoadIngest(JObject o)
+        {
+            Ingest ingest = new Ingest((string)o["name"],
+                (bool)o["default"],
+                (long)o["_id"],
+                (string)o["url_template"],
+                (double)o["availability"]);
+            return ingest;
+        }
+
         public static async Task<string> GetWebData(Uri uri)
         {
             HttpClient client = new HttpClient();
@@ -906,6 +939,10 @@ namespace TwixelAPI
             {
                 // 500 - Internal server error
                 return "500";
+            }
+            else if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            {
+                return "503";
             }
             else
             {
