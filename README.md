@@ -13,9 +13,9 @@ Stuff Added:
 /videos  
 /chat  
 /subscriptions  
+/channels  
 
 ToDo:  
-/channels  
 /follows  
 /ingests  
 /root  
