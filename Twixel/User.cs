@@ -29,6 +29,9 @@ namespace TwixelAPI
         List<User> blockedUsers;
         public int totalSubscribers;
         List<Subscription> subscribedUsers;
+        Channel channel;
+        List<User> channelEditors;
+        public string streamKey;
 
         public WebUrl nextSubs;
         public WebUrl nextFollows;
@@ -57,6 +60,7 @@ namespace TwixelAPI
             blockedUsers = new List<User>();
             subscribedUsers = new List<Subscription>();
             followedChannels = new List<Channel>();
+            channelEditors = new List<User>();
             authorized = true;
             this.accessToken = accessToken;
             this.authorizedScopes = authorizedScopes;
@@ -94,6 +98,7 @@ namespace TwixelAPI
             blockedUsers = new List<User>();
             subscribedUsers = new List<Subscription>();
             followedChannels = new List<Channel>();
+            channelEditors = new List<User>();
             authorized = false;
             this.name = name;
             if (logo != null)
@@ -139,6 +144,19 @@ namespace TwixelAPI
         bool ContainsBlockedUser(string username)
         {
             foreach (User user in blockedUsers)
+            {
+                if (user.name == username)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool ContainsEditor(string username)
+        {
+            foreach (User user in channelEditors)
             {
                 if (user.name == username)
                 {
@@ -516,6 +534,101 @@ namespace TwixelAPI
             }
 
             return null;
+        }
+
+        public async Task<Channel> RetrieveChannel(Twixel twixel)
+        {
+            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelRead))
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken/channel");
+                string responseString = await Twixel.GetWebData(uri, accessToken);
+                streamKey = (string)JObject.Parse(responseString)["stream_key"];
+                channel = twixel.LoadChannel(JObject.Parse(responseString));
+                return channel;
+            }
+
+            return null;
+        }
+
+        public async Task<List<User>> RetrieveChannelEditors(Twixel twixel)
+        {
+            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelRead))
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken/channels/" + name + "/editors");
+                string responseString = await Twixel.GetWebData(uri, accessToken);
+                foreach (JObject o in (JArray)JObject.Parse(responseString)["users"])
+                {
+                    if (!ContainsEditor((string)o["name"]))
+                    {
+                        channelEditors.Add(twixel.LoadUser(o));
+                    }
+                }
+
+                return channelEditors;
+            }
+
+            return null;
+        }
+
+        public async Task<Channel> UpdateChannel(string status, string game, Twixel twixel)
+        {
+            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelEditor))
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken/channels/" + name);
+                JObject content = new JObject();
+                content["channel"] = new JObject();
+                content["channel"]["status"] = status;
+                content["channel"]["game"] = game;
+                string responseString = await Twixel.PutWebData(uri, accessToken, content.ToString());
+                return twixel.LoadChannel(JObject.Parse(responseString));
+            }
+
+            return null;
+        }
+
+        public async Task<string> ResetStreamKey()
+        {
+            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelStream))
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken/channels/" + name + "/stream_key");
+                string responseString = await Twixel.DeleteWebData(uri, accessToken);
+                if (responseString != "422")
+                {
+                    streamKey = (string)JObject.Parse(responseString)["stream_key"];
+                    return streamKey;
+                }
+                else if (responseString == "422")
+                {
+                    errorString = "Error reseting stream key";
+                }
+            }
+
+            return null;
+        }
+
+        public async Task<bool> StartCommercial(TwitchConstants.Length length)
+        {
+            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelCommercial))
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken/channels/test_user1/commercial");
+                string responseString = await Twixel.PostWebData(uri, accessToken, "length=" + TwitchConstants.LengthToInt(length).ToString());
+                if (responseString == "")
+                {
+                    return true;
+                }
+                else if (responseString == "422")
+                {
+                    errorString = "You are not partnered so you cannot run commercials";
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         Subscription LoadSubscriber(JObject o, Twixel twixel)

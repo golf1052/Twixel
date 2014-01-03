@@ -649,6 +649,24 @@ namespace TwixelAPI
             return following;
         }
 
+        public async Task<Channel> RetrieveChannel(string name)
+        {
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken/channels/" + name);
+            string responseString = await GetWebData(uri);
+            if (responseString != "404")
+            {
+                return LoadChannel(JObject.Parse(responseString));
+            }
+            else if (responseString == "404")
+            {
+                errorString = name + " was not found";
+                return null;
+            }
+
+            return null;
+        }
+
         bool ContainsTeam(string name)
         {
             foreach (Team team in teams)
@@ -952,6 +970,30 @@ namespace TwixelAPI
             {
                 string responseString = await response.Content.ReadAsStringAsync();
                 return responseString;
+            }
+            else
+            {
+                return "Unknown status code";
+            }
+        }
+
+        public static async Task<string> PostWebData(Uri uri, string accessToken, string content)
+        {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            client.DefaultRequestHeaders.Add("Client-ID", clientID);
+            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
+            StringContent stringContent = new StringContent(content, Encoding.UTF8);
+            HttpResponseMessage response = await client.PostAsync(uri, stringContent);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string responseString = await response.Content.ReadAsStringAsync();
+                return responseString;
+            }
+            else if ((int)response.StatusCode == 422)
+            {
+                return "422";
             }
             else
             {

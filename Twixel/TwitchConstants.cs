@@ -40,6 +40,14 @@ namespace TwixelAPI.Constants
             Decending
         }
 
+        public enum Length
+        {
+            None,
+            Sec30,
+            Sec60,
+            Sec90
+        }
+
         public static string ScopeToString(Scope scope)
         {
             if (scope == Scope.UserRead)
@@ -221,6 +229,46 @@ namespace TwixelAPI.Constants
             else
             {
                 return Direction.None;
+            }
+        }
+
+        public static int LengthToInt(Length length)
+        {
+            if (length == Length.Sec30)
+            {
+                return 30;
+            }
+            else if (length == Length.Sec60)
+            {
+                return 60;
+            }
+            else if (length == Length.Sec90)
+            {
+                return 90;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        public static Length IntToLength(int length)
+        {
+            if (length == 30)
+            {
+                return Length.Sec30;
+            }
+            else if (length == 60)
+            {
+                return Length.Sec60;
+            }
+            else if (length == 90)
+            {
+                return Length.Sec90;
+            }
+            else
+            {
+                return Length.None;
             }
         }
     }
