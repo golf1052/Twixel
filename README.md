@@ -11,11 +11,12 @@ Stuff Added:
 /blocks 
 /teams  
 /videos  
+/chat  
+/subscriptions  
 
 ToDo:  
 /channels  
-/chat  
 /follows  
 /ingests  
 /root  
-/subscriptions  
+
