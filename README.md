@@ -13,10 +13,10 @@ Stuff Added:
 /videos  
 /chat  
 /subscriptions  
-/channels  
+/follows 
 
 ToDo:  
-/follows  
+/channels  
 /ingests  
 /root  
 
