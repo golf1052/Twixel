@@ -45,6 +45,7 @@
     <Compile Include="Team.cs" />
     <Compile Include="Twixel.cs" />
     <Compile Include="User.cs" />
+    <Compile Include="Video.cs" />
     <Compile Include="WebUrl.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -25,6 +25,14 @@ namespace TwixelAPI.Constants
             ChatLogin
         }
 
+        public enum Period
+        {
+            None,
+            Week,
+            Month,
+            All
+        }
+
         public static string ScopeToString(Scope scope)
         {
             if (scope == Scope.UserRead)
@@ -134,6 +142,46 @@ namespace TwixelAPI.Constants
             else
             {
                 return Scope.None;
+            }
+        }
+
+        public static string PeriodToString(Period period)
+        {
+            if (period == Period.Week)
+            {
+                return "week";
+            }
+            else if (period == Period.Month)
+            {
+                return "month";
+            }
+            else if (period == Period.All)
+            {
+                return "all";
+            }
+            else
+            {
+                return "none";
+            }
+        }
+
+        public static Period StringToPeriod(string period)
+        {
+            if (period == "week")
+            {
+                return Period.Week;
+            }
+            else if (period == "month")
+            {
+                return Period.Month;
+            }
+            else if (period == "all")
+            {
+                return Period.All;
+            }
+            else
+            {
+                return Period.None;
             }
         }
     }
