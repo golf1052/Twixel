@@ -631,6 +631,21 @@ namespace TwixelAPI
             return false;
         }
 
+        public async Task<bool> RetrieveAuthorizationStatus()
+        {
+            if (authorized)
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken");
+                string responseString = await Twixel.GetWebData(uri, accessToken);
+                return (bool)JObject.Parse(responseString)["token"]["valid"];
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         Subscription LoadSubscriber(JObject o, Twixel twixel)
         {
             Subscription sub = new Subscription((string)o["_id"], (JObject)o["user"], (string)o["created_at"], twixel);
