@@ -22,12 +22,16 @@ namespace TwixelAPI
         public string email;
         public bool? staff;
         public bool? partnered;
+        public DateTime createdAt;
+        public DateTime updatedAt;
         List<Stream> followedStreams;
+        List<Channel> followedChannels;
         List<User> blockedUsers;
         public int totalSubscribers;
         List<Subscription> subscribedUsers;
 
         public WebUrl nextSubs;
+        public WebUrl nextFollows;
 
         string errorString = "";
         public string ErrorString
@@ -46,15 +50,21 @@ namespace TwixelAPI
             string displayName,
             string email,
             bool? staff,
-            bool? partnered)
+            bool? partnered,
+            string createdAt,
+            string updatedAt)
         {
             blockedUsers = new List<User>();
             subscribedUsers = new List<Subscription>();
+            followedChannels = new List<Channel>();
             authorized = true;
             this.accessToken = accessToken;
             this.authorizedScopes = authorizedScopes;
             this.name = name;
-            this.logo = new WebUrl(logo);
+            if (logo != null)
+            {
+                this.logo = new WebUrl(logo);
+            }
             this.id = id;
             this.displayName = displayName;
             if (email != null)
@@ -69,25 +79,35 @@ namespace TwixelAPI
             {
                 this.partnered = partnered;
             }
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
         }
 
         public User(string name,
             string logo,
             long id,
             string displayName,
-            bool? staff)
+            bool? staff,
+            string createdAt,
+            string updatedAt)
         {
             blockedUsers = new List<User>();
             subscribedUsers = new List<Subscription>();
+            followedChannels = new List<Channel>();
             authorized = false;
             this.name = name;
-            this.logo = new WebUrl(logo);
+            if (logo != null)
+            {
+                this.logo = new WebUrl(logo);
+            }
             this.id = id;
             this.displayName = displayName;
             if (staff != null)
             {
                 this.staff = staff;
             }
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
         }
 
         User GetBlockedUser(string username)
@@ -134,6 +154,32 @@ namespace TwixelAPI
             foreach (Subscription sub in subscribedUsers)
             {
                 if (sub.user.name == username)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        Channel GetChannel(string name)
+        {
+            foreach (Channel channel in followedChannels)
+            {
+                if (channel.name == name)
+                {
+                    return channel;
+                }
+            }
+
+            return null;
+        }
+
+        bool ContainsChannel(string name)
+        {
+            foreach (Channel channel in followedChannels)
+            {
+                if (channel.name == name)
                 {
                     return true;
                 }
@@ -222,7 +268,7 @@ namespace TwixelAPI
                 }
                 else if (responseString == "422")
                 {
-                    errorString = username + " could not be deleted. Try again.";
+                    errorString = username + " could not be unblocked. Try again.";
                     return blockedUsers;
                 }
             }
@@ -344,6 +390,128 @@ namespace TwixelAPI
                 else if (responseString == "422")
                 {
                     errorString = channel + " has no subscription program";
+                }
+            }
+
+            return null;
+        }
+
+        public async Task<List<Channel>> RetrieveFollowing(bool getNext, Twixel twixel)
+        {
+            Uri uri;
+            if (!getNext)
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels");
+            }
+            else
+            {
+                if (nextFollows != null)
+                {
+                    uri = nextFollows.url;
+                }
+                else
+                {
+                    uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels");
+                }
+            }
+            string responseString = await Twixel.GetWebData(uri);
+            nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+            foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
+            {
+                if (!ContainsChannel((string)o["channel"]["name"]))
+                {
+                    followedChannels.Add(twixel.LoadChannel((JObject)o["channel"]));
+                }
+            }
+            return followedChannels;
+        }
+
+        public async Task<List<Channel>> RetrieveFollowing(int limit, Twixel twixel)
+        {
+            Uri uri;
+            if (limit <= 100)
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels&limit=" + limit.ToString());
+            }
+            else
+            {
+                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels&limit=100");
+                errorString = "You cannot get more than 100 channels at a time";
+            }
+            string responseString = await Twixel.GetWebData(uri);
+            nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+            foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
+            {
+                if (!ContainsChannel((string)o["channel"]["name"]))
+                {
+                    followedChannels.Add(twixel.LoadChannel((JObject)o["channel"]));
+                }
+            }
+            return followedChannels;
+        }
+
+        public async Task<Channel> RetrieveFollowing(string channel, Twixel twixel)
+        {
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels/" + channel);
+            string responseString = await Twixel.GetWebData(uri);
+            if (responseString != "404")
+            {
+                return twixel.LoadChannel((JObject)JObject.Parse(responseString)["channel"]);
+            }
+            else if (responseString == "404")
+            {
+                errorString = name + " is not following " + channel;
+            }
+
+            return null;
+        }
+
+        public async Task<Channel> FollowChannel(string channel, Twixel twixel)
+        {
+            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserFollowsEdit))
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels/" + channel);
+                string responseString = await Twixel.PutWebData(uri, accessToken, "");
+                if (responseString != "422")
+                {
+                    Channel temp = twixel.LoadChannel((JObject)JObject.Parse(responseString)["channel"]);
+                    if (!ContainsChannel((string)JObject.Parse(responseString)["channel"]["name"]))
+                    {
+                        followedChannels.Add(temp);
+                    }
+                    return temp;
+                }
+                else if (responseString == "422")
+                {
+                    errorString = "Could not follow " + channel;
+                }
+            }
+
+            return null;
+        }
+
+        public async Task<List<Channel>> UnfollowChannel(string channel)
+        {
+            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserFollowsEdit))
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels/" + channel);
+                string responseString = await Twixel.DeleteWebData(uri, accessToken);
+                if (responseString == "")
+                {
+                    followedChannels.Remove(GetChannel(channel));
+                    return followedChannels;
+                }
+                else if (responseString == "404")
+                {
+                    errorString = channel + " was never followed";
+                    return followedChannels;
+                }
+                else if (responseString == "422")
+                {
+                    errorString = channel + " could not be unfollowed. Try again.";
                 }
             }
 
