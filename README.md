@@ -8,7 +8,9 @@ Stuff Added:
 /search  
 /streams  
 /users  
-/blocks  
+/blocks 
+/teams  
+/videos  
 
 ToDo:  
 /channels  
@@ -17,5 +19,3 @@ ToDo:
 /ingests  
 /root  
 /subscriptions  
-/teams  
-/videos  
