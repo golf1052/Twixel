@@ -27,37 +27,9 @@ namespace TwixelAPI
             this.id = id;
             this.preview = new WebUrl(preview);
             this.game = game;
-            LoadChannel(channelO, twixel);
+            twixel.LoadChannel(channelO);
             this.name = name;
             this.viewers = viewers;
-        }
-
-        void LoadChannel(JObject o, Twixel twixel)
-        {
-            channel = new Channel((string)o["mature"],
-                (string)o["background"],
-                (string)o["updated_at"],
-                (long)o["_id"],
-                (JArray)o["teams"],
-                (string)o["status"],
-                (string)o["logo"],
-                (string)o["url"],
-                (string)o["display_name"],
-                (string)o["game"],
-                (string)o["banner"],
-                (string)o["name"],
-                (string)o["video_banner"],
-                (string)o["_links"]["chat"],
-                (string)o["_links"]["subscriptions"],
-                (string)o["_links"]["features"],
-                (string)o["_links"]["commercial"],
-                (string)o["_links"]["stream_key"],
-                (string)o["_links"]["editors"],
-                (string)o["_links"]["videos"],
-                (string)o["_links"]["self"],
-                (string)o["_links"]["follows"],
-                (string)o["created_at"],
-                twixel);
         }
     }
 }

@@ -33,6 +33,13 @@ namespace TwixelAPI.Constants
             All
         }
 
+        public enum Direction
+        {
+            None,
+            Ascending,
+            Decending
+        }
+
         public static string ScopeToString(Scope scope)
         {
             if (scope == Scope.UserRead)
@@ -77,7 +84,7 @@ namespace TwixelAPI.Constants
             }
             else if (scope == Scope.ChannelCheckSubscription)
             {
-                return "channel_check_subscriptions";
+                return "channel_check_subscription";
             }
             else if (scope == Scope.ChatLogin)
             {
@@ -131,7 +138,7 @@ namespace TwixelAPI.Constants
             {
                 return Scope.UserSubcriptions;
             }
-            else if (scope == "channel_check_subscriptions")
+            else if (scope == "channel_check_subscription")
             {
                 return Scope.ChannelCheckSubscription;
             }
@@ -182,6 +189,38 @@ namespace TwixelAPI.Constants
             else
             {
                 return Period.None;
+            }
+        }
+
+        public static string DirectionToString(Direction direction)
+        {
+            if (direction == Direction.Ascending)
+            {
+                return "asc";
+            }
+            else if (direction == Direction.Decending)
+            {
+                return "desc";
+            }
+            else
+            {
+                return "none";
+            }
+        }
+
+        public static Direction StringToDirection(string direction)
+        {
+            if (direction == "asc")
+            {
+                return Direction.Ascending;
+            }
+            else if (direction == "desc")
+            {
+                return Direction.Decending;
+            }
+            else
+            {
+                return Direction.None;
             }
         }
     }

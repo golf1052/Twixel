@@ -353,6 +353,18 @@ namespace TwixelAPI
             }
         }
 
+        public async Task<List<WebUrl>> RetrieveChat(string user)
+        {
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken/chat/" + user);
+            string responseString = await GetWebData(uri);
+            List<WebUrl> chatLinks = new List<WebUrl>();
+            chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["self"]));
+            chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["emoticons"]));
+            chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["badges"]));
+            return chatLinks;
+        }
+
         public async Task<List<Emoticon>> RetrieveEmoticons()
         {
             Uri uri;
@@ -742,6 +754,35 @@ namespace TwixelAPI
             return video;
         }
 
+        internal Channel LoadChannel(JObject o)
+        {
+            Channel channel = new Channel((string)o["mature"],
+                (string)o["background"],
+                (string)o["updated_at"],
+                (long)o["_id"],
+                (JArray)o["teams"],
+                (string)o["status"],
+                (string)o["logo"],
+                (string)o["url"],
+                (string)o["display_name"],
+                (string)o["game"],
+                (string)o["banner"],
+                (string)o["name"],
+                (string)o["video_banner"],
+                (string)o["_links"]["chat"],
+                (string)o["_links"]["subscriptions"],
+                (string)o["_links"]["features"],
+                (string)o["_links"]["commercial"],
+                (string)o["_links"]["stream_key"],
+                (string)o["_links"]["editors"],
+                (string)o["_links"]["videos"],
+                (string)o["_links"]["self"],
+                (string)o["_links"]["follows"],
+                (string)o["created_at"],
+                this);
+            return channel;
+        }
+
         public static async Task<string> GetWebData(Uri uri)
         {
             HttpClient client = new HttpClient();
@@ -809,6 +850,10 @@ namespace TwixelAPI
             {
                 // 404 - Summoner not found
                 return "404";
+            }
+            else if ((int)response.StatusCode == 422)
+            {
+                return "422";
             }
             else if (response.StatusCode == HttpStatusCode.InternalServerError)
             {
