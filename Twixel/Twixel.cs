@@ -63,6 +63,19 @@ namespace TwixelAPI
             clientSecret = secret;
         }
 
+        bool ContainsUser(string username)
+        {
+            foreach (User user in users)
+            {
+                if (user.name == username)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public async Task<List<Game>> RetrieveTopGames(bool getNext)
         {
             Uri uri;
@@ -331,7 +344,12 @@ namespace TwixelAPI
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/users/" + name);
             string responseString = await GetWebData(uri);
-            return LoadUser(JObject.Parse(responseString));
+            User user = LoadUser(JObject.Parse(responseString));
+            if (!ContainsUser(user.name))
+            {
+                users.Add(user);
+            }
+            return user;
         }
 
         public async Task<User> CreateUser(string accessToken, List<TwitchConstants.Scope> authorizedScopes)
@@ -341,7 +359,12 @@ namespace TwixelAPI
                 Uri uri;
                 uri = new Uri("https://api.twitch.tv/kraken/user");
                 string responseString = await GetWebData(uri, accessToken);
-                return LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
+                User user = LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
+                if (!ContainsUser(user.name))
+                {
+                    users.Add(user);
+                }
+                return user;
             }
             else
             {
@@ -800,7 +823,6 @@ namespace TwixelAPI
                 (bool?)o["staff"],
                 (string)o["created_at"],
                 (string)o["updated_at"]);
-            users.Add(user);
             return user;
         }
 
@@ -816,7 +838,6 @@ namespace TwixelAPI
                 (bool?)o["partnered"],
                 (string)o["created_at"],
                 (string)o["updated_at"]);
-            users.Add(user);
             return user;
         }
 
