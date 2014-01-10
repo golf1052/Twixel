@@ -188,16 +188,21 @@ namespace TwixelAPI
 
             if (game != "")
             {
-                uriString = "https://api.twitch.tv/kraken/streams?game=" + game + "&channel=";
-                for (int i = 0; i < channels.Count; i++)
+                uriString = "https://api.twitch.tv/kraken/streams?game=" + game;
+
+                if (channels.Count > 0)
                 {
-                    if (i != channels.Count - 1)
+                    uriString += "&channel=";
+                    for (int i = 0; i < channels.Count; i++)
                     {
-                        uriString += channels[i] + ",";
-                    }
-                    else
-                    {
-                        uriString += channels[i];
+                        if (i != channels.Count - 1)
+                        {
+                            uriString += channels[i] + ",";
+                        }
+                        else
+                        {
+                            uriString += channels[i];
+                        }
                     }
                 }
 
@@ -797,7 +802,7 @@ namespace TwixelAPI
 
             foreach (JObject obj in (JArray)o["featured"])
             {
-                streams.Add(new FeaturedStream((string)obj["channel"]["_links"]["self"], (string)obj["image"], (string)obj["text"], (JObject)obj["stream"], this));
+                streams.Add(new FeaturedStream((string)obj["stream"]["channel"]["_links"]["self"], (string)obj["image"], (string)obj["text"], (JObject)obj["stream"], this));
             }
 
             return streams;

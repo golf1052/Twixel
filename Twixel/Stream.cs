@@ -22,12 +22,15 @@ namespace TwixelAPI
 
         public Stream(string channelUrl, string broadcaster, long id, string preview, string game, JObject channelO, string name, int viewers, Twixel twixel)
         {
-            this.channelUrl = new WebUrl(channelUrl);
+            if (channelUrl != null)
+            {
+                this.channelUrl = new WebUrl(channelUrl);
+            }
             this.broadcaster = broadcaster;
             this.id = id;
             this.preview = new WebUrl(preview);
             this.game = game;
-            twixel.LoadChannel(channelO);
+            channel = twixel.LoadChannel(channelO);
             this.name = name;
             this.viewers = viewers;
         }
