@@ -170,7 +170,14 @@ namespace TwixelAPI
             }
 
             string responseString = await GetWebData(uri);
-            return LoadStreams(JObject.Parse(responseString));
+            if (TwitchConstants.GoodResponse(responseString))
+            {
+                return LoadStreams(JObject.Parse(responseString));
+            }
+            else
+            {
+                return new List<Stream>();
+            }
         }
 
         public async Task<List<Stream>> RetrieveStreams(string game)
@@ -178,7 +185,14 @@ namespace TwixelAPI
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/streams?game=" + game);
             string responseString = await GetWebData(uri);
-            return LoadStreams(JObject.Parse(responseString));
+            if (TwitchConstants.GoodResponse(responseString))
+            {
+                return LoadStreams(JObject.Parse(responseString));
+            }
+            else
+            {
+                return new List<Stream>();
+            }
         }
 
         public async Task<List<Stream>> RetrieveStreams(string game, List<string> channels, int limit, bool embeddable, bool hls)
@@ -269,7 +283,14 @@ namespace TwixelAPI
 
             uri = new Uri(uriString);
             string responseString = await GetWebData(uri);
-            return LoadStreams(JObject.Parse(responseString));
+            if (TwitchConstants.GoodResponse(responseString))
+            {
+                return LoadStreams(JObject.Parse(responseString));
+            }
+            else
+            {
+                return new List<Stream>();
+            }
         }
 
         public async Task<List<FeaturedStream>> RetrieveFeaturedStreams()
@@ -915,6 +936,11 @@ namespace TwixelAPI
                 (string)o["_links"]["self"],
                 (string)o["_links"]["follows"],
                 (string)o["created_at"],
+                (string)o["profile_banner"],
+                (string)o["primary_team_name"],
+                (string)o["primary_team_display_name"],
+                (long)o["views"],
+                (long)o["followers"],
                 this);
             return channel;
         }

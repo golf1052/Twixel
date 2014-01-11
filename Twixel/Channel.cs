@@ -24,6 +24,7 @@ namespace TwixelAPI
         public WebUrl banner;
         public string name;
         public WebUrl videoBanner;
+        public WebUrl profileBanner;
 
         public WebUrl chat;
         public WebUrl subscriptions;
@@ -36,6 +37,12 @@ namespace TwixelAPI
         public WebUrl follows;
 
         public string createdAt;
+
+        public string primaryTeamName;
+        public string primaryTeamDisplayName;
+        public long views;
+        public long followers;
+
 
         public Channel(string mature,
             string background,
@@ -60,6 +67,11 @@ namespace TwixelAPI
             string self,
             string follows,
             string createdAt,
+            string profileBanner,
+            string primaryTeamName,
+            string primaryTeamDisplayName,
+            long views,
+            long followers,
             Twixel twixel)
         {
             teams = new List<Team>();
@@ -104,6 +116,20 @@ namespace TwixelAPI
             this.self = new WebUrl(self);
             this.follows = new WebUrl(follows);
             this.createdAt = createdAt;
+            if (profileBanner != null)
+            {
+                this.profileBanner = new WebUrl(profileBanner);
+            }
+            if (primaryTeamName != null)
+            {
+                this.primaryTeamName = primaryTeamName;
+            }
+            if (primaryTeamDisplayName != null)
+            {
+                this.primaryTeamDisplayName = primaryTeamDisplayName;
+            }
+            this.views = views;
+            this.followers = followers;
         }
     }
 }

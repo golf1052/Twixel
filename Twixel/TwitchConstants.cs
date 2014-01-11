@@ -271,5 +271,17 @@ namespace TwixelAPI.Constants
                 return Length.None;
             }
         }
+
+        public static bool GoodResponse(string response)
+        {
+            if (response != "400" && response != "401" && response != "404" && response != "422" && response != "500" && response != "503" && response != "Unknown status code")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }
