@@ -590,7 +590,7 @@ namespace TwixelAPI
             Uri uri;
             if (!getNext)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel);
+                uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
             }
             else
             {
@@ -600,7 +600,7 @@ namespace TwixelAPI
                 }
                 else
                 {
-                    uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel);
+                    uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
                 }
             }
             string responseString = await GetWebData(uri);
@@ -680,11 +680,11 @@ namespace TwixelAPI
 
             if (limit <= 100)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows&limit=" + limit.ToString());
+                uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows?limit=" + limit.ToString());
             }
             else
             {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows&limit=100");
+                uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows?limit=100");
                 errorString = "You cannot retrieve more than 100 followers at a time";
             }
 
@@ -737,6 +737,21 @@ namespace TwixelAPI
             }
 
             return null;
+        }
+
+        public async Task<bool> RetrieveAuthorizationStatus()
+        {
+            if (authorized)
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken");
+                string responseString = await Twixel.GetWebData(uri, accessToken);
+                return (bool)JObject.Parse(responseString)["token"]["valid"];
+            }
+            else
+            {
+                return false;
+            }
         }
 
         bool ContainsTeam(string name)
@@ -848,7 +863,8 @@ namespace TwixelAPI
                 (string)o["display_name"],
                 (bool?)o["staff"],
                 (string)o["created_at"],
-                (string)o["updated_at"]);
+                (string)o["updated_at"],
+                (string)o["bio"]);
             return user;
         }
 
@@ -863,7 +879,8 @@ namespace TwixelAPI
                 (bool?)o["staff"],
                 (bool?)o["partnered"],
                 (string)o["created_at"],
-                (string)o["updated_at"]);
+                (string)o["updated_at"],
+                (string)o["bio"]);
             return user;
         }
 
@@ -939,8 +956,8 @@ namespace TwixelAPI
                 (string)o["profile_banner"],
                 (string)o["primary_team_name"],
                 (string)o["primary_team_display_name"],
-                (long)o["views"],
-                (long)o["followers"],
+                (long?)o["views"],
+                (long?)o["followers"],
                 this);
             return channel;
         }

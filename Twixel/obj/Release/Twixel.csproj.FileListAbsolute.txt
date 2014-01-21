@@ -12,3 +12,4 @@ C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\bin\Release\System.Net.Http.Pri
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Release\Twixel.csproj.App.config
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Release\Twixel.dll
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Release\Twixel.pdb
+C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Release\Twixel.csprojResolveAssemblyReference.cache

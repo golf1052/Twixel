@@ -69,10 +69,19 @@ namespace TwixelAPI
             string name)
         {
             this.recordedAt = DateTime.Parse(recordedAt);
-            this.title = title;
-            this.url = new WebUrl(url);
+            if (title != null)
+            {
+                this.title = title;
+            }
+            if (url != null)
+            {
+                this.url = new WebUrl(url);
+            }
             this.id = id;
-            this.channel = new WebUrl(channel);
+            if (url != null)
+            {
+                this.channel = new WebUrl(channel);
+            }
             this.views = views;
             if (description != null)
             {
@@ -83,8 +92,14 @@ namespace TwixelAPI
             {
                 this.game = game;
             }
-            this.preview = new WebUrl(preview);
-            this.name = name;
+            if (preview != null)
+            {
+                this.preview = new WebUrl(preview);
+            }
+            if (preview != null)
+            {
+                this.name = name;
+            }
         }
     }
 }

@@ -40,9 +40,8 @@ namespace TwixelAPI
 
         public string primaryTeamName;
         public string primaryTeamDisplayName;
-        public long views;
-        public long followers;
-
+        public long? views;
+        public long? followers;
 
         public Channel(string mature,
             string background,
@@ -70,8 +69,8 @@ namespace TwixelAPI
             string profileBanner,
             string primaryTeamName,
             string primaryTeamDisplayName,
-            long views,
-            long followers,
+            long? views,
+            long? followers,
             Twixel twixel)
         {
             teams = new List<Team>();

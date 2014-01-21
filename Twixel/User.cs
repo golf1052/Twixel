@@ -32,6 +32,7 @@ namespace TwixelAPI
         Channel channel;
         List<User> channelEditors;
         public string streamKey;
+        public string bio;
 
         public WebUrl nextSubs;
         public WebUrl nextFollows;
@@ -55,7 +56,8 @@ namespace TwixelAPI
             bool? staff,
             bool? partnered,
             string createdAt,
-            string updatedAt)
+            string updatedAt,
+            string bio)
         {
             blockedUsers = new List<User>();
             subscribedUsers = new List<Subscription>();
@@ -85,6 +87,10 @@ namespace TwixelAPI
             }
             this.createdAt = DateTime.Parse(createdAt);
             this.updatedAt = DateTime.Parse(updatedAt);
+            if (bio != null)
+            {
+                this.bio = bio;
+            }
         }
 
         public User(string name,
@@ -93,7 +99,8 @@ namespace TwixelAPI
             string displayName,
             bool? staff,
             string createdAt,
-            string updatedAt)
+            string updatedAt,
+            string bio)
         {
             blockedUsers = new List<User>();
             subscribedUsers = new List<Subscription>();
@@ -113,6 +120,10 @@ namespace TwixelAPI
             }
             this.createdAt = DateTime.Parse(createdAt);
             this.updatedAt = DateTime.Parse(updatedAt);
+            if (bio != null)
+            {
+                this.bio = bio;
+            }
         }
 
         User GetBlockedUser(string username)
@@ -629,21 +640,6 @@ namespace TwixelAPI
             }
 
             return false;
-        }
-
-        public async Task<bool> RetrieveAuthorizationStatus()
-        {
-            if (authorized)
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken");
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                return (bool)JObject.Parse(responseString)["token"]["valid"];
-            }
-            else
-            {
-                return false;
-            }
         }
 
         Subscription LoadSubscriber(JObject o, Twixel twixel)
