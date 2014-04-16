@@ -13,10 +13,18 @@ using TwixelAPI.Constants;
 
 namespace TwixelAPI
 {
+    public delegate void TwixelErrorHandler(object source, TwixelErrorEventArgs e);
+    public class TwixelErrorEventArgs : EventArgs
+    {
+        public string ErrorString { get; set; }
+    }
+
     public class Twixel
     {
         public static string clientID = "";
         public static string clientSecret = "";
+
+        public event TwixelErrorHandler TwixelErrorEvent;
 
         string errorString = "";
         public string ErrorString
@@ -126,6 +134,9 @@ namespace TwixelAPI
                     uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=100&hls=true");
                 }
                 errorString = "The max number of top games you can get at one time is 100";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
             }
 
             string responseString = await GetWebData(uri);
@@ -146,6 +157,9 @@ namespace TwixelAPI
             else
             {
                 errorString = channelName + " is offline";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
                 return null;
             }
         }
@@ -361,6 +375,9 @@ namespace TwixelAPI
             else
             {
                 errorString = "You must have at least 1 scope";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
                 return null;
             }
         }
@@ -395,6 +412,9 @@ namespace TwixelAPI
             else
             {
                 errorString = "This user has not given user_read permissions";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
                 return null;
             }
         }
@@ -493,6 +513,9 @@ namespace TwixelAPI
             {
                 uri = new Uri("https://api.twitch.tv/kraken/teams?limit=100");
                 errorString = "The max number of teams you can get at once is 100";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
             }
             string responseString = await GetWebData(uri);
             nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
@@ -562,6 +585,9 @@ namespace TwixelAPI
             {
                 url += "?limit=100";
                 errorString = "You cannot load more than 100 videos at a time";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
             }
 
             if (game != "")
@@ -624,6 +650,9 @@ namespace TwixelAPI
             {
                 url += "/videos?limit=100";
                 errorString = "You cannot load more than 100 videos at a time";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
             }
 
             if (broadcasts)
@@ -686,6 +715,9 @@ namespace TwixelAPI
             {
                 uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows?limit=100");
                 errorString = "You cannot retrieve more than 100 followers at a time";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
             }
 
             string responseString = await GetWebData(uri);
@@ -710,6 +742,9 @@ namespace TwixelAPI
             else if (responseString == "404")
             {
                 errorString = name + " was not found";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
                 return null;
             }
 
@@ -734,23 +769,37 @@ namespace TwixelAPI
             else if (responseString == "503")
             {
                 errorString = "Error retrieving ingest status";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                TwixelErrorEvent(this, error);
             }
 
             return null;
         }
 
-        public async Task<bool> RetrieveAuthorizationStatus()
+        public async Task<User> CreateUserWithAccessToken(string accessToken)
         {
-            if (authorized)
+            Uri uri;
+            uri = new Uri("https://api.twitch.tv/kraken");
+            string responseString = await Twixel.GetWebData(uri, accessToken);
+            JObject o = JObject.Parse(responseString);
+            if ((bool)JObject.Parse(responseString)["token"]["valid"])
             {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken");
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                return (bool)JObject.Parse(responseString)["token"]["valid"];
+                JArray userScopesA = (JArray)o["token"]["authorization"]["scopes"];
+                List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
+                foreach (string scope in userScopesA)
+                {
+                    userScopes.Add(TwitchConstants.StringToScope(scope));
+                }
+                return await CreateUser(accessToken, userScopes);
             }
             else
             {
-                return false;
+                errorString = accessToken + " is not authorized";
+                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
+                error.ErrorString = errorString;
+                //TwixelErrorEvent(this, error);
+                return null;
             }
         }
 
