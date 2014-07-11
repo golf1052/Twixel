@@ -104,7 +104,12 @@ namespace TwixelAPI
                 }
             }
 
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadGames(JObject.Parse(responseString));
         }
 
@@ -139,7 +144,12 @@ namespace TwixelAPI
                 TwixelErrorEvent(this, error);
             }
 
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadGames(JObject.Parse(responseString));
         }
 
@@ -148,7 +158,12 @@ namespace TwixelAPI
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/streams/" + channelName);
 
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             JObject stream = JObject.Parse(responseString);
             if (stream["stream"].ToString() != "")
             {
@@ -183,7 +198,12 @@ namespace TwixelAPI
                 }
             }
 
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             if (TwitchConstants.GoodResponse(responseString))
             {
                 return LoadStreams(JObject.Parse(responseString));
@@ -198,7 +218,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/streams?game=" + game);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             if (TwitchConstants.GoodResponse(responseString))
             {
                 return LoadStreams(JObject.Parse(responseString));
@@ -296,7 +321,12 @@ namespace TwixelAPI
             }
 
             uri = new Uri(uriString);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             if (TwitchConstants.GoodResponse(responseString))
             {
                 return LoadStreams(JObject.Parse(responseString));
@@ -311,7 +341,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/streams/featured");
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadFeaturedStreams(JObject.Parse(responseString));
         }
 
@@ -326,7 +361,12 @@ namespace TwixelAPI
             {
                 uri = new Uri("https://api.twitch.tv/kraken/streams/featured?limit=" + limit.ToString() + "&hls=true");
             }
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadFeaturedStreams(JObject.Parse(responseString));
         }
 
@@ -334,7 +374,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/streams/summary");
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             JObject summary = JObject.Parse(responseString);
             summaryViewers = (int)summary["viewers"];
             summaryChannels = (int)summary["channels"];
@@ -386,7 +431,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/users/" + name);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             User user = LoadUser(JObject.Parse(responseString));
             if (!ContainsUser(user.name))
             {
@@ -401,7 +451,12 @@ namespace TwixelAPI
             {
                 Uri uri;
                 uri = new Uri("https://api.twitch.tv/kraken/user");
-                string responseString = await GetWebData(uri, accessToken);
+                string responseString;
+                do
+                {
+                    responseString = await GetWebData(uri, accessToken);
+                }
+                while (!GoodStatusCode(responseString));
                 User user = LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
                 if (!ContainsUser(user.name))
                 {
@@ -423,7 +478,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/chat/" + user);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             List<WebUrl> chatLinks = new List<WebUrl>();
             chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["self"]));
             chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["emoticons"]));
@@ -435,7 +495,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/chat/emoticons");
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadEmoticons(JObject.Parse(responseString));
         }
 
@@ -443,7 +508,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadStreams(JObject.Parse(responseString));
         }
 
@@ -451,7 +521,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query + "&limit=" + limit.ToString());
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadStreams(JObject.Parse(responseString));
         }
 
@@ -468,7 +543,12 @@ namespace TwixelAPI
                 uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=false");
             }
 
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadSearchedGames(JObject.Parse(responseString));
         }
 
@@ -490,7 +570,12 @@ namespace TwixelAPI
                     uri = new Uri("https://api.twitch.tv/kraken/teams");
                 }
             }
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
             foreach (JObject o in JObject.Parse(responseString)["teams"])
             {
@@ -517,7 +602,12 @@ namespace TwixelAPI
                 error.ErrorString = errorString;
                 TwixelErrorEvent(this, error);
             }
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
             foreach (JObject o in JObject.Parse(responseString)["teams"])
             {
@@ -533,7 +623,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/teams/" + name);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadTeam(JObject.Parse(responseString));
         }
 
@@ -541,7 +636,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/videos/" + id);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             return LoadVideo(JObject.Parse(responseString));
         }
 
@@ -563,7 +663,12 @@ namespace TwixelAPI
                     uri = new Uri("https://api.twitch.tv/kraken/videos/top");
                 }
             }
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
             List<Video> videos = new List<Video>();
             foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
@@ -601,7 +706,12 @@ namespace TwixelAPI
             }
 
             uri = new Uri(url);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             List<Video> videos = new List<Video>();
             nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
             foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
@@ -629,7 +739,12 @@ namespace TwixelAPI
                     uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
                 }
             }
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             List<Video> videos = new List<Video>();
             foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
             {
@@ -665,7 +780,12 @@ namespace TwixelAPI
             }
 
             uri = new Uri(url);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             List<Video> videos = new List<Video>();
             nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
             foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
@@ -693,7 +813,12 @@ namespace TwixelAPI
                     uri = uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows");
                 }
             }
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             List<User> following = new List<User>();
             nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
             foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
@@ -720,7 +845,12 @@ namespace TwixelAPI
                 TwixelErrorEvent(this, error);
             }
 
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             List<User> following = new List<User>();
             nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
             foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
@@ -734,7 +864,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/channels/" + name);
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             if (responseString != "404")
             {
                 return LoadChannel(JObject.Parse(responseString));
@@ -755,7 +890,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/ingests");
-            string responseString = await GetWebData(uri);
+            string responseString;
+            do
+            {
+                responseString = await GetWebData(uri);
+            }
+            while (!GoodStatusCode(responseString));
             if (responseString != "503")
             {
                 List<Ingest> ingests = new List<Ingest>();
@@ -781,7 +921,12 @@ namespace TwixelAPI
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken");
-            string responseString = await Twixel.GetWebData(uri, accessToken);
+            string responseString;
+            do
+            {
+                responseString = await Twixel.GetWebData(uri, accessToken);
+            }
+            while (!GoodStatusCode(responseString));
             JObject o = JObject.Parse(responseString);
             if ((bool)JObject.Parse(responseString)["token"]["valid"])
             {
@@ -801,6 +946,22 @@ namespace TwixelAPI
                 //TwixelErrorEvent(this, error);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Checks to see if the status code returned was 200.
+        /// </summary>
+        /// <param name="response">The response</param>
+        /// <returns>If the status code was ok or not</returns>
+        public static bool GoodStatusCode(string response)
+        {
+            return response != "400" &&
+                response != "401" &&
+                response != "404" &&
+                response != "422" &&
+                response != "500" &&
+                response != "503" &&
+                response != "Unknown status code";
         }
 
         bool ContainsTeam(string name)
@@ -849,7 +1010,7 @@ namespace TwixelAPI
                     (int?)obj["viewers"],
                     (int?)obj["channels"],
                     (JObject)obj["images"],
-                    (int)obj["popularity"]));
+                    (int?)obj["popularity"]));
             }
             return games;
         }
@@ -871,12 +1032,12 @@ namespace TwixelAPI
         {
             return new Stream(channel,
                 (string)o["broadcaster"],
-                    (long)o["_id"],
+                    (long?)o["_id"],
                     (string)o["preview"],
                     (string)o["game"],
                     (JObject)o["channel"],
                     (string)o["name"],
-                    (int)o["viewers"],
+                    (int?)o["viewers"],
                     this);
         }
 
@@ -1064,6 +1225,7 @@ namespace TwixelAPI
             }
             else
             {
+                Debug.WriteLine((int)response.StatusCode);
                 return "Unknown status code";
             }
         }

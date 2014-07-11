@@ -25,7 +25,6 @@ namespace TwixelAPI
         public DateTime createdAt;
         public DateTime updatedAt;
         List<Stream> followedStreams;
-        List<Channel> followedChannels;
         List<User> blockedUsers;
         public int totalSubscribers;
         List<Subscription> subscribedUsers;
@@ -35,7 +34,8 @@ namespace TwixelAPI
         public string bio;
 
         public WebUrl nextSubs;
-        public WebUrl nextFollows;
+        public WebUrl nextFollowing;
+        public WebUrl nextFollowingStreams;
 
         string errorString = "";
         public string ErrorString
@@ -61,7 +61,6 @@ namespace TwixelAPI
         {
             blockedUsers = new List<User>();
             subscribedUsers = new List<Subscription>();
-            followedChannels = new List<Channel>();
             channelEditors = new List<User>();
             authorized = true;
             this.accessToken = accessToken;
@@ -104,7 +103,6 @@ namespace TwixelAPI
         {
             blockedUsers = new List<User>();
             subscribedUsers = new List<Subscription>();
-            followedChannels = new List<Channel>();
             channelEditors = new List<User>();
             authorized = false;
             this.name = name;
@@ -191,34 +189,8 @@ namespace TwixelAPI
             return false;
         }
 
-        Channel GetChannel(string name)
-        {
-            foreach (Channel channel in followedChannels)
-            {
-                if (channel.name == name)
-                {
-                    return channel;
-                }
-            }
-
-            return null;
-        }
-
-        bool ContainsChannel(string name)
-        {
-            foreach (Channel channel in followedChannels)
-            {
-                if (channel.name == name)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         // Only returns the streams that are currently online
-        public async Task<List<Stream>> RetriveFollowedStreams(Twixel twixel)
+        public async Task<List<Stream>> RetriveOnlineFollowedStreams(Twixel twixel)
         {
             if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
             {
@@ -434,9 +406,9 @@ namespace TwixelAPI
             }
             else
             {
-                if (nextFollows != null)
+                if (nextFollowing != null)
                 {
-                    uri = nextFollows.url;
+                    uri = nextFollowing.url;
                 }
                 else
                 {
@@ -444,13 +416,11 @@ namespace TwixelAPI
                 }
             }
             string responseString = await Twixel.GetWebData(uri);
-            nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+            nextFollowing = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+            List<Channel> followedChannels = new List<Channel>();
             foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
             {
-                if (!ContainsChannel((string)o["channel"]["name"]))
-                {
-                    followedChannels.Add(twixel.LoadChannel((JObject)o["channel"]));
-                }
+                followedChannels.Add(twixel.LoadChannel((JObject)o["channel"]));
             }
             return followedChannels;
         }
@@ -460,21 +430,19 @@ namespace TwixelAPI
             Uri uri;
             if (limit <= 100)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels&limit=" + limit.ToString());
+                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels?limit=" + limit.ToString());
             }
             else
             {
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels&limit=100");
+                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels?limit=100");
                 errorString = "You cannot get more than 100 channels at a time";
             }
             string responseString = await Twixel.GetWebData(uri);
-            nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+            nextFollowing = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+            List<Channel> followedChannels = new List<Channel>();
             foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
             {
-                if (!ContainsChannel((string)o["channel"]["name"]))
-                {
-                    followedChannels.Add(twixel.LoadChannel((JObject)o["channel"]));
-                }
+                followedChannels.Add(twixel.LoadChannel((JObject)o["channel"]));
             }
             return followedChannels;
         }
@@ -506,10 +474,6 @@ namespace TwixelAPI
                 if (responseString != "422")
                 {
                     Channel temp = twixel.LoadChannel((JObject)JObject.Parse(responseString)["channel"]);
-                    if (!ContainsChannel((string)JObject.Parse(responseString)["channel"]["name"]))
-                    {
-                        followedChannels.Add(temp);
-                    }
                     return temp;
                 }
                 else if (responseString == "422")
@@ -530,13 +494,11 @@ namespace TwixelAPI
                 string responseString = await Twixel.DeleteWebData(uri, accessToken);
                 if (responseString == "")
                 {
-                    followedChannels.Remove(GetChannel(channel));
-                    return followedChannels;
+                    return new List<Channel>();
                 }
                 else if (responseString == "404")
                 {
-                    errorString = channel + " was never followed";
-                    return followedChannels;
+                    return null;
                 }
                 else if (responseString == "422")
                 {

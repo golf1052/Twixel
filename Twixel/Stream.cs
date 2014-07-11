@@ -13,26 +13,40 @@ namespace TwixelAPI
     {
         public WebUrl channelUrl;
         public string broadcaster;
-        public long id;
+        public long? id;
         public WebUrl preview;
         public string game;
         public Channel channel;
         public string name;
-        public int viewers;
+        public int? viewers;
 
-        public Stream(string channelUrl, string broadcaster, long id, string preview, string game, JObject channelO, string name, int viewers, Twixel twixel)
+        public Stream(string channelUrl, string broadcaster, long? id, string preview, string game, JObject channelO, string name, int? viewers, Twixel twixel)
         {
             if (channelUrl != null)
             {
                 this.channelUrl = new WebUrl(channelUrl);
             }
             this.broadcaster = broadcaster;
-            this.id = id;
+            if (id == null)
+            {
+                this.id = -1;
+            }
+            else
+            {
+                this.id = id;
+            }
             this.preview = new WebUrl(preview);
             this.game = game;
             channel = twixel.LoadChannel(channelO);
             this.name = name;
-            this.viewers = viewers;
+            if (viewers == null)
+            {
+                this.viewers = -1;
+            }
+            else
+            {
+                this.viewers = viewers;
+            }
         }
     }
 }

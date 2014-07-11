@@ -18,7 +18,8 @@ namespace TwixelAPI
         public WebUrl imagesMedium;
         public WebUrl imagesIcon;
         public WebUrl imagesScreen;
-        public int popularity;
+        public int? popularity;
+        Game baseGame;
 
         public SearchedGame(string name,
             JObject boxO,
@@ -28,10 +29,11 @@ namespace TwixelAPI
             int? viewers,
             int? channels,
             JObject imagesO,
-            int popularity) : base(name, boxO, logoO, id, giantBombId, viewers, channels)
+            int? popularity) : base(name, boxO, logoO, id, giantBombId, viewers, channels)
         {
             this.popularity = popularity;
             LoadImages(imagesO);
+            baseGame = new Game(name, boxO, logoO, id, giantBombId, 0, 0);
         }
 
         // Also a little note Twitch NEVER uses this...
@@ -47,6 +49,11 @@ namespace TwixelAPI
                 imagesIcon = new WebUrl((string)o["icon"]);
                 imagesScreen = new WebUrl((string)o["screen"]);
             }
+        }
+
+        public Game ToGame()
+        {
+            return baseGame;
         }
     }
 }
