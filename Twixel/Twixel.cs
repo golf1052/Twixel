@@ -84,6 +84,11 @@ namespace TwixelAPI
             return false;
         }
 
+        /// <summary>
+        /// Gets games by number of viewers
+        /// </summary>
+        /// <param name="getNext">If this method was called before then this will get the next page of games</param>
+        /// <returns>A list of games (default length 25)</returns>
         public async Task<List<Game>> RetrieveTopGames(bool getNext)
         {
             Uri uri;
@@ -113,6 +118,12 @@ namespace TwixelAPI
             return LoadGames(JObject.Parse(responseString));
         }
 
+        /// <summary>
+        /// Gets games by number of viewers, can specify how many games to get
+        /// </summary>
+        /// <param name="limit">How many games to get, can get up to 100 games</param>
+        /// <param name="hls">Get only HLS streams?</param>
+        /// <returns>A list of games</returns>
         public async Task<List<Game>> RetrieveTopGames(int limit, bool hls)
         {
             Uri uri;
@@ -130,18 +141,11 @@ namespace TwixelAPI
             }
             else
             {
-                if (!hls)
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=100");
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=100&hls=true");
-                }
                 errorString = "The max number of top games you can get at one time is 100";
                 TwixelErrorEventArgs error = new TwixelErrorEventArgs();
                 error.ErrorString = errorString;
                 TwixelErrorEvent(this, error);
+                return null;
             }
 
             string responseString;

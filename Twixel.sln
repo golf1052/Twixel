@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30324.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Twixel", "Twixel\Twixel.csproj", "{DFD0DB77-DBC7-4B79-8747-F9CAF6274DBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Twixel.Tests", "Twixel.Tests\Twixel.Tests.csproj", "{F7330052-1CA3-4B82-BC2A-3C962FD243B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,16 @@ Global
 		{DFD0DB77-DBC7-4B79-8747-F9CAF6274DBE}.Release|ARM.ActiveCfg = Release|Any CPU
 		{DFD0DB77-DBC7-4B79-8747-F9CAF6274DBE}.Release|x64.ActiveCfg = Release|Any CPU
 		{DFD0DB77-DBC7-4B79-8747-F9CAF6274DBE}.Release|x86.ActiveCfg = Release|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Release|ARM.ActiveCfg = Release|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Release|x64.ActiveCfg = Release|Any CPU
+		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
