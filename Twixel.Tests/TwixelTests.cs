@@ -62,8 +62,8 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveStreamTest()
         {
-            bool streamOnline = false;
-            twixel.TwixelErrorEvent += (o, e) => streamOnline = true;
+            bool streamOffline = false;
+            twixel.TwixelErrorEvent += (o, e) => streamOffline = true;
             Stream stream = null;
             stream = await twixel.RetrieveStream("imaqtpie");
             if (stream != null)
@@ -72,13 +72,23 @@ namespace TwixelAPI.Tests
             }
             else
             {
-                Assert.True(streamOnline);
+                Assert.True(streamOffline);
             }
 
             bool myStreamOffline = false; // will probably always be false
             twixel.TwixelErrorEvent += (o, e) => myStreamOffline = true;
             stream = await twixel.RetrieveStream("golf1052");
             Assert.True(myStreamOffline);
+        }
+
+        [Fact]
+        public async void RetrieveStreamsTest()
+        {
+            List<Stream> topStreams = await twixel.RetrieveStreams(false);
+            Assert.Equal(25, topStreams.Count);
+
+            List<Stream> leagueStreams = await twixel.RetrieveStreams("League of Legends");
+            Assert.Equal(leagueStreams[0].game, "League of Legends");
         }
     }
 }
