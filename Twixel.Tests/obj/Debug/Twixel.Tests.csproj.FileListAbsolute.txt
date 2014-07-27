@@ -18,3 +18,4 @@ C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\bin\Debug\System.Net.Http
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\obj\Debug\Twixel.Tests.csprojResolveAssemblyReference.cache
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\obj\Debug\Twixel.Tests.dll
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\obj\Debug\Twixel.Tests.pdb
+C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\bin\Debug\Twixel.xml

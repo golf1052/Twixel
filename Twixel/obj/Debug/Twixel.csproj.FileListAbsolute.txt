@@ -13,3 +13,4 @@ C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.csproj.App.con
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.dll
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.pdb
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\obj\Debug\Twixel.csprojResolveAssemblyReference.cache
+C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel\bin\Debug\Twixel.XML
