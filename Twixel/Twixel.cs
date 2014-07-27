@@ -16,17 +16,42 @@ namespace TwixelAPI
     public delegate void TwixelErrorHandler(object source, TwixelErrorEventArgs e);
     public class TwixelErrorEventArgs : EventArgs
     {
-        public string ErrorString { get; set; }
+        /// <summary>
+        /// The error that occurred
+        /// </summary>
+        public string ErrorString { get; internal set; }
     }
 
+    /// <summary>
+    /// Twixel class
+    /// </summary>
     public class Twixel
     {
+        /// <summary>
+        /// Your client ID
+        /// </summary>
         public static string clientID = "";
+
+        /// <summary>
+        /// Your client secret
+        /// </summary>
         public static string clientSecret = "";
 
+        /// <summary>
+        /// Your redirect URL
+        /// </summary>
+        public string redirectUrl = "";
+
+        /// <summary>
+        /// Twixel error event
+        /// </summary>
         public event TwixelErrorHandler TwixelErrorEvent;
 
         string errorString = "";
+
+        /// <summary>
+        /// Error string, is set when error occurs
+        /// </summary>
         public string ErrorString
         {
             get
@@ -36,27 +61,46 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// The next games url
+        /// The next games URL
         /// </summary>
         public WebUrl nextGames;
+
+        /// <summary>
+        /// How many games are live on Twitch at the moment
+        /// </summary>
         public int? maxGames;
 
         /// <summary>
-        /// The next streams url
+        /// The next streams URL
         /// </summary>
-        /// <remarks>Used by RetrieveStreams()</remarks>
         public WebUrl nextStreams;
 
+        /// <summary>
+        /// The next teams URL
+        /// </summary>
         public WebUrl nextTeams;
 
+        /// <summary>
+        /// The next videos URL
+        /// </summary>
         public WebUrl nextVideos;
 
+        /// <summary>
+        /// The next follows URL
+        /// </summary>
         public WebUrl nextFollows;
 
-        public Twixel(string id, string secret)
+        /// <summary>
+        /// Twixel constructor
+        /// </summary>
+        /// <param name="id">Your client ID</param>
+        /// <param name="secret">Your client secret</param>
+        /// <param name="url">Your redirect URL, should not have / at end</param>
+        public Twixel(string id, string secret, string url)
         {
             clientID = id;
             clientSecret = secret;
+            redirectUrl = url;
         }
 
         /// <summary>
@@ -100,8 +144,8 @@ namespace TwixelAPI
         /// <summary>
         /// Gets games by number of viewers, can specify how many games to get
         /// </summary>
-        /// <param name="limit">How many games to get, can get up to 100 games</param>
-        /// <param name="hls">Get only HLS streams?</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
+        /// <param name="hls">If set to true, only returns streams using HLS</param>
         /// <returns>A list of games</returns>
         public async Task<List<Game>> RetrieveTopGames(int limit, bool hls)
         {
@@ -137,6 +181,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a live stream. If the stream is offline this method will return null.
+        /// </summary>
+        /// <param name="channelName">The channel stream to get</param>
+        /// <returns>A stream object</returns>
         public async Task<Stream> RetrieveStream(string channelName)
         {
             Uri uri;
@@ -164,6 +213,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the top live streams on Twitch
+        /// </summary>
+        /// <param name="getNext">If this method was called before then this will get the next page of streams</param>
+        /// <returns>A list of streams</returns>
         public async Task<List<Stream>> RetrieveStreams(bool getNext)
         {
             Uri uri;
@@ -197,6 +251,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the top live streams for the game specified
+        /// </summary>
+        /// <param name="game">The game you want streams for</param>
+        /// <returns>A list of streams</returns>
         public async Task<List<Stream>> RetrieveStreams(string game)
         {
             Uri uri;
@@ -215,6 +274,15 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the top live streams on Twitch
+        /// </summary>
+        /// <param name="game">The game you want streams for</param>
+        /// <param name="channels">Streams from a list of channels</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
+        /// <param name="embeddable">If set to true, only returns streams that can be embedded</param>
+        /// <param name="hls">If set to true, only returns streams using HLS</param>
+        /// <returns>A list of streams</returns>
         public async Task<List<Stream>> RetrieveStreams(string game, List<string> channels, int limit, bool embeddable, bool hls)
         {
             Uri uri;
@@ -316,6 +384,10 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the featured live streams on Twitch
+        /// </summary>
+        /// <returns>A list of featured streams</returns>
         public async Task<List<FeaturedStream>> RetrieveFeaturedStreams()
         {
             Uri uri;
@@ -333,6 +405,12 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the featured live streams on Twitch
+        /// </summary>
+        /// <param name="limit">How many featured streams to get at one time. Default is 25. Maximum is 100</param>
+        /// <param name="hls">If set to true, only returns streams using HLS</param>
+        /// <returns>A list of featured streams</returns>
         public async Task<List<FeaturedStream>> RetrieveFeaturedStreams(int limit, bool hls)
         {
             Uri uri;
@@ -357,6 +435,10 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a summary of live streams on Twitch
+        /// </summary>
+        /// <returns>A Dictionary with the first key of Viewers and the second key of Channels</returns>
         public async Task<Dictionary<string, int>> RetrieveStreamsSummary()
         {
             Uri uri;
@@ -378,6 +460,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Creates a URL that can be used to authenticate a user
+        /// </summary>
+        /// <param name="scopes">The permissions you are requesting</param>
+        /// <returns>A URL to be used for authenticating a user</returns>
         public Uri Login(List<TwitchConstants.Scope> scopes)
         {
             if (scopes.Count > 0)
@@ -400,7 +487,7 @@ namespace TwixelAPI
                 uri = new Uri("https://api.twitch.tv/kraken/oauth2/authorize" +
                 "?response_type=token" +
                 "&client_id=" + clientID +
-                "&redirect_uri=http://golf1052.com" +
+                "&redirect_uri=" + redirectUrl +
                 "&scope=");
                 string originalString = uri.OriginalString;
                 foreach (TwitchConstants.Scope scope in scopes)
@@ -417,7 +504,12 @@ namespace TwixelAPI
             }
         }
 
-        public async Task<User> CreateUser(string name)
+        /// <summary>
+        /// Gets a user by their name
+        /// </summary>
+        /// <param name="name">The name of the user</param>
+        /// <returns>A user</returns>
+        public async Task<User> RetrieveUser(string name)
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/users/" + name);
@@ -434,31 +526,11 @@ namespace TwixelAPI
             }
         }
 
-        public async Task<User> CreateUser(string accessToken, List<TwitchConstants.Scope> authorizedScopes)
-        {
-            if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/user");
-                string responseString;
-                responseString = await GetWebData(uri, accessToken);
-                if (GoodStatusCode(responseString))
-                {
-                    return LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
-                }
-                else
-                {
-                    CreateError(responseString);
-                    return null;
-                }
-            }
-            else
-            {
-                CreateError("This user has not given user_read permissions");
-                return null;
-            }
-        }
-
+        /// <summary>
+        /// Gets the chat URL's for the specified user
+        /// </summary>
+        /// <param name="user">The name of the user</param>
+        /// <returns>A list of URL's</returns>
         public async Task<List<WebUrl>> RetrieveChat(string user)
         {
             Uri uri;
@@ -480,6 +552,10 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the list of emoticons on Twitch
+        /// </summary>
+        /// <returns>A list of emoticons</returns>
         public async Task<List<Emoticon>> RetrieveEmoticons()
         {
             Uri uri;
@@ -497,6 +573,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a list of live streams based upon a search query
+        /// </summary>
+        /// <param name="query">The search query</param>
+        /// <returns>A list of streams</returns>
         public async Task<List<Stream>> SearchStreams(string query)
         {
             Uri uri;
@@ -514,6 +595,12 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a list of live streams based upon a search query
+        /// </summary>
+        /// <param name="query">The search query</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
+        /// <returns>A list of streams</returns>
         public async Task<List<Stream>> SearchStreams(string query, int limit)
         {
             Uri uri;
@@ -531,6 +618,12 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a list of games based upon a search query
+        /// </summary>
+        /// <param name="query">The search query</param>
+        /// <param name="live">If true, only returns games that are live on at least one channel</param>
+        /// <returns>A list of searched games</returns>
         public async Task<List<SearchedGame>> SearchGames(string query, bool live)
         {
             Uri uri;
@@ -557,6 +650,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the list of teams from Twitch
+        /// </summary>
+        /// <param name="getNext">If this method was called before then this will get the next page of teams</param>
+        /// <returns>A list of teams</returns>
         public async Task<List<Team>> RetrieveTeams(bool getNext)
         {
             Uri uri;
@@ -594,6 +692,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the list of teams from Twitch
+        /// </summary>
+        /// <param name="limit">How many teams to get at one time. Default is 25. Maximum is 100</param>
+        /// <returns>A list of teams</returns>
         public async Task<List<Team>> RetrieveTeams(int limit)
         {
             Uri uri;
@@ -603,11 +706,8 @@ namespace TwixelAPI
             }
             else
             {
-                uri = new Uri("https://api.twitch.tv/kraken/teams?limit=100");
-                errorString = "The max number of teams you can get at once is 100";
-                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
-                error.ErrorString = errorString;
-                TwixelErrorEvent(this, error);
+                CreateError("The max number of teams you can get at once is 100");
+                return null;
             }
             string responseString;
             responseString = await GetWebData(uri);
@@ -628,6 +728,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a team by name
+        /// </summary>
+        /// <param name="name">The name of the team</param>
+        /// <returns>A team</returns>
         public async Task<Team> RetrieveTeam(string name)
         {
             Uri uri;
@@ -645,6 +750,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a video by ID
+        /// </summary>
+        /// <param name="id">The video ID</param>
+        /// <returns>A video</returns>
         public async Task<Video> RetrieveVideo(string id)
         {
             Uri uri;
@@ -662,6 +772,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the top videos on Twitch
+        /// </summary>
+        /// <param name="getNext">If this method was called before then this will get the next page of videos</param>
+        /// <returns>A list of videos</returns>
         public async Task<List<Video>> RetrieveTopVideos(bool getNext)
         {
             Uri uri;
@@ -699,6 +814,13 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the top videos on Twitch
+        /// </summary>
+        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
+        /// <param name="game">The name of the game to get videos for</param>
+        /// <param name="period">The time period you want to look in</param>
+        /// <returns>A list of videos</returns>
         public async Task<List<Video>> RetrieveTopVideos(int limit, string game, TwitchConstants.Period period)
         {
             Uri uri;
@@ -709,11 +831,8 @@ namespace TwixelAPI
             }
             else
             {
-                url += "?limit=100";
-                errorString = "You cannot load more than 100 videos at a time";
-                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
-                error.ErrorString = errorString;
-                TwixelErrorEvent(this, error);
+                CreateError("You cannot load more than 100 videos at a time");
+                return null;
             }
 
             if (game != "")
@@ -746,6 +865,12 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a list of videos for a specified channel
+        /// </summary>
+        /// <param name="channel">The name of the channel</param>
+        /// <param name="getNext">If this method was called before then this will get the next page of videos</param>
+        /// <returns></returns>
         public async Task<List<Video>> RetrieveVideos(string channel, bool getNext)
         {
             Uri uri;
@@ -782,6 +907,13 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a list of videos for a specified channel
+        /// </summary>
+        /// <param name="channel">The name of the channel</param>
+        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
+        /// <param name="broadcasts">Returns only broadcasts when true. Otherwise only highlights are returned. Default is false.</param>
+        /// <returns>A list of videos</returns>
         public async Task<List<Video>> RetrieveVideos(string channel, int limit, bool broadcasts)
         {
             Uri uri;
@@ -792,11 +924,8 @@ namespace TwixelAPI
             }
             else
             {
-                url += "/videos?limit=100";
-                errorString = "You cannot load more than 100 videos at a time";
-                TwixelErrorEventArgs error = new TwixelErrorEventArgs();
-                error.ErrorString = errorString;
-                TwixelErrorEvent(this, error);
+                CreateError("You cannot load more than 100 videos at a time");
+                return null;
             }
 
             if (broadcasts)
@@ -828,6 +957,12 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a list of users following a specified user
+        /// </summary>
+        /// <param name="user">The name of the user</param>
+        /// <param name="getNext">If this method was called before then this will get the next page of users</param>
+        /// <returns>A list of users</returns>
         public async Task<List<User>> RetrieveFollowers(string user, bool getNext)
         {
             Uri uri;
@@ -865,6 +1000,12 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets a list of users following a specified user
+        /// </summary>
+        /// <param name="user">The name of the user</param>
+        /// <param name="limit">How many users to get at one time. Default is 25. Maximum is 100</param>
+        /// <returns>A list of users</returns>
         public async Task<List<User>> RetrieveFollowers(string user, int limit)
         {
             Uri uri;
@@ -898,6 +1039,11 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the channel of the specified user
+        /// </summary>
+        /// <param name="name">The name of the user</param>
+        /// <returns>A channel</returns>
         public async Task<Channel> RetrieveChannel(string name)
         {
             Uri uri;
@@ -922,6 +1068,10 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Gets the list of RTMP ingest points
+        /// </summary>
+        /// <returns>A list of ingests</returns>
         public async Task<List<Ingest>> RetrieveIngests()
         {
             Uri uri;
@@ -953,7 +1103,38 @@ namespace TwixelAPI
             }
         }
 
-        public async Task<User> CreateUserWithAccessToken(string accessToken)
+        async Task<User> RetrieveAuthenticatedUser(string accessToken, List<TwitchConstants.Scope> authorizedScopes)
+        {
+            if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
+            {
+                Uri uri;
+                uri = new Uri("https://api.twitch.tv/kraken/user");
+                string responseString;
+                responseString = await GetWebData(uri, accessToken);
+                if (GoodStatusCode(responseString))
+                {
+                    return LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
+                }
+                else
+                {
+                    CreateError(responseString);
+                    return null;
+                }
+            }
+            else
+            {
+                CreateError("This user has not given user_read permissions");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the status of an access token, if the token is valid this returns an
+        /// authorized user object
+        /// </summary>
+        /// <param name="accessToken">The access token</param>
+        /// <returns>An authorized user</returns>
+        public async Task<User> RetrieveUserWithAccessToken(string accessToken)
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken");
@@ -970,7 +1151,7 @@ namespace TwixelAPI
                     {
                         userScopes.Add(TwitchConstants.StringToScope(scope));
                     }
-                    return await CreateUser(accessToken, userScopes);
+                    return await RetrieveAuthenticatedUser(accessToken, userScopes);
                 }
                 else
                 {
@@ -1092,7 +1273,8 @@ namespace TwixelAPI
 
         internal User LoadUser(JObject o)
         {
-            User user = new User((string)o["name"],
+            User user = new User(this,
+                (string)o["name"],
                 (string)o["logo"],
                 (long)o["_id"],
                 (string)o["display_name"],
@@ -1105,7 +1287,7 @@ namespace TwixelAPI
 
         User LoadAuthUser(JObject o, string accessToken, List<TwitchConstants.Scope> authorizedScopes)
         {
-            User user = new User(accessToken, authorizedScopes,
+            User user = new User(this, accessToken, authorizedScopes,
                 (string)o["name"],
                 (string)o["logo"],
                 (long)o["_id"],
@@ -1207,7 +1389,7 @@ namespace TwixelAPI
             return ingest;
         }
 
-        void CreateError(string errorStr)
+        internal void CreateError(string errorStr)
         {
             errorString = errorStr;
             TwixelErrorEventArgs error = new TwixelErrorEventArgs();

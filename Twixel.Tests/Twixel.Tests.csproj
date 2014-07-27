@@ -39,6 +39,7 @@
     <Compile Include="ApiKey.cs" />
     <Compile Include="TwixelTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TwixelUserTests.cs" />
     <Compile Include="UserTests.cs" />
   </ItemGroup>
   <ItemGroup>
