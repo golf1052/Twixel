@@ -107,7 +107,9 @@ namespace TwixelAPI
         /// Gets games by number of viewers
         /// </summary>
         /// <param name="getNext">If this method was called before then this will get the next page of games</param>
-        /// <returns>A list of games (default length 25)</returns>
+        /// <returns>Returns a list of games (default length 25).
+        /// If the page of games contains no games this will return an empty list.
+        /// If an error occurs this will return null.</returns>
         public async Task<List<Game>> RetrieveTopGames(bool getNext)
         {
             Uri uri;
@@ -146,7 +148,8 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
         /// <param name="hls">If set to true, only returns streams using HLS</param>
-        /// <returns>A list of games</returns>
+        /// <returns>Returns a list of games.
+        /// If an error occurs this returns null.</returns>
         public async Task<List<Game>> RetrieveTopGames(int limit, bool hls)
         {
             Uri uri;
@@ -185,7 +188,8 @@ namespace TwixelAPI
         /// Gets a live stream. If the stream is offline this method will return null.
         /// </summary>
         /// <param name="channelName">The channel stream to get</param>
-        /// <returns>A stream object</returns>
+        /// <returns>Returns a stream object.
+        /// If the stream is offline or an error occurs this will return null.</returns>
         public async Task<Stream> RetrieveStream(string channelName)
         {
             Uri uri;
@@ -217,7 +221,9 @@ namespace TwixelAPI
         /// Gets the top live streams on Twitch
         /// </summary>
         /// <param name="getNext">If this method was called before then this will get the next page of streams</param>
-        /// <returns>A list of streams</returns>
+        /// <returns>Returns a list of streams.
+        /// If the page of streams contains no streams this will return an empty list.
+        /// If an error occurs this will return null.</returns>
         public async Task<List<Stream>> RetrieveStreams(bool getNext)
         {
             Uri uri;
@@ -247,7 +253,6 @@ namespace TwixelAPI
             {
                 CreateError(responseString);
                 return null;
-                //return new List<Stream>();
             }
         }
 
@@ -255,7 +260,9 @@ namespace TwixelAPI
         /// Gets the top live streams for the game specified
         /// </summary>
         /// <param name="game">The game you want streams for</param>
-        /// <returns>A list of streams</returns>
+        /// <returns>Returns a list of streams.
+        /// If the page of streams contains no streams this will return an empty list.
+        /// If an error occurs this will return null.</returns>
         public async Task<List<Stream>> RetrieveStreams(string game)
         {
             Uri uri;
@@ -270,19 +277,20 @@ namespace TwixelAPI
             {
                 CreateError(responseString);
                 return null;
-                //return new List<Stream>();
             }
         }
 
         /// <summary>
         /// Gets the top live streams on Twitch
         /// </summary>
-        /// <param name="game">The game you want streams for</param>
-        /// <param name="channels">Streams from a list of channels</param>
+        /// <param name="game">The game you want streams for. Can be an empty string. May not be null.</param>
+        /// <param name="channels">Streams from a list of channels. Can be an empty list. May not be null.</param>
         /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
         /// <param name="embeddable">If set to true, only returns streams that can be embedded</param>
         /// <param name="hls">If set to true, only returns streams using HLS</param>
-        /// <returns>A list of streams</returns>
+        /// <returns>Returns a list of streams.
+        /// If the page of streams contains no streams this will return an empty list.
+        /// If an error occurs this returns null.</returns>
         public async Task<List<Stream>> RetrieveStreams(string game, List<string> channels, int limit, bool embeddable, bool hls)
         {
             Uri uri;
@@ -380,14 +388,15 @@ namespace TwixelAPI
             {
                 CreateError(responseString);
                 return null;
-                //return new List<Stream>();
             }
         }
 
         /// <summary>
         /// Gets the featured live streams on Twitch
         /// </summary>
-        /// <returns>A list of featured streams</returns>
+        /// <returns>Returns a list of featured streams.
+        /// If the page of featured streams contains no streams this will return an empty list.
+        /// If a error occurs this will return null.</returns>
         public async Task<List<FeaturedStream>> RetrieveFeaturedStreams()
         {
             Uri uri;
@@ -410,7 +419,9 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="limit">How many featured streams to get at one time. Default is 25. Maximum is 100</param>
         /// <param name="hls">If set to true, only returns streams using HLS</param>
-        /// <returns>A list of featured streams</returns>
+        /// <returns>Returns a list of featured streams.
+        /// If the page of featured streams contains no streams this will return an empty list.
+        /// If an error occurs this will return null.</returns>
         public async Task<List<FeaturedStream>> RetrieveFeaturedStreams(int limit, bool hls)
         {
             Uri uri;
@@ -438,7 +449,8 @@ namespace TwixelAPI
         /// <summary>
         /// Gets a summary of live streams on Twitch
         /// </summary>
-        /// <returns>A Dictionary with the first key of Viewers and the second key of Channels</returns>
+        /// <returns>A Dictionary with the first key of Viewers and the second key of Channels.
+        /// If an error occurs this will return null.</returns>
         public async Task<Dictionary<string, int>> RetrieveStreamsSummary()
         {
             Uri uri;
@@ -463,14 +475,20 @@ namespace TwixelAPI
         /// <summary>
         /// Creates a URL that can be used to authenticate a user
         /// </summary>
-        /// <param name="scopes">The permissions you are requesting</param>
-        /// <returns>A URL to be used for authenticating a user</returns>
+        /// <param name="scopes">The permissions you are requesting. Must contain at least one permission.</param>
+        /// <returns>Returns a URL to be used for authenticating a user.
+        /// If the scopes list contained no scopes this returns null.</returns>
         public Uri Login(List<TwitchConstants.Scope> scopes)
         {
+            if (scopes == null)
+            {
+                CreateError("The list of scopes cannot be null.");
+                return null;
+            }
+
             if (scopes.Count > 0)
             {
                 List<TwitchConstants.Scope> cleanScopes = new List<TwitchConstants.Scope>();
-
                 for (int i = 0; i < scopes.Count; i++)
                 {
                     if (!cleanScopes.Contains(scopes[i]))
@@ -508,7 +526,8 @@ namespace TwixelAPI
         /// Gets a user by their name
         /// </summary>
         /// <param name="name">The name of the user</param>
-        /// <returns>A user</returns>
+        /// <returns>Returns a user.
+        /// If an error occurs this returns null.</returns>
         public async Task<User> RetrieveUser(string name)
         {
             Uri uri;
@@ -530,7 +549,8 @@ namespace TwixelAPI
         /// Gets the chat URL's for the specified user
         /// </summary>
         /// <param name="user">The name of the user</param>
-        /// <returns>A list of URL's</returns>
+        /// <returns>Returns list of URLs.
+        /// If an error occurs this returns null.</returns>
         public async Task<List<WebUrl>> RetrieveChat(string user)
         {
             Uri uri;
@@ -555,7 +575,8 @@ namespace TwixelAPI
         /// <summary>
         /// Gets the list of emoticons on Twitch
         /// </summary>
-        /// <returns>A list of emoticons</returns>
+        /// <returns>Returns a list of emoticons.
+        /// If an error occurs this returns null.</returns>
         public async Task<List<Emoticon>> RetrieveEmoticons()
         {
             Uri uri;
@@ -577,7 +598,8 @@ namespace TwixelAPI
         /// Gets a list of live streams based upon a search query
         /// </summary>
         /// <param name="query">The search query</param>
-        /// <returns>A list of streams</returns>
+        /// <returns>Returns a list of streams.
+        /// If an errr occurs this will return null.</returns>
         public async Task<List<Stream>> SearchStreams(string query)
         {
             Uri uri;
@@ -600,7 +622,8 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="query">The search query</param>
         /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>A list of streams</returns>
+        /// <returns>Returns list of streams.
+        /// If an error occurs this will return null.</returns>
         public async Task<List<Stream>> SearchStreams(string query, int limit)
         {
             Uri uri;
@@ -623,7 +646,8 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="query">The search query</param>
         /// <param name="live">If true, only returns games that are live on at least one channel</param>
-        /// <returns>A list of searched games</returns>
+        /// <returns>Returns a list of searched games.
+        /// If an error occurs this will return null.</returns>
         public async Task<List<SearchedGame>> SearchGames(string query, bool live)
         {
             Uri uri;
@@ -654,7 +678,9 @@ namespace TwixelAPI
         /// Gets the list of teams from Twitch
         /// </summary>
         /// <param name="getNext">If this method was called before then this will get the next page of teams</param>
-        /// <returns>A list of teams</returns>
+        /// <returns>Returns a list of teams.
+        /// If the page of teams contains no teams this will return an empty list.
+        /// If an error occurs this will return null.</returns>
         public async Task<List<Team>> RetrieveTeams(bool getNext)
         {
             Uri uri;
