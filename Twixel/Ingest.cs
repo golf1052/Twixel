@@ -14,7 +14,7 @@ namespace TwixelAPI
         public string name;
         public bool defaultIngest;
         public long id;
-        public WebUrl urlTemplate;
+        public Uri urlTemplate;
         public double avalibility;
 
         public Ingest(string name,
@@ -26,7 +26,7 @@ namespace TwixelAPI
             this.name = name;
             this.defaultIngest = defaultIngest;
             this.id = id;
-            this.urlTemplate = new WebUrl(urlTemplate);
+            this.urlTemplate = new Uri(urlTemplate);
             this.avalibility = avalibility;
         }
     }

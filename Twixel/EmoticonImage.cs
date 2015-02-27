@@ -14,14 +14,14 @@ namespace TwixelAPI
         public int? emoticonSet;
         public int height;
         public int width;
-        public WebUrl url;
+        public Uri url;
 
         public EmoticonImage(int? emoticonSet, int height, int width, string url)
         {
             this.emoticonSet = emoticonSet;
             this.height = height;
             this.width = width;
-            this.url = new WebUrl(url);
+            this.url = new Uri(url);
         }
     }
 }

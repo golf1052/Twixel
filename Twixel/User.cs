@@ -40,7 +40,7 @@ namespace TwixelAPI
         /// <summary>
         /// User's logo
         /// </summary>
-        public WebUrl logo;
+        public Uri logo;
 
         /// <summary>
         /// User's ID
@@ -102,17 +102,17 @@ namespace TwixelAPI
         /// <summary>
         /// Next subscribers URL
         /// </summary>
-        public WebUrl nextSubs;
+        public Uri nextSubs;
 
         /// <summary>
         /// Next following URL
         /// </summary>
-        public WebUrl nextFollowing;
+        public Uri nextFollowing;
 
         /// <summary>
         /// Next following streams URL
         /// </summary>
-        public WebUrl nextFollowingStreams;
+        public Uri nextFollowingStreams;
 
         internal User(Twixel twixel,
             string accessToken,
@@ -138,7 +138,7 @@ namespace TwixelAPI
             this.name = name;
             if (logo != null)
             {
-                this.logo = new WebUrl(logo);
+                this.logo = new Uri(logo);
             }
             this.id = id;
             this.displayName = displayName;
@@ -179,7 +179,7 @@ namespace TwixelAPI
             this.name = name;
             if (logo != null)
             {
-                this.logo = new WebUrl(logo);
+                this.logo = new Uri(logo);
             }
             this.id = id;
             this.displayName = displayName;
@@ -419,7 +419,7 @@ namespace TwixelAPI
                 if (responseString != "422")
                 {
                     totalSubscribers = (int)JObject.Parse(responseString)["_total"];
-                    nextSubs = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                    nextSubs = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                     foreach (JObject o in (JArray)JObject.Parse(responseString)["subscriptions"])
                     {
                         if (!ContainsSubscriber((string)o["user"]["name"]))
@@ -481,7 +481,7 @@ namespace TwixelAPI
                 if (responseString != "422")
                 {
                     totalSubscribers = (int)JObject.Parse(responseString)["_total"];
-                    nextSubs = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                    nextSubs = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                     foreach (JObject o in (JArray)JObject.Parse(responseString)["subscriptions"])
                     {
                         if (!ContainsSubscriber((string)o["user"]["name"]))
@@ -629,7 +629,7 @@ namespace TwixelAPI
             string responseString = await Twixel.GetWebData(uri);
             if (Twixel.GoodStatusCode(responseString))
             {
-                nextFollowing = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextFollowing = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 List<Channel> followedChannels = new List<Channel>();
                 foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
                 {
@@ -664,7 +664,7 @@ namespace TwixelAPI
             string responseString = await Twixel.GetWebData(uri);
             if (Twixel.GoodStatusCode(responseString))
             {
-                nextFollowing = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextFollowing = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 List<Channel> followedChannels = new List<Channel>();
                 foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
                 {

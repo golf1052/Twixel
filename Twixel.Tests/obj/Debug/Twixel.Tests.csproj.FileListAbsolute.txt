@@ -19,3 +19,5 @@ C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\obj\Debug\Twixel.Tests.cs
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\obj\Debug\Twixel.Tests.dll
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\obj\Debug\Twixel.Tests.pdb
 C:\Users\Sanders\SkyDrive\Projects\Twixel\Twixel.Tests\bin\Debug\Twixel.xml
+C:\Users\Sanders\OneDrive\Projects\Twixel\Twixel.Tests\obj\Debug\Twixel.Tests.dll
+C:\Users\Sanders\OneDrive\Projects\Twixel\Twixel.Tests\obj\Debug\Twixel.Tests.pdb

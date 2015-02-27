@@ -111,7 +111,7 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveChatTest()
         {
-            List<WebUrl> chatLinks = await twixel.RetrieveChat("golf1052");
+            List<Uri> chatLinks = await twixel.RetrieveChat("golf1052");
             Assert.Equal(3, chatLinks.Count);
         }
 

@@ -38,7 +38,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Channel.cs" />
+    <Compile Include="HelperMethods.cs" />
     <Compile Include="Ingest.cs" />
+    <Compile Include="Links.cs" />
     <Compile Include="Subscription.cs" />
     <Compile Include="TwitchConstants.cs" />
     <Compile Include="Emoticon.cs" />
@@ -52,7 +54,6 @@
     <Compile Include="Twixel.cs" />
     <Compile Include="User.cs" />
     <Compile Include="Video.cs" />
-    <Compile Include="WebUrl.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">

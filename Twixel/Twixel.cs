@@ -27,6 +27,12 @@ namespace TwixelAPI
     /// </summary>
     public class Twixel
     {
+        public enum APIVersion
+        {
+            v2,
+            v3
+        }
+
         /// <summary>
         /// Your client ID
         /// </summary>
@@ -63,7 +69,7 @@ namespace TwixelAPI
         /// <summary>
         /// The next games URL
         /// </summary>
-        public WebUrl nextGames;
+        public Uri nextGames;
 
         /// <summary>
         /// How many games are live on Twitch at the moment
@@ -73,22 +79,22 @@ namespace TwixelAPI
         /// <summary>
         /// The next streams URL
         /// </summary>
-        public WebUrl nextStreams;
+        public Uri nextStreams;
 
         /// <summary>
         /// The next teams URL
         /// </summary>
-        public WebUrl nextTeams;
+        public Uri nextTeams;
 
         /// <summary>
         /// The next videos URL
         /// </summary>
-        public WebUrl nextVideos;
+        public Uri nextVideos;
 
         /// <summary>
         /// The next follows URL
         /// </summary>
-        public WebUrl nextFollows;
+        public Uri nextFollows;
 
         /// <summary>
         /// Twixel constructor
@@ -551,7 +557,7 @@ namespace TwixelAPI
         /// <param name="user">The name of the user</param>
         /// <returns>Returns list of URLs.
         /// If an error occurs this returns null.</returns>
-        public async Task<List<WebUrl>> RetrieveChat(string user)
+        public async Task<List<Uri>> RetrieveChat(string user)
         {
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/chat/" + user);
@@ -559,10 +565,10 @@ namespace TwixelAPI
             responseString = await GetWebData(uri);
             if (GoodStatusCode(responseString))
             {
-                List<WebUrl> chatLinks = new List<WebUrl>();
-                chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["self"]));
-                chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["emoticons"]));
-                chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["badges"]));
+                List<Uri> chatLinks = new List<Uri>();
+                chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["self"]));
+                chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["emoticons"]));
+                chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["badges"]));
                 return chatLinks;
             }
             else
@@ -704,7 +710,7 @@ namespace TwixelAPI
             if (GoodStatusCode(responseString))
             {
                 List<Team> teams = new List<Team>();
-                nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextTeams = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 foreach (JObject o in JObject.Parse(responseString)["teams"])
                 {
                     teams.Add(LoadTeam(o));
@@ -740,7 +746,7 @@ namespace TwixelAPI
             if (GoodStatusCode(responseString))
             {
                 List<Team> teams = new List<Team>();
-                nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextTeams = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 foreach (JObject o in JObject.Parse(responseString)["teams"])
                 {
                     teams.Add(LoadTeam(o));
@@ -825,7 +831,7 @@ namespace TwixelAPI
             responseString = await GetWebData(uri);
             if (GoodStatusCode(responseString))
             {
-                nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 List<Video> videos = new List<Video>();
                 foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
                 {
@@ -877,7 +883,7 @@ namespace TwixelAPI
             if (GoodStatusCode(responseString))
             {
                 List<Video> videos = new List<Video>();
-                nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
                 {
                     videos.Add(LoadTopVideo(video));
@@ -969,7 +975,7 @@ namespace TwixelAPI
             if (GoodStatusCode(responseString))
             {
                 List<Video> videos = new List<Video>();
-                nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
                 {
                     videos.Add(LoadVideo(video));
@@ -1012,7 +1018,7 @@ namespace TwixelAPI
             if (GoodStatusCode(responseString))
             {
                 List<User> following = new List<User>();
-                nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextFollows = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
                 {
                     following.Add(LoadUser((JObject)o["user"]));
@@ -1051,7 +1057,7 @@ namespace TwixelAPI
             if (GoodStatusCode(responseString))
             {
                 List<User> following = new List<User>();
-                nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
+                nextFollows = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
                 foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
                 {
                     following.Add(LoadUser((JObject)o["user"]));
@@ -1211,7 +1217,7 @@ namespace TwixelAPI
         List<Game> LoadGames(JObject o)
         {
             List<Game> games = new List<Game>();
-            nextGames = new WebUrl((string)o["_links"]["next"]);
+            nextGames = new Uri((string)o["_links"]["next"]);
             maxGames = (int?)o["_total"];
 
             foreach (JObject obj in (JArray)o["top"])
@@ -1246,36 +1252,10 @@ namespace TwixelAPI
             return games;
         }
 
-        internal List<Stream> LoadStreams(JObject o)
-        {
-            List<Stream> streams = new List<Stream>();
-            nextStreams = new WebUrl((string)o["_links"]["next"]);
-
-            foreach (JObject obj in (JArray)o["streams"])
-            {
-                streams.Add(LoadStream(obj, (string)o["_links"]["channel"]));
-            }
-
-            return streams;
-        }
-
-        internal Stream LoadStream(JObject o, string channel)
-        {
-            return new Stream(channel,
-                (string)o["broadcaster"],
-                    (long?)o["_id"],
-                    (string)o["preview"],
-                    (string)o["game"],
-                    (JObject)o["channel"],
-                    (string)o["name"],
-                    (int?)o["viewers"],
-                    this);
-        }
-
         List<FeaturedStream> LoadFeaturedStreams(JObject o)
         {
             List<FeaturedStream> streams = new List<FeaturedStream>();
-            nextStreams = new WebUrl((string)o["_links"]["next"]);
+            nextStreams = new Uri((string)o["_links"]["next"]);
 
             foreach (JObject obj in (JArray)o["featured"])
             {
@@ -1297,20 +1277,6 @@ namespace TwixelAPI
             return emoticons;
         }
 
-        internal User LoadUser(JObject o)
-        {
-            User user = new User(this,
-                (string)o["name"],
-                (string)o["logo"],
-                (long)o["_id"],
-                (string)o["display_name"],
-                (bool?)o["staff"],
-                (string)o["created_at"],
-                (string)o["updated_at"],
-                (string)o["bio"]);
-            return user;
-        }
-
         User LoadAuthUser(JObject o, string accessToken, List<TwitchConstants.Scope> authorizedScopes)
         {
             User user = new User(this, accessToken, authorizedScopes,
@@ -1325,18 +1291,6 @@ namespace TwixelAPI
                 (string)o["updated_at"],
                 (string)o["bio"]);
             return user;
-        }
-
-        internal Team LoadTeam(JObject o)
-        {
-            Team team = new Team((string)o["info"],
-                (string)o["background"],
-                (string)o["banner"],
-                (string)o["name"],
-                (long)o["_id"],
-                (string)o["display_name"],
-                (string)o["logo"]);
-            return team;
         }
 
         Video LoadVideo(JObject o)
@@ -1371,40 +1325,6 @@ namespace TwixelAPI
             return video;
         }
 
-        internal Channel LoadChannel(JObject o)
-        {
-            Channel channel = new Channel((string)o["mature"],
-                (string)o["background"],
-                (string)o["updated_at"],
-                (long)o["_id"],
-                (JArray)o["teams"],
-                (string)o["status"],
-                (string)o["logo"],
-                (string)o["url"],
-                (string)o["display_name"],
-                (string)o["game"],
-                (string)o["banner"],
-                (string)o["name"],
-                (string)o["video_banner"],
-                (string)o["_links"]["chat"],
-                (string)o["_links"]["subscriptions"],
-                (string)o["_links"]["features"],
-                (string)o["_links"]["commercial"],
-                (string)o["_links"]["stream_key"],
-                (string)o["_links"]["editors"],
-                (string)o["_links"]["videos"],
-                (string)o["_links"]["self"],
-                (string)o["_links"]["follows"],
-                (string)o["created_at"],
-                (string)o["profile_banner"],
-                (string)o["primary_team_name"],
-                (string)o["primary_team_display_name"],
-                (long?)o["views"],
-                (long?)o["followers"],
-                this);
-            return channel;
-        }
-
         Ingest LoadIngest(JObject o)
         {
             Ingest ingest = new Ingest((string)o["name"],
@@ -1423,10 +1343,15 @@ namespace TwixelAPI
             TwixelErrorEvent(this, error);
         }
 
-        public static async Task<string> GetWebData(Uri uri)
+        public static async Task<string> GetWebData(Uri uri, APIVersion version = APIVersion.v2)
         {
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+
+            if (version == APIVersion.v2)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            else if (version == APIVersion.v3)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
+
             client.DefaultRequestHeaders.Add("Client-ID", clientID);
             HttpResponseMessage response = await client.GetAsync(uri);
 
@@ -1471,10 +1396,15 @@ namespace TwixelAPI
             }
         }
 
-        public static async Task<string> GetWebData(Uri uri, string accessToken)
+        public static async Task<string> GetWebData(Uri uri, string accessToken, APIVersion version = APIVersion.v2)
         {
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+
+            if (version == APIVersion.v2)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            else if (version == APIVersion.v3)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
+
             client.DefaultRequestHeaders.Add("Client-ID", clientID);
             client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
             HttpResponseMessage response = await client.GetAsync(uri);
@@ -1515,10 +1445,15 @@ namespace TwixelAPI
             }
         }
 
-        public static async Task<string> PutWebData(Uri uri, string accessToken, string content)
+        public static async Task<string> PutWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.v2)
         {
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+
+            if (version == APIVersion.v2)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            else if (version == APIVersion.v3)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
+
             client.DefaultRequestHeaders.Add("Client-ID", clientID);
             client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
             StringContent stringContent = new StringContent(content, Encoding.UTF8, "application/json");
@@ -1535,10 +1470,15 @@ namespace TwixelAPI
             }
         }
 
-        public static async Task<string> PostWebData(Uri uri, string accessToken, string content)
+        public static async Task<string> PostWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.v2)
         {
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+
+            if (version == APIVersion.v2)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            else if (version == APIVersion.v3)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
+
             client.DefaultRequestHeaders.Add("Client-ID", clientID);
             client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
             StringContent stringContent = new StringContent(content, Encoding.UTF8);
@@ -1559,10 +1499,15 @@ namespace TwixelAPI
             }
         }
 
-        public static async Task<string> DeleteWebData(Uri uri, string accessToken)
+        public static async Task<string> DeleteWebData(Uri uri, string accessToken, APIVersion version = APIVersion.v2)
         {
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+
+            if (version == APIVersion.v2)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            else if (version == APIVersion.v3)
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
+
             client.DefaultRequestHeaders.Add("Client-ID", clientID);
             client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
             HttpResponseMessage response = await client.DeleteAsync(uri);

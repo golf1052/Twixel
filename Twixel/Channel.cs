@@ -11,124 +11,275 @@ namespace TwixelAPI
 {
     public class Channel
     {
-        public string mature;
-        public WebUrl background;
-        public string updatedAt;
-        public long id;
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public bool mature;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
         public string status;
-        public WebUrl logo;
-        public List<Team> teams;
-        public WebUrl url;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public string broadcasterLanguage;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
         public string displayName;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
         public string game;
-        public WebUrl banner;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public int? delay;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public string language;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public long id;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
         public string name;
-        public WebUrl videoBanner;
-        public WebUrl profileBanner;
 
-        public WebUrl chat;
-        public WebUrl subscriptions;
-        public WebUrl features;
-        public WebUrl commercial;
-        public WebUrl streamKey;
-        public WebUrl editors;
-        public WebUrl videos;
-        public WebUrl self;
-        public WebUrl follows;
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public string createdAtString;
 
-        public string createdAt;
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public DateTime createdAt;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public string updatedAtString;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public DateTime updatedAt;
+
+        /// <summary>
+        /// v2
+        /// </summary>
+        public Uri logo;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public Uri banner;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public Uri videoBanner;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public Uri background;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public Uri profileBanner;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public string profileBannerBackgroundColor;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public bool? partner;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public Uri url;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public long? views;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public long? followers;
+
+        /// <summary>
+        /// v2
+        /// </summary>
+        public List<Team> teams;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public Links links;
 
         public string primaryTeamName;
         public string primaryTeamDisplayName;
-        public long? views;
-        public long? followers;
 
-        public Channel(string mature,
-            string background,
-            string updatedAt,
-            long id,
-            JArray teamsA,
+        public Twixel.APIVersion version;
+
+        public Channel(bool mature,
             string status,
-            string logo,
-            string url,
             string displayName,
             string game,
-            string banner,
+            long id,
             string name,
-            string videoBanner,
-            string chat,
-            string subscriptions,
-            string features,
-            string commercial,
-            string streamKey,
-            string editors,
-            string videos,
-            string self,
-            string follows,
             string createdAt,
-            string profileBanner,
+            string updatedAt,
+            string logo,
+            string banner,
+            string videoBanner,
+            string background,
+            string url,
+            JObject linksO,
+            JArray teamsA,
             string primaryTeamName,
-            string primaryTeamDisplayName,
-            long? views,
-            long? followers,
-            Twixel twixel)
+            string primaryTeamDisplayName)
         {
-            teams = new List<Team>();
+            this.version = Twixel.APIVersion.v2;
+            this.mature = mature;
+            this.status = status;
+            this.displayName = displayName;
+            this.game = game;
+            this.id = id;
+            this.name = name;
+            this.createdAtString = createdAt;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAtString = updatedAt;
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(logo))
+            {
+                this.logo = new Uri(logo);
+            }
+            if (!string.IsNullOrEmpty(banner))
+            {
+                this.banner = new Uri(banner);
+            }
+            if (!string.IsNullOrEmpty(videoBanner))
+            {
+                this.videoBanner = new Uri(videoBanner);
+            }
+            if (!string.IsNullOrEmpty(background))
+            {
+                this.background = new Uri(background);
+            }
+            this.url = new Uri(url);
+            if (links != null)
+            {
+                this.links = new Links(linksO);
+            }
             if (teamsA != null)
             {
                 foreach (JObject team in teamsA)
                 {
-                    teams.Add(twixel.LoadTeam(team));
+                    teams.Add(HelperMethods.LoadTeam(team));
                 }
             }
-            this.mature = mature;
-            if (background != null)
-            {
-                this.background = new WebUrl(background);
-            }
-            this.updatedAt = updatedAt;
-            this.id = id;
-            this.status = status;
-            if (logo != null)
-            {
-                this.logo = new WebUrl(logo);
-            }
-            this.url = new WebUrl(url);
-            this.displayName = displayName;
-            this.game = game;
-            if (banner != null)
-            {
-                this.banner = new WebUrl(banner);
-            }
-            this.name = name;
-            if (videoBanner != null)
-            {
-                this.videoBanner = new WebUrl(videoBanner);
-            }
-            this.chat = new WebUrl(chat);
-            this.subscriptions = new WebUrl(subscriptions);
-            this.features = new WebUrl(features);
-            this.commercial = new WebUrl(commercial);
-            this.streamKey = new WebUrl(streamKey);
-            this.editors = new WebUrl(editors);
-            this.videos = new WebUrl(videos);
-            this.self = new WebUrl(self);
-            this.follows = new WebUrl(follows);
-            this.createdAt = createdAt;
-            if (profileBanner != null)
-            {
-                this.profileBanner = new WebUrl(profileBanner);
-            }
-            if (primaryTeamName != null)
+            if (!string.IsNullOrEmpty(primaryTeamName))
             {
                 this.primaryTeamName = primaryTeamName;
             }
-            if (primaryTeamDisplayName != null)
+            if (!string.IsNullOrEmpty(primaryTeamDisplayName))
             {
                 this.primaryTeamDisplayName = primaryTeamDisplayName;
             }
+        }
+
+        public Channel(bool mature,
+            string status,
+            string broadcasterLanguage,
+            string displayName,
+            string game,
+            int? delay,
+            long id,
+            string name,
+            string createdAt,
+            string updatedAt,
+            string logo,
+            string banner,
+            string videoBanner,
+            string background,
+            string profileBanner,
+            string profileBannerBackgroundColor,
+            bool? partner,
+            string url,
+            long? views,
+            long? followers,
+            JObject linksO,
+            JArray teamsA)
+        {
+            this.version = Twixel.APIVersion.v3;
+            this.mature = mature;
+            this.status = status;
+            this.broadcasterLanguage = broadcasterLanguage;
+            this.displayName = displayName;
+            this.game = game;
+            this.delay = delay;
+            this.id = id;
+            this.name = name;
+            this.createdAtString = createdAt;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAtString = updatedAt;
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(logo))
+            {
+                this.logo = new Uri(logo);
+            }
+            if (!string.IsNullOrEmpty(banner))
+            {
+                this.banner = new Uri(banner);
+            }
+            if (!string.IsNullOrEmpty(videoBanner))
+            {
+                this.videoBanner = new Uri(videoBanner);
+            }
+            if (!string.IsNullOrEmpty(background))
+            {
+                this.background = new Uri(background);
+            }
+            if (!string.IsNullOrEmpty(profileBanner))
+            {
+                this.profileBanner = new Uri(profileBanner);
+            }
+            this.profileBannerBackgroundColor = profileBannerBackgroundColor;
+            this.partner = partner;
+            this.url = new Uri(url);
             this.views = views;
             this.followers = followers;
+            if (links != null)
+            {
+                this.links = new Links(linksO);
+            }
+            if (teamsA != null)
+            {
+                foreach (JObject team in teamsA)
+                {
+                    teams.Add(HelperMethods.LoadTeam(team));
+                }
+            }
         }
     }
 }

@@ -11,13 +11,13 @@ namespace TwixelAPI
 {
     public class FeaturedStream
     {
-        public WebUrl image;
+        public Uri image;
         public string text;
         public Stream stream;
 
         public FeaturedStream(string channelUrl, string image, string text, JObject streamO, Twixel twixel)
         {
-            this.image = new WebUrl(image);
+            this.image = new Uri(image);
             this.text = text;
             this.stream = twixel.LoadStream(streamO, channelUrl);
         }

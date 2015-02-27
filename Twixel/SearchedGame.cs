@@ -11,13 +11,13 @@ namespace TwixelAPI
 {
     public class SearchedGame : Game
     {
-        public WebUrl imagesThumb;
-        public WebUrl imagesTiny;
-        public WebUrl imagesSmall;
-        public WebUrl imagesSuper;
-        public WebUrl imagesMedium;
-        public WebUrl imagesIcon;
-        public WebUrl imagesScreen;
+        public Uri imagesThumb;
+        public Uri imagesTiny;
+        public Uri imagesSmall;
+        public Uri imagesSuper;
+        public Uri imagesMedium;
+        public Uri imagesIcon;
+        public Uri imagesScreen;
         public int? popularity;
         Game baseGame;
 
@@ -41,13 +41,13 @@ namespace TwixelAPI
         {
             if (o != null)
             {
-                imagesThumb = new WebUrl((string)o["thumb"]);
-                imagesTiny = new WebUrl((string)o["tiny"]);
-                imagesSmall = new WebUrl((string)o["small"]);
-                imagesSuper = new WebUrl((string)o["super"]);
-                imagesMedium = new WebUrl((string)o["medium"]);
-                imagesIcon = new WebUrl((string)o["icon"]);
-                imagesScreen = new WebUrl((string)o["screen"]);
+                imagesThumb = new Uri((string)o["thumb"]);
+                imagesTiny = new Uri((string)o["tiny"]);
+                imagesSmall = new Uri((string)o["small"]);
+                imagesSuper = new Uri((string)o["super"]);
+                imagesMedium = new Uri((string)o["medium"]);
+                imagesIcon = new Uri((string)o["icon"]);
+                imagesScreen = new Uri((string)o["screen"]);
             }
         }
 

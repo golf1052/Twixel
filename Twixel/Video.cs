@@ -13,15 +13,15 @@ namespace TwixelAPI
     {
         public DateTime recordedAt;
         public string title;
-        public WebUrl url;
+        public Uri url;
         public string id;
-        public WebUrl channel;
+        public Uri channel;
         public string embed;
         public int views;
         public string description;
         public int length;
         public string game;
-        public WebUrl preview;
+        public Uri preview;
 
         public string name;
 
@@ -39,9 +39,9 @@ namespace TwixelAPI
         {
             this.recordedAt = DateTime.Parse(recordedAt);
             this.title = title;
-            this.url = new WebUrl(url);
+            this.url = new Uri(url);
             this.id = id;
-            this.channel = new WebUrl(channel);
+            this.channel = new Uri(channel);
             this.embed = embed;
             this.views = views;
             if (description != null)
@@ -53,7 +53,7 @@ namespace TwixelAPI
             {
                 this.game = game;
             }
-            this.preview = new WebUrl(preview);
+            this.preview = new Uri(preview);
         }
 
         public Video(string recordedAt,
@@ -75,12 +75,12 @@ namespace TwixelAPI
             }
             if (url != null)
             {
-                this.url = new WebUrl(url);
+                this.url = new Uri(url);
             }
             this.id = id;
             if (url != null)
             {
-                this.channel = new WebUrl(channel);
+                this.channel = new Uri(channel);
             }
             this.views = views;
             if (description != null)
@@ -94,7 +94,7 @@ namespace TwixelAPI
             }
             if (preview != null)
             {
-                this.preview = new WebUrl(preview);
+                this.preview = new Uri(preview);
             }
             if (preview != null)
             {

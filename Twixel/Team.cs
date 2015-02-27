@@ -12,12 +12,12 @@ namespace TwixelAPI
     public class Team
     {
         public string info;
-        public WebUrl background;
-        public WebUrl banner;
+        public Uri background;
+        public Uri banner;
         public string name;
         public long id;
         public string displayName;
-        public WebUrl logo;
+        public Uri logo;
 
         public Team(string info,
             string background,
@@ -30,18 +30,18 @@ namespace TwixelAPI
             this.info = info;
             if (background != null)
             {
-                this.background = new WebUrl(background);
+                this.background = new Uri(background);
             }
             if (banner != null)
             {
-                this.banner = new WebUrl(banner);
+                this.banner = new Uri(banner);
             }
             this.name = name;
             this.id = id;
             this.displayName = displayName;
             if (logo != null)
             {
-                this.logo = new WebUrl(logo);
+                this.logo = new Uri(logo);
             }
         }
     }
