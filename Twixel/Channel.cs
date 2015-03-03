@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace TwixelAPI
 {
-    public class Channel
+    public class Channel : TwixelObjectBase
     {
         /// <summary>
         /// v2/v3
@@ -34,7 +34,7 @@ namespace TwixelAPI
         /// <summary>
         /// v3
         /// </summary>
-        public int? delay;
+        public int delay;
 
         /// <summary>
         /// v3
@@ -104,7 +104,7 @@ namespace TwixelAPI
         /// <summary>
         /// v3
         /// </summary>
-        public bool? partner;
+        public bool partner;
 
         /// <summary>
         /// v2/v3
@@ -126,14 +126,6 @@ namespace TwixelAPI
         /// </summary>
         public List<Team> teams;
 
-        /// <summary>
-        /// v2/v3
-        /// </summary>
-        public Links links;
-
-        public string primaryTeamName;
-        public string primaryTeamDisplayName;
-
         public Twixel.APIVersion version;
 
         public Channel(bool mature,
@@ -150,9 +142,7 @@ namespace TwixelAPI
             string background,
             string url,
             JObject linksO,
-            JArray teamsA,
-            string primaryTeamName,
-            string primaryTeamDisplayName)
+            JArray teamsA) : base(linksO)
         {
             this.version = Twixel.APIVersion.v2;
             this.mature = mature;
@@ -182,24 +172,12 @@ namespace TwixelAPI
                 this.background = new Uri(background);
             }
             this.url = new Uri(url);
-            if (links != null)
-            {
-                this.links = new Links(linksO);
-            }
             if (teamsA != null)
             {
                 foreach (JObject team in teamsA)
                 {
                     teams.Add(HelperMethods.LoadTeam(team));
                 }
-            }
-            if (!string.IsNullOrEmpty(primaryTeamName))
-            {
-                this.primaryTeamName = primaryTeamName;
-            }
-            if (!string.IsNullOrEmpty(primaryTeamDisplayName))
-            {
-                this.primaryTeamDisplayName = primaryTeamDisplayName;
             }
         }
 
@@ -208,7 +186,7 @@ namespace TwixelAPI
             string broadcasterLanguage,
             string displayName,
             string game,
-            int? delay,
+            int delay,
             long id,
             string name,
             string createdAt,
@@ -219,12 +197,11 @@ namespace TwixelAPI
             string background,
             string profileBanner,
             string profileBannerBackgroundColor,
-            bool? partner,
+            bool partner,
             string url,
             long? views,
             long? followers,
-            JObject linksO,
-            JArray teamsA)
+            JObject linksO) : base(linksO)
         {
             this.version = Twixel.APIVersion.v3;
             this.mature = mature;
@@ -264,17 +241,6 @@ namespace TwixelAPI
             this.url = new Uri(url);
             this.views = views;
             this.followers = followers;
-            if (links != null)
-            {
-                this.links = new Links(linksO);
-            }
-            if (teamsA != null)
-            {
-                foreach (JObject team in teamsA)
-                {
-                    teams.Add(HelperMethods.LoadTeam(team));
-                }
-            }
         }
     }
 }

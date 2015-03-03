@@ -140,38 +140,38 @@ namespace TwixelAPI
         /// <returns>Returns a list of games (default length 25).
         /// If the page of games contains no games this will return an empty list.
         /// If an error occurs this will return null.</returns>
-        public async Task<List<Game>> RetrieveTopGames(bool getNext)
-        {
-            Uri uri;
+        //public async Task<List<Game>> RetrieveTopGames(bool getNext)
+        //{
+        //    Uri uri;
 
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/games/top");
-            }
-            else
-            {
-                if (nextGames != null)
-                {
-                    uri = nextGames.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/games/top");
-                }
-            }
+        //    if (!getNext)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/games/top");
+        //    }
+        //    else
+        //    {
+        //        if (nextGames != null)
+        //        {
+        //            uri = nextGames.url;
+        //        }
+        //        else
+        //        {
+        //            uri = new Uri("https://api.twitch.tv/kraken/games/top");
+        //        }
+        //    }
 
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadGames(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadGames(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets games by number of viewers, can specify how many games to get
@@ -180,39 +180,39 @@ namespace TwixelAPI
         /// <param name="hls">If set to true, only returns streams using HLS</param>
         /// <returns>Returns a list of games.
         /// If an error occurs this returns null.</returns>
-        public async Task<List<Game>> RetrieveTopGames(int limit, bool hls)
-        {
-            Uri uri;
+        //public async Task<List<Game>> RetrieveTopGames(int limit, bool hls)
+        //{
+        //    Uri uri;
 
-            if (limit <= 100)
-            {
-                if (!hls)
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=" + limit.ToString());
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=" + limit.ToString() + "&hls=true");
-                }
-            }
-            else
-            {
-                CreateError("The max number of top games you can get at one time is 100");
-                return null;
-            }
+        //    if (limit <= 100)
+        //    {
+        //        if (!hls)
+        //        {
+        //            uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=" + limit.ToString());
+        //        }
+        //        else
+        //        {
+        //            uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=" + limit.ToString() + "&hls=true");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        CreateError("The max number of top games you can get at one time is 100");
+        //        return null;
+        //    }
 
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadGames(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadGames(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a live stream.
@@ -233,7 +233,7 @@ namespace TwixelAPI
             string responseString;
             try
             {
-                responseString = await GetWebData(uri);
+                responseString = await GetWebData(uri, version);
             }
             catch (TwitchException ex)
             {
@@ -243,13 +243,13 @@ namespace TwixelAPI
             if (GoodStatusCode(responseString))
             {
                 JObject stream = JObject.Parse(responseString);
-                if (!string.IsNullOrEmpty((string)stream["stream"]))
+                if (stream["stream"].ToString() != "")
                 {
                     return HelperMethods.LoadStream(stream, version);
                 }
                 else
                 {
-                    throw new TwixelException(channelName + " if offline",
+                    throw new TwixelException(channelName + " is offline",
                         (JObject)stream["_links"]);
                 }
             }
@@ -266,37 +266,37 @@ namespace TwixelAPI
         /// <returns>Returns a list of streams.
         /// If the page of streams contains no streams this will return an empty list.
         /// If an error occurs this will return null.</returns>
-        public async Task<List<Stream>> RetrieveStreams(bool getNext)
-        {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/streams");
-            }
-            else
-            {
-                if (nextStreams != null)
-                {
-                    uri = nextStreams.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/streams");
-                }
-            }
+        //public async Task<List<Stream>> RetrieveStreams(bool getNext)
+        //{
+        //    Uri uri;
+        //    if (!getNext)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/streams");
+        //    }
+        //    else
+        //    {
+        //        if (nextStreams != null)
+        //        {
+        //            uri = nextStreams.url;
+        //        }
+        //        else
+        //        {
+        //            uri = new Uri("https://api.twitch.tv/kraken/streams");
+        //        }
+        //    }
 
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadStreams(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the top live streams for the game specified
@@ -305,22 +305,22 @@ namespace TwixelAPI
         /// <returns>Returns a list of streams.
         /// If the page of streams contains no streams this will return an empty list.
         /// If an error occurs this will return null.</returns>
-        public async Task<List<Stream>> RetrieveStreams(string game)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/streams?game=" + game);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Stream>> RetrieveStreams(string game)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/streams?game=" + game);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadStreams(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the top live streams on Twitch
@@ -333,105 +333,105 @@ namespace TwixelAPI
         /// <returns>Returns a list of streams.
         /// If the page of streams contains no streams this will return an empty list.
         /// If an error occurs this returns null.</returns>
-        public async Task<List<Stream>> RetrieveStreams(string game, List<string> channels, int limit, bool embeddable, bool hls)
-        {
-            Uri uri;
-            string uriString = "https://api.twitch.tv/kraken/streams";
+        //public async Task<List<Stream>> RetrieveStreams(string game, List<string> channels, int limit, bool embeddable, bool hls)
+        //{
+        //    Uri uri;
+        //    string uriString = "https://api.twitch.tv/kraken/streams";
 
-            if (game != "")
-            {
-                uriString = "https://api.twitch.tv/kraken/streams?game=" + game;
+        //    if (game != "")
+        //    {
+        //        uriString = "https://api.twitch.tv/kraken/streams?game=" + game;
 
-                if (channels.Count > 0)
-                {
-                    uriString += "&channel=";
-                    for (int i = 0; i < channels.Count; i++)
-                    {
-                        if (i != channels.Count - 1)
-                        {
-                            uriString += channels[i] + ",";
-                        }
-                        else
-                        {
-                            uriString += channels[i];
-                        }
-                    }
-                }
+        //        if (channels.Count > 0)
+        //        {
+        //            uriString += "&channel=";
+        //            for (int i = 0; i < channels.Count; i++)
+        //            {
+        //                if (i != channels.Count - 1)
+        //                {
+        //                    uriString += channels[i] + ",";
+        //                }
+        //                else
+        //                {
+        //                    uriString += channels[i];
+        //                }
+        //            }
+        //        }
 
-                if (limit <= 100)
-                {
-                    uriString += "&limit=" + limit.ToString();
-                }
-                else
-                {
-                    uriString += "&limit=100";
-                }
+        //        if (limit <= 100)
+        //        {
+        //            uriString += "&limit=" + limit.ToString();
+        //        }
+        //        else
+        //        {
+        //            uriString += "&limit=100";
+        //        }
 
-                if (embeddable)
-                {
-                    uriString += "&embeddable=true";
-                }
+        //        if (embeddable)
+        //        {
+        //            uriString += "&embeddable=true";
+        //        }
 
-                if (hls)
-                {
-                    uriString += "&hls=true";
-                }
-            }
-            else
-            {
-                string seperator = "?";
+        //        if (hls)
+        //        {
+        //            uriString += "&hls=true";
+        //        }
+        //    }
+        //    else
+        //    {
+        //        string seperator = "?";
 
-                if (channels.Count > 0)
-                {
-                    uriString += "?channel=";
-                    seperator = "&";
-                    for (int i = 0; i < channels.Count; i++)
-                    {
-                        if (i != channels.Count - 1)
-                        {
-                            uriString += channels[i] + ",";
-                        }
-                        else
-                        {
-                            uriString += channels[i];
-                        }
-                    }
-                }
+        //        if (channels.Count > 0)
+        //        {
+        //            uriString += "?channel=";
+        //            seperator = "&";
+        //            for (int i = 0; i < channels.Count; i++)
+        //            {
+        //                if (i != channels.Count - 1)
+        //                {
+        //                    uriString += channels[i] + ",";
+        //                }
+        //                else
+        //                {
+        //                    uriString += channels[i];
+        //                }
+        //            }
+        //        }
 
-                if (limit <= 100)
-                {
-                    uriString += seperator + "limit=" + limit.ToString();
-                }
-                else
-                {
-                    uriString += seperator + "limit=100";
-                }
-                seperator = "&";
+        //        if (limit <= 100)
+        //        {
+        //            uriString += seperator + "limit=" + limit.ToString();
+        //        }
+        //        else
+        //        {
+        //            uriString += seperator + "limit=100";
+        //        }
+        //        seperator = "&";
 
-                if (embeddable)
-                {
-                    uriString += "&embeddable=true";
-                }
+        //        if (embeddable)
+        //        {
+        //            uriString += "&embeddable=true";
+        //        }
 
-                if (hls)
-                {
-                    uriString += "&hls=true";
-                }
-            }
+        //        if (hls)
+        //        {
+        //            uriString += "&hls=true";
+        //        }
+        //    }
 
-            uri = new Uri(uriString);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //    uri = new Uri(uriString);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadStreams(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the featured live streams on Twitch
@@ -439,22 +439,22 @@ namespace TwixelAPI
         /// <returns>Returns a list of featured streams.
         /// If the page of featured streams contains no streams this will return an empty list.
         /// If a error occurs this will return null.</returns>
-        public async Task<List<FeaturedStream>> RetrieveFeaturedStreams()
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/streams/featured");
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadFeaturedStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<FeaturedStream>> RetrieveFeaturedStreams()
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/streams/featured");
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadFeaturedStreams(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the featured live streams on Twitch
@@ -464,55 +464,55 @@ namespace TwixelAPI
         /// <returns>Returns a list of featured streams.
         /// If the page of featured streams contains no streams this will return an empty list.
         /// If an error occurs this will return null.</returns>
-        public async Task<List<FeaturedStream>> RetrieveFeaturedStreams(int limit, bool hls)
-        {
-            Uri uri;
-            if (!hls)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/streams/featured?limit=" + limit.ToString());
-            }
-            else
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/streams/featured?limit=" + limit.ToString() + "&hls=true");
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadFeaturedStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<FeaturedStream>> RetrieveFeaturedStreams(int limit, bool hls)
+        //{
+        //    Uri uri;
+        //    if (!hls)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/streams/featured?limit=" + limit.ToString());
+        //    }
+        //    else
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/streams/featured?limit=" + limit.ToString() + "&hls=true");
+        //    }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadFeaturedStreams(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a summary of live streams on Twitch
         /// </summary>
         /// <returns>A Dictionary with the first key of Viewers and the second key of Channels.
         /// If an error occurs this will return null.</returns>
-        public async Task<Dictionary<string, int>> RetrieveStreamsSummary()
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/streams/summary");
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                JObject summary = JObject.Parse(responseString);
-                Dictionary<string, int> summaryDict = new Dictionary<string, int>();
-                summaryDict.Add("Viewers", (int)summary["viewers"]);
-                summaryDict.Add("Channels", (int)summary["channels"]);
-                return summaryDict;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<Dictionary<string, int>> RetrieveStreamsSummary()
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/streams/summary");
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        JObject summary = JObject.Parse(responseString);
+        //        Dictionary<string, int> summaryDict = new Dictionary<string, int>();
+        //        summaryDict.Add("Viewers", (int)summary["viewers"]);
+        //        summaryDict.Add("Channels", (int)summary["channels"]);
+        //        return summaryDict;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Creates a URL that can be used to authenticate a user
@@ -520,49 +520,49 @@ namespace TwixelAPI
         /// <param name="scopes">The permissions you are requesting. Must contain at least one permission.</param>
         /// <returns>Returns a URL to be used for authenticating a user.
         /// If the scopes list contained no scopes this returns null.</returns>
-        public Uri Login(List<TwitchConstants.Scope> scopes)
-        {
-            if (scopes == null)
-            {
-                CreateError("The list of scopes cannot be null.");
-                return null;
-            }
+        //public Uri Login(List<TwitchConstants.Scope> scopes)
+        //{
+        //    if (scopes == null)
+        //    {
+        //        CreateError("The list of scopes cannot be null.");
+        //        return null;
+        //    }
 
-            if (scopes.Count > 0)
-            {
-                List<TwitchConstants.Scope> cleanScopes = new List<TwitchConstants.Scope>();
-                for (int i = 0; i < scopes.Count; i++)
-                {
-                    if (!cleanScopes.Contains(scopes[i]))
-                    {
-                        cleanScopes.Add(scopes[i]);
-                    }
-                    else
-                    {
-                        scopes.RemoveAt(i);
-                        i--;
-                    }
-                }
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/oauth2/authorize" +
-                "?response_type=token" +
-                "&client_id=" + clientID +
-                "&redirect_uri=" + redirectUrl +
-                "&scope=");
-                string originalString = uri.OriginalString;
-                foreach (TwitchConstants.Scope scope in scopes)
-                {
-                    originalString += TwitchConstants.ScopeToString(scope) + " ";
-                }
-                uri = new Uri(originalString);
-                return uri;
-            }
-            else
-            {
-                CreateError("You must have at least 1 scope");
-                return null;
-            }
-        }
+        //    if (scopes.Count > 0)
+        //    {
+        //        List<TwitchConstants.Scope> cleanScopes = new List<TwitchConstants.Scope>();
+        //        for (int i = 0; i < scopes.Count; i++)
+        //        {
+        //            if (!cleanScopes.Contains(scopes[i]))
+        //            {
+        //                cleanScopes.Add(scopes[i]);
+        //            }
+        //            else
+        //            {
+        //                scopes.RemoveAt(i);
+        //                i--;
+        //            }
+        //        }
+        //        Uri uri;
+        //        uri = new Uri("https://api.twitch.tv/kraken/oauth2/authorize" +
+        //        "?response_type=token" +
+        //        "&client_id=" + clientID +
+        //        "&redirect_uri=" + redirectUrl +
+        //        "&scope=");
+        //        string originalString = uri.OriginalString;
+        //        foreach (TwitchConstants.Scope scope in scopes)
+        //        {
+        //            originalString += TwitchConstants.ScopeToString(scope) + " ";
+        //        }
+        //        uri = new Uri(originalString);
+        //        return uri;
+        //    }
+        //    else
+        //    {
+        //        CreateError("You must have at least 1 scope");
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a user by their name
@@ -570,22 +570,22 @@ namespace TwixelAPI
         /// <param name="name">The name of the user</param>
         /// <returns>Returns a user.
         /// If an error occurs this returns null.</returns>
-        public async Task<User> RetrieveUser(string name)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/users/" + name);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadUser(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<User> RetrieveUser(string name)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/users/" + name);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadUser(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the chat URL's for the specified user
@@ -593,48 +593,48 @@ namespace TwixelAPI
         /// <param name="user">The name of the user</param>
         /// <returns>Returns list of URLs.
         /// If an error occurs this returns null.</returns>
-        public async Task<List<Uri>> RetrieveChat(string user)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/chat/" + user);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Uri> chatLinks = new List<Uri>();
-                chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["self"]));
-                chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["emoticons"]));
-                chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["badges"]));
-                return chatLinks;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Uri>> RetrieveChat(string user)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/chat/" + user);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<Uri> chatLinks = new List<Uri>();
+        //        chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["self"]));
+        //        chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["emoticons"]));
+        //        chatLinks.Add(new Uri((string)JObject.Parse(responseString)["_links"]["badges"]));
+        //        return chatLinks;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the list of emoticons on Twitch
         /// </summary>
         /// <returns>Returns a list of emoticons.
         /// If an error occurs this returns null.</returns>
-        public async Task<List<Emoticon>> RetrieveEmoticons()
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/chat/emoticons");
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadEmoticons(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Emoticon>> RetrieveEmoticons()
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/chat/emoticons");
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadEmoticons(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a list of live streams based upon a search query
@@ -642,22 +642,22 @@ namespace TwixelAPI
         /// <param name="query">The search query</param>
         /// <returns>Returns a list of streams.
         /// If an errr occurs this will return null.</returns>
-        public async Task<List<Stream>> SearchStreams(string query)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Stream>> SearchStreams(string query)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadStreams(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a list of live streams based upon a search query
@@ -666,22 +666,22 @@ namespace TwixelAPI
         /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
         /// <returns>Returns list of streams.
         /// If an error occurs this will return null.</returns>
-        public async Task<List<Stream>> SearchStreams(string query, int limit)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query + "&limit=" + limit.ToString());
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Stream>> SearchStreams(string query, int limit)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query + "&limit=" + limit.ToString());
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadStreams(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a list of games based upon a search query
@@ -690,31 +690,31 @@ namespace TwixelAPI
         /// <param name="live">If true, only returns games that are live on at least one channel</param>
         /// <returns>Returns a list of searched games.
         /// If an error occurs this will return null.</returns>
-        public async Task<List<SearchedGame>> SearchGames(string query, bool live)
-        {
-            Uri uri;
+        //public async Task<List<SearchedGame>> SearchGames(string query, bool live)
+        //{
+        //    Uri uri;
             
-            if (live)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=true");
-            }
-            else
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=false");
-            }
+        //    if (live)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=true");
+        //    }
+        //    else
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=false");
+        //    }
 
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadSearchedGames(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadSearchedGames(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the list of teams from Twitch
@@ -723,164 +723,164 @@ namespace TwixelAPI
         /// <returns>Returns a list of teams.
         /// If the page of teams contains no teams this will return an empty list.
         /// If an error occurs this will return null.</returns>
-        public async Task<List<Team>> RetrieveTeams(bool getNext)
-        {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/teams");
-            }
-            else
-            {
-                if (nextTeams != null)
-                {
-                    uri = nextTeams.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/teams");
-                }
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Team> teams = new List<Team>();
-                nextTeams = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject o in JObject.Parse(responseString)["teams"])
-                {
-                    teams.Add(LoadTeam(o));
-                }
-                return teams;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Team>> RetrieveTeams(bool getNext)
+        //{
+        //    Uri uri;
+        //    if (!getNext)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/teams");
+        //    }
+        //    else
+        //    {
+        //        if (nextTeams != null)
+        //        {
+        //            uri = nextTeams.url;
+        //        }
+        //        else
+        //        {
+        //            uri = new Uri("https://api.twitch.tv/kraken/teams");
+        //        }
+        //    }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<Team> teams = new List<Team>();
+        //        nextTeams = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
+        //        foreach (JObject o in JObject.Parse(responseString)["teams"])
+        //        {
+        //            teams.Add(LoadTeam(o));
+        //        }
+        //        return teams;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the list of teams from Twitch
         /// </summary>
         /// <param name="limit">How many teams to get at one time. Default is 25. Maximum is 100</param>
         /// <returns>A list of teams</returns>
-        public async Task<List<Team>> RetrieveTeams(int limit)
-        {
-            Uri uri;
-            if (limit <= 100)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/teams?limit=" + limit.ToString());
-            }
-            else
-            {
-                CreateError("The max number of teams you can get at once is 100");
-                return null;
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Team> teams = new List<Team>();
-                nextTeams = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject o in JObject.Parse(responseString)["teams"])
-                {
-                    teams.Add(LoadTeam(o));
-                }
-                return teams;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Team>> RetrieveTeams(int limit)
+        //{
+        //    Uri uri;
+        //    if (limit <= 100)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/teams?limit=" + limit.ToString());
+        //    }
+        //    else
+        //    {
+        //        CreateError("The max number of teams you can get at once is 100");
+        //        return null;
+        //    }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<Team> teams = new List<Team>();
+        //        nextTeams = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
+        //        foreach (JObject o in JObject.Parse(responseString)["teams"])
+        //        {
+        //            teams.Add(LoadTeam(o));
+        //        }
+        //        return teams;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a team by name
         /// </summary>
         /// <param name="name">The name of the team</param>
         /// <returns>A team</returns>
-        public async Task<Team> RetrieveTeam(string name)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/teams/" + name);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadTeam(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<Team> RetrieveTeam(string name)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/teams/" + name);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadTeam(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a video by ID
         /// </summary>
         /// <param name="id">The video ID</param>
         /// <returns>A video</returns>
-        public async Task<Video> RetrieveVideo(string id)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/videos/" + id);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadVideo(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<Video> RetrieveVideo(string id)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/videos/" + id);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadVideo(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the top videos on Twitch
         /// </summary>
         /// <param name="getNext">If this method was called before then this will get the next page of videos</param>
         /// <returns>A list of videos</returns>
-        public async Task<List<Video>> RetrieveTopVideos(bool getNext)
-        {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/videos/top");
-            }
-            else
-            {
-                if (nextVideos != null)
-                {
-                    uri = nextVideos.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/videos/top");
-                }
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-                List<Video> videos = new List<Video>();
-                foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-                {
-                    videos.Add(LoadTopVideo(video));
-                }
-                return videos;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Video>> RetrieveTopVideos(bool getNext)
+        //{
+        //    Uri uri;
+        //    if (!getNext)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/videos/top");
+        //    }
+        //    else
+        //    {
+        //        if (nextVideos != null)
+        //        {
+        //            uri = nextVideos.url;
+        //        }
+        //        else
+        //        {
+        //            uri = new Uri("https://api.twitch.tv/kraken/videos/top");
+        //        }
+        //    }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
+        //        List<Video> videos = new List<Video>();
+        //        foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
+        //        {
+        //            videos.Add(LoadTopVideo(video));
+        //        }
+        //        return videos;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the top videos on Twitch
@@ -889,49 +889,49 @@ namespace TwixelAPI
         /// <param name="game">The name of the game to get videos for</param>
         /// <param name="period">The time period you want to look in</param>
         /// <returns>A list of videos</returns>
-        public async Task<List<Video>> RetrieveTopVideos(int limit, string game, TwitchConstants.Period period)
-        {
-            Uri uri;
-            string url = "https://api.twitch.tv/kraken/videos/top";
-            if (limit <= 100)
-            {
-                url += "?limit=" + limit.ToString();
-            }
-            else
-            {
-                CreateError("You cannot load more than 100 videos at a time");
-                return null;
-            }
+        //public async Task<List<Video>> RetrieveTopVideos(int limit, string game, TwitchConstants.Period period)
+        //{
+        //    Uri uri;
+        //    string url = "https://api.twitch.tv/kraken/videos/top";
+        //    if (limit <= 100)
+        //    {
+        //        url += "?limit=" + limit.ToString();
+        //    }
+        //    else
+        //    {
+        //        CreateError("You cannot load more than 100 videos at a time");
+        //        return null;
+        //    }
 
-            if (game != "")
-            {
-                url += "&game=" + game;
-            }
+        //    if (game != "")
+        //    {
+        //        url += "&game=" + game;
+        //    }
 
-            if (period != TwitchConstants.Period.None)
-            {
-                url += "&period=" + TwitchConstants.PeriodToString(period);
-            }
+        //    if (period != TwitchConstants.Period.None)
+        //    {
+        //        url += "&period=" + TwitchConstants.PeriodToString(period);
+        //    }
 
-            uri = new Uri(url);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Video> videos = new List<Video>();
-                nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-                {
-                    videos.Add(LoadTopVideo(video));
-                }
-                return videos;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //    uri = new Uri(url);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<Video> videos = new List<Video>();
+        //        nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
+        //        foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
+        //        {
+        //            videos.Add(LoadTopVideo(video));
+        //        }
+        //        return videos;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a list of videos for a specified channel
@@ -939,41 +939,41 @@ namespace TwixelAPI
         /// <param name="channel">The name of the channel</param>
         /// <param name="getNext">If this method was called before then this will get the next page of videos</param>
         /// <returns></returns>
-        public async Task<List<Video>> RetrieveVideos(string channel, bool getNext)
-        {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
-            }
-            else
-            {
-                if (nextVideos != null)
-                {
-                    uri = nextVideos.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
-                }
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Video> videos = new List<Video>();
-                foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-                {
-                    videos.Add(LoadVideo(video));
-                }
-                return videos;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<Video>> RetrieveVideos(string channel, bool getNext)
+        //{
+        //    Uri uri;
+        //    if (!getNext)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
+        //    }
+        //    else
+        //    {
+        //        if (nextVideos != null)
+        //        {
+        //            uri = nextVideos.url;
+        //        }
+        //        else
+        //        {
+        //            uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
+        //        }
+        //    }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<Video> videos = new List<Video>();
+        //        foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
+        //        {
+        //            videos.Add(LoadVideo(video));
+        //        }
+        //        return videos;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a list of videos for a specified channel
@@ -982,48 +982,48 @@ namespace TwixelAPI
         /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
         /// <param name="broadcasts">Returns only broadcasts when true. Otherwise only highlights are returned. Default is false.</param>
         /// <returns>A list of videos</returns>
-        public async Task<List<Video>> RetrieveVideos(string channel, int limit, bool broadcasts)
-        {
-            Uri uri;
-            string url = "https://api.twitch.tv/kraken/channels/" + channel;
-            if (limit <= 100)
-            {
-                url += "/videos?limit=" + limit.ToString();
-            }
-            else
-            {
-                CreateError("You cannot load more than 100 videos at a time");
-                return null;
-            }
+        //public async Task<List<Video>> RetrieveVideos(string channel, int limit, bool broadcasts)
+        //{
+        //    Uri uri;
+        //    string url = "https://api.twitch.tv/kraken/channels/" + channel;
+        //    if (limit <= 100)
+        //    {
+        //        url += "/videos?limit=" + limit.ToString();
+        //    }
+        //    else
+        //    {
+        //        CreateError("You cannot load more than 100 videos at a time");
+        //        return null;
+        //    }
 
-            if (broadcasts)
-            {
-                url += "&broadcasts=true";
-            }
-            else
-            {
-                url += "&broadcasts=false";
-            }
+        //    if (broadcasts)
+        //    {
+        //        url += "&broadcasts=true";
+        //    }
+        //    else
+        //    {
+        //        url += "&broadcasts=false";
+        //    }
 
-            uri = new Uri(url);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Video> videos = new List<Video>();
-                nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-                {
-                    videos.Add(LoadVideo(video));
-                }
-                return videos;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //    uri = new Uri(url);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<Video> videos = new List<Video>();
+        //        nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
+        //        foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
+        //        {
+        //            videos.Add(LoadVideo(video));
+        //        }
+        //        return videos;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a list of users following a specified user
@@ -1031,42 +1031,42 @@ namespace TwixelAPI
         /// <param name="user">The name of the user</param>
         /// <param name="getNext">If this method was called before then this will get the next page of users</param>
         /// <returns>A list of users</returns>
-        public async Task<List<User>> RetrieveFollowers(string user, bool getNext)
-        {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows");
-            }
-            else
-            {
-                if (nextFollows != null)
-                {
-                    uri = nextFollows.url;
-                }
-                else
-                {
-                    uri = uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows");
-                }
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<User> following = new List<User>();
-                nextFollows = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
-                {
-                    following.Add(LoadUser((JObject)o["user"]));
-                }
-                return following;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<List<User>> RetrieveFollowers(string user, bool getNext)
+        //{
+        //    Uri uri;
+        //    if (!getNext)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows");
+        //    }
+        //    else
+        //    {
+        //        if (nextFollows != null)
+        //        {
+        //            uri = nextFollows.url;
+        //        }
+        //        else
+        //        {
+        //            uri = uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows");
+        //        }
+        //    }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<User> following = new List<User>();
+        //        nextFollows = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
+        //        foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
+        //        {
+        //            following.Add(LoadUser((JObject)o["user"]));
+        //        }
+        //        return following;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets a list of users following a specified user
@@ -1074,127 +1074,127 @@ namespace TwixelAPI
         /// <param name="user">The name of the user</param>
         /// <param name="limit">How many users to get at one time. Default is 25. Maximum is 100</param>
         /// <returns>A list of users</returns>
-        public async Task<List<User>> RetrieveFollowers(string user, int limit)
-        {
-            Uri uri;
+        //public async Task<List<User>> RetrieveFollowers(string user, int limit)
+        //{
+        //    Uri uri;
 
-            if (limit <= 100)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows?limit=" + limit.ToString());
-            }
-            else
-            {
-                CreateError("You cannot retrieve more than 100 followers at a time");
-                return null;
-            }
+        //    if (limit <= 100)
+        //    {
+        //        uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows?limit=" + limit.ToString());
+        //    }
+        //    else
+        //    {
+        //        CreateError("You cannot retrieve more than 100 followers at a time");
+        //        return null;
+        //    }
 
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<User> following = new List<User>();
-                nextFollows = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
-                {
-                    following.Add(LoadUser((JObject)o["user"]));
-                }
-                return following;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<User> following = new List<User>();
+        //        nextFollows = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
+        //        foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
+        //        {
+        //            following.Add(LoadUser((JObject)o["user"]));
+        //        }
+        //        return following;
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the channel of the specified user
         /// </summary>
         /// <param name="name">The name of the user</param>
         /// <returns>A channel</returns>
-        public async Task<Channel> RetrieveChannel(string name)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/channels/" + name);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadChannel(JObject.Parse(responseString));
-            }
-            else
-            {
-                if (responseString == "404")
-                {
-                    CreateError(name + " was not found");
-                }
-                else
-                {
-                    CreateError(responseString);
-                }
-                return null;
-            }
-        }
+        //public async Task<Channel> RetrieveChannel(string name)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/channels/" + name);
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        return LoadChannel(JObject.Parse(responseString));
+        //    }
+        //    else
+        //    {
+        //        if (responseString == "404")
+        //        {
+        //            CreateError(name + " was not found");
+        //        }
+        //        else
+        //        {
+        //            CreateError(responseString);
+        //        }
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the list of RTMP ingest points
         /// </summary>
         /// <returns>A list of ingests</returns>
-        public async Task<List<Ingest>> RetrieveIngests()
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/ingests");
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Ingest> ingests = new List<Ingest>();
-                foreach (JObject o in (JArray)JObject.Parse(responseString)["ingests"])
-                {
-                    ingests.Add(LoadIngest(o));
-                }
+        //public async Task<List<Ingest>> RetrieveIngests()
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken/ingests");
+        //    string responseString;
+        //    responseString = await GetWebData(uri);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        List<Ingest> ingests = new List<Ingest>();
+        //        foreach (JObject o in (JArray)JObject.Parse(responseString)["ingests"])
+        //        {
+        //            ingests.Add(LoadIngest(o));
+        //        }
 
-                return ingests;
-            }
-            else
-            {
-                if (responseString == "503")
-                {
-                    CreateError("Error retrieving ingest status");
-                    return null;
-                }
-                else
-                {
-                    CreateError(responseString);
-                    return null;
-                }
-            }
-        }
+        //        return ingests;
+        //    }
+        //    else
+        //    {
+        //        if (responseString == "503")
+        //        {
+        //            CreateError("Error retrieving ingest status");
+        //            return null;
+        //        }
+        //        else
+        //        {
+        //            CreateError(responseString);
+        //            return null;
+        //        }
+        //    }
+        //}
 
-        async Task<User> RetrieveAuthenticatedUser(string accessToken, List<TwitchConstants.Scope> authorizedScopes)
-        {
-            if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/user");
-                string responseString;
-                responseString = await GetWebData(uri, accessToken);
-                if (GoodStatusCode(responseString))
-                {
-                    return LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
-                }
-                else
-                {
-                    CreateError(responseString);
-                    return null;
-                }
-            }
-            else
-            {
-                CreateError("This user has not given user_read permissions");
-                return null;
-            }
-        }
+        //async Task<User> RetrieveAuthenticatedUser(string accessToken, List<TwitchConstants.Scope> authorizedScopes)
+        //{
+        //    if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
+        //    {
+        //        Uri uri;
+        //        uri = new Uri("https://api.twitch.tv/kraken/user");
+        //        string responseString;
+        //        responseString = await GetWebData(uri, accessToken);
+        //        if (GoodStatusCode(responseString))
+        //        {
+        //            return LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
+        //        }
+        //        else
+        //        {
+        //            CreateError(responseString);
+        //            return null;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        CreateError("This user has not given user_read permissions");
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the status of an access token, if the token is valid this returns an
@@ -1202,37 +1202,37 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="accessToken">The access token</param>
         /// <returns>An authorized user</returns>
-        public async Task<User> RetrieveUserWithAccessToken(string accessToken)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken");
-            string responseString;
-            responseString = await Twixel.GetWebData(uri, accessToken);
-            if (GoodStatusCode(responseString))
-            {
-                JObject o = JObject.Parse(responseString);
-                if ((bool)JObject.Parse(responseString)["token"]["valid"])
-                {
-                    JArray userScopesA = (JArray)o["token"]["authorization"]["scopes"];
-                    List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
-                    foreach (string scope in userScopesA)
-                    {
-                        userScopes.Add(TwitchConstants.StringToScope(scope));
-                    }
-                    return await RetrieveAuthenticatedUser(accessToken, userScopes);
-                }
-                else
-                {
-                    CreateError(accessToken + " is not authorized");
-                    return null;
-                }
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
+        //public async Task<User> RetrieveUserWithAccessToken(string accessToken)
+        //{
+        //    Uri uri;
+        //    uri = new Uri("https://api.twitch.tv/kraken");
+        //    string responseString;
+        //    responseString = await Twixel.GetWebData(uri, accessToken);
+        //    if (GoodStatusCode(responseString))
+        //    {
+        //        JObject o = JObject.Parse(responseString);
+        //        if ((bool)JObject.Parse(responseString)["token"]["valid"])
+        //        {
+        //            JArray userScopesA = (JArray)o["token"]["authorization"]["scopes"];
+        //            List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
+        //            foreach (string scope in userScopesA)
+        //            {
+        //                userScopes.Add(TwitchConstants.StringToScope(scope));
+        //            }
+        //            return await RetrieveAuthenticatedUser(accessToken, userScopes);
+        //        }
+        //        else
+        //        {
+        //            CreateError(accessToken + " is not authorized");
+        //            return null;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        CreateError(responseString);
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// Checks to see if the status code returned was 200.
@@ -1405,8 +1405,7 @@ namespace TwixelAPI
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                // 404 - Summoner not found
-                return "404";
+                throw new TwitchException(JObject.Parse(responseString));
             }
             else if ((int)response.StatusCode == 422)
             {

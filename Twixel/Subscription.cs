@@ -19,7 +19,7 @@ namespace TwixelAPI
         public Subscription(string id, JObject userO, string createdAt, Twixel twixel)
         {
             this.id = id;
-            this.user = twixel.LoadUser(userO);
+            //this.user = twixel.LoadUser(userO);
             this.createdAt = DateTime.Parse(createdAt);
         }
 
@@ -27,7 +27,7 @@ namespace TwixelAPI
         {
             this.id = id;
             this.createdAt = DateTime.Parse(createdAt);
-            this.channel = twixel.LoadChannel(channelO);
+            //this.channel = twixel.LoadChannel(channelO);
         }
     }
 }

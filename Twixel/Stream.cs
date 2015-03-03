@@ -101,7 +101,7 @@ namespace TwixelAPI
             this.name = name;
             this.broadcaster = broadcaster;
             this.preview = new Uri(preview);
-            this.channel = HelperMethods.LoadChannel(channelO);
+            this.channel = HelperMethods.LoadChannel(channelO, version);
         }
 
         public Stream(long? id,
@@ -118,7 +118,7 @@ namespace TwixelAPI
             JObject baseLinksO)
             : base(baseLinksO)
         {
-            this.version = Twixel.APIVersion.v2;
+            this.version = Twixel.APIVersion.v3;
             this.id = id;
             this.game = game;
             this.viewers = viewers;
@@ -129,8 +129,8 @@ namespace TwixelAPI
             this.links = HelperMethods.LoadLinks(linksO);
             this.name = name;
             this.broadcaster = broadcaster;
-            this.preview = HelperMethods.LoadLinks(previewO);
-            this.channel = HelperMethods.LoadChannel(channelO);
+            this.previewList = HelperMethods.LoadLinks(previewO);
+            this.channel = HelperMethods.LoadChannel(channelO, version);
         }
     }
 }

@@ -5,8 +5,8 @@ namespace TwixelAPI
 {
     public class TwixelException : Exception
     {
-        public readonly TwixelObjectBase BaseLinks { get; private set; }
-        public readonly TwitchException Error { get; private set; }
+        public TwixelObjectBase BaseLinks { get; private set; }
+        public TwitchException Error { get; private set; }
 
         public TwixelException(string message) : base(message)
         {

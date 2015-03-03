@@ -12,46 +12,58 @@ namespace TwixelAPI
     {
         internal static Dictionary<string, Uri> LoadLinks(JObject o)
         {
-            Dictionary<string, string> stringLinks = JsonConvert.DeserializeObject<Dictionary<string, string>>(o.ToString());
-            Dictionary<string, Uri> links = new Dictionary<string, Uri>();
-            foreach (var link in stringLinks)
-            {
-                links.Add(link.Key, new Uri(link.Value));
-            }
+            Dictionary<string, Uri> links = JsonConvert.DeserializeObject<Dictionary<string, Uri>>(o.ToString());
             return links;
         }
 
-        internal static Channel LoadChannel(JObject o)
+        internal static Channel LoadChannel(JObject o, Twixel.APIVersion version)
         {
-            Channel channel = new Channel((string)o["mature"],
-                (string)o["background"],
-                (string)o["updated_at"],
-                (long)o["_id"],
-                (JArray)o["teams"],
-                (string)o["status"],
-                (string)o["logo"],
-                (string)o["url"],
-                (string)o["display_name"],
-                (string)o["game"],
-                (string)o["banner"],
-                (string)o["name"],
-                (string)o["video_banner"],
-                (string)o["_links"]["chat"],
-                (string)o["_links"]["subscriptions"],
-                (string)o["_links"]["features"],
-                (string)o["_links"]["commercial"],
-                (string)o["_links"]["stream_key"],
-                (string)o["_links"]["editors"],
-                (string)o["_links"]["videos"],
-                (string)o["_links"]["self"],
-                (string)o["_links"]["follows"],
-                (string)o["created_at"],
-                (string)o["profile_banner"],
-                (string)o["primary_team_name"],
-                (string)o["primary_team_display_name"],
-                (long?)o["views"],
-                (long?)o["followers"]);
-            return channel;
+            if (version == Twixel.APIVersion.v2)
+            {
+                return new Channel((bool)o["mature"],
+                    (string)o["status"],
+                    (string)o["display_name"],
+                    (string)o["game"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (string)o["created_at"],
+                    (string)o["updated_at"],
+                    (string)o["logo"],
+                    (string)o["banner"],
+                    (string)o["video_banner"],
+                    (string)o["background"],
+                    (string)o["url"],
+                    (JObject)o["_links"],
+                    (JArray)o["teams"]);
+            }
+            else if (version == Twixel.APIVersion.v3)
+            {
+                return new Channel((bool)o["mature"],
+                    (string)o["status"],
+                    (string)o["broadcaster_language"],
+                    (string)o["display_name"],
+                    (string)o["game"],
+                    (int)o["delay"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (string)o["created_at"],
+                    (string)o["updated_at"],
+                    (string)o["logo"],
+                    (string)o["banner"],
+                    (string)o["video_banner"],
+                    (string)o["background"],
+                    (string)o["profile_banner"],
+                    (string)o["profile_banner_background_color"],
+                    (bool)o["partner"],
+                    (string)o["url"],
+                    (long?)o["views"],
+                    (long?)o["followers"],
+                    (JObject)o["_links"]);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         internal static Team LoadTeam(JObject o)
@@ -66,31 +78,31 @@ namespace TwixelAPI
             return team;
         }
 
-        internal static User LoadUser(JObject o)
-        {
-            User user = new User((string)o["name"],
-                (string)o["logo"],
-                (long)o["_id"],
-                (string)o["display_name"],
-                (bool?)o["staff"],
-                (string)o["created_at"],
-                (string)o["updated_at"],
-                (string)o["bio"]);
-            return user;
-        }
+        //internal static User LoadUser(JObject o)
+        //{
+        //    User user = new User((string)o["name"],
+        //        (string)o["logo"],
+        //        (long)o["_id"],
+        //        (string)o["display_name"],
+        //        (bool?)o["staff"],
+        //        (string)o["created_at"],
+        //        (string)o["updated_at"],
+        //        (string)o["bio"]);
+        //    return user;
+        //}
 
-        internal static List<Stream> LoadStreams(JObject o)
-        {
-            List<Stream> streams = new List<Stream>();
-            nextStreams = new Uri((string)o["_links"]["next"]);
+        //internal static List<Stream> LoadStreams(JObject o)
+        //{
+        //    List<Stream> streams = new List<Stream>();
+        //    nextStreams = new Uri((string)o["_links"]["next"]);
 
-            foreach (JObject obj in (JArray)o["streams"])
-            {
-                streams.Add(LoadStream(obj, (string)o["_links"]["channel"]));
-            }
+        //    foreach (JObject obj in (JArray)o["streams"])
+        //    {
+        //        streams.Add(LoadStream(obj, (string)o["_links"]["channel"]));
+        //    }
 
-            return streams;
-        }
+        //    return streams;
+        //}
 
         internal static Stream LoadStream(JObject o, Twixel.APIVersion version)
         {
@@ -109,7 +121,7 @@ namespace TwixelAPI
                     (string)streamO["broadcaster"],
                     (string)streamO["preview"],
                     channelO,
-                    o);
+                    (JObject)o["_links"]);
             }
             else if (version == Twixel.APIVersion.v3)
             {
@@ -124,7 +136,7 @@ namespace TwixelAPI
                     (string)streamO["broadcaster"],
                     (JObject)streamO["preview"],
                     channelO,
-                    o);
+                    (JObject)o["_links"]);
             }
             else
             {

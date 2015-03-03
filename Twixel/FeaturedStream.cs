@@ -19,7 +19,7 @@ namespace TwixelAPI
         {
             this.image = new Uri(image);
             this.text = text;
-            this.stream = twixel.LoadStream(streamO, channelUrl);
+            //this.stream = twixel.LoadStream(streamO, channelUrl);
         }
     }
 }
