@@ -3,12 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace TwixelAPI
 {
     public static class HelperMethods
     {
+        internal static Dictionary<string, Uri> LoadLinks(JObject o)
+        {
+            Dictionary<string, string> stringLinks = JsonConvert.DeserializeObject<Dictionary<string, string>>(o.ToString());
+            Dictionary<string, Uri> links = new Dictionary<string, Uri>();
+            foreach (var link in stringLinks)
+            {
+                links.Add(link.Key, new Uri(link.Value));
+            }
+            return links;
+        }
+
         internal static Channel LoadChannel(JObject o)
         {
             Channel channel = new Channel((string)o["mature"],
@@ -80,16 +92,44 @@ namespace TwixelAPI
             return streams;
         }
 
-        internal static Stream LoadStream(JObject o, string channel)
+        internal static Stream LoadStream(JObject o, Twixel.APIVersion version)
         {
-            return new Stream(channel,
-                (string)o["broadcaster"],
-                    (long?)o["_id"],
-                    (string)o["preview"],
-                    (string)o["game"],
-                    (JObject)o["channel"],
-                    (string)o["name"],
-                    (int?)o["viewers"]);
+            JObject streamO = (JObject)o["stream"];
+            JObject channelO = (JObject)streamO["channel"];
+            if (version == Twixel.APIVersion.v2)
+            {
+                return new Stream((long?)streamO["_id"],
+                    (string)streamO["game"],
+                    (long?)streamO["viewers"],
+                    (string)streamO["created_at"],
+                    (int)streamO["video_height"],
+                    (double)streamO["average_fps"],
+                    (JObject)streamO["_links"],
+                    (string)streamO["name"],
+                    (string)streamO["broadcaster"],
+                    (string)streamO["preview"],
+                    channelO,
+                    o);
+            }
+            else if (version == Twixel.APIVersion.v3)
+            {
+                return new Stream((long?)streamO["_id"],
+                    (string)streamO["game"],
+                    (long?)streamO["viewers"],
+                    (string)streamO["created_at"],
+                    (int)streamO["video_height"],
+                    (double)streamO["average_fps"],
+                    (JObject)streamO["_links"],
+                    (string)streamO["name"],
+                    (string)streamO["broadcaster"],
+                    (JObject)streamO["preview"],
+                    channelO,
+                    o);
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

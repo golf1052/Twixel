@@ -51,7 +51,10 @@
     <Compile Include="SearchedGame.cs" />
     <Compile Include="Stream.cs" />
     <Compile Include="Team.cs" />
+    <Compile Include="TwitchException.cs" />
+    <Compile Include="TwixelObjectBase.cs" />
     <Compile Include="Twixel.cs" />
+    <Compile Include="TwixelException.cs" />
     <Compile Include="User.cs" />
     <Compile Include="Video.cs" />
   </ItemGroup>

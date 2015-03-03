@@ -9,44 +9,128 @@ using Newtonsoft.Json.Converters;
 
 namespace TwixelAPI
 {
-    public class Stream
+    public class Stream : TwixelObjectBase
     {
-        public Uri channelUrl;
-        public string broadcaster;
+        /// <summary>
+        /// v2/v3
+        /// </summary>
         public long? id;
-        public Uri preview;
-        public string game;
-        public Channel channel;
-        public string name;
-        public int? viewers;
 
-        public Stream(string channelUrl, string broadcaster, long? id, string preview, string game, JObject channelO, string name, int? viewers, Twixel twixel)
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public string game;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public long? viewers;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public string createdAtString;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public DateTime createdAt;
+
+        /// <summary>
+        /// v2
+        /// </summary>
+        public int videoHeight;
+
+        /// <summary>
+        /// v2
+        /// </summary>
+        public double averageFps;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public Dictionary<string, Uri> links;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public string name;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public string broadcaster;
+
+        /// <summary>
+        /// v2
+        /// </summary>
+        public Uri preview;
+
+        /// <summary>
+        /// v3
+        /// </summary>
+        public Dictionary<string, Uri> previewList;
+
+        /// <summary>
+        /// v2/v3
+        /// </summary>
+        public Channel channel;
+
+        public Stream(long? id,
+            string game,
+            long? viewers,
+            string createdAt,
+            int videoHeight,
+            double averageFps,
+            JObject linksO,
+            string name,
+            string broadcaster,
+            string preview,
+            JObject channelO,
+            JObject baseLinksO) : base(baseLinksO)
         {
-            if (channelUrl != null)
-            {
-                this.channelUrl = new Uri(channelUrl);
-            }
-            this.broadcaster = broadcaster;
-            if (id == null)
-            {
-                this.id = -1;
-            }
-            else
-            {
-                this.id = id;
-            }
-            this.preview = new Uri(preview);
+            this.version = Twixel.APIVersion.v2;
+            this.id = id;
             this.game = game;
-            channel = twixel.LoadChannel(channelO);
+            this.viewers = viewers;
+            this.createdAtString = createdAt;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.videoHeight = videoHeight;
+            this.averageFps = averageFps;
+            this.links = HelperMethods.LoadLinks(linksO);
             this.name = name;
-            if (viewers == null)
-            {
-                this.viewers = -1;
-            }
-            else
-            {
-                this.viewers = viewers;
-            }
+            this.broadcaster = broadcaster;
+            this.preview = new Uri(preview);
+            this.channel = HelperMethods.LoadChannel(channelO);
+        }
+
+        public Stream(long? id,
+            string game,
+            long? viewers,
+            string createdAt,
+            int videoHeight,
+            double averageFps,
+            JObject linksO,
+            string name,
+            string broadcaster,
+            JObject previewO,
+            JObject channelO,
+            JObject baseLinksO)
+            : base(baseLinksO)
+        {
+            this.version = Twixel.APIVersion.v2;
+            this.id = id;
+            this.game = game;
+            this.viewers = viewers;
+            this.createdAtString = createdAt;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.videoHeight = videoHeight;
+            this.averageFps = averageFps;
+            this.links = HelperMethods.LoadLinks(linksO);
+            this.name = name;
+            this.broadcaster = broadcaster;
+            this.preview = HelperMethods.LoadLinks(previewO);
+            this.channel = HelperMethods.LoadChannel(channelO);
         }
     }
 }

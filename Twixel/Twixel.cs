@@ -13,24 +13,28 @@ using TwixelAPI.Constants;
 
 namespace TwixelAPI
 {
-    public delegate void TwixelErrorHandler(object source, TwixelErrorEventArgs e);
-    public class TwixelErrorEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The error that occurred
-        /// </summary>
-        public string ErrorString { get; internal set; }
-    }
-
     /// <summary>
     /// Twixel class
     /// </summary>
     public class Twixel
     {
+        /// <summary>
+        /// The enum of available API versions
+        /// </summary>
         public enum APIVersion
         {
+            /// <summary>
+            /// Version 2 of the API
+            /// </summary>
             v2,
-            v3
+            /// <summary>
+            /// Version 3 of the API
+            /// </summary>
+            v3,
+            /// <summary>
+            /// Not a valid version
+            /// </summary>
+            None
         }
 
         /// <summary>
@@ -48,21 +52,27 @@ namespace TwixelAPI
         /// </summary>
         public string redirectUrl = "";
 
-        /// <summary>
-        /// Twixel error event
-        /// </summary>
-        public event TwixelErrorHandler TwixelErrorEvent;
-
-        string errorString = "";
+        private APIVersion defaultVersion;
 
         /// <summary>
-        /// Error string, is set when error occurs
+        /// The default version that gets sent to the API
         /// </summary>
-        public string ErrorString
+        public APIVersion DefaultVersion
         {
             get
             {
-                return errorString;
+                return defaultVersion;
+            }
+            set
+            {
+                if (value == APIVersion.None)
+                {
+                    defaultVersion = APIVersion.v3;
+                }
+                else
+                {
+                    defaultVersion = value;
+                }
             }
         }
 
@@ -97,16 +107,30 @@ namespace TwixelAPI
         public Uri nextFollows;
 
         /// <summary>
+        /// Default Twixel constructor, sets API version to v3
+        /// </summary>
+        /// <param name="id">Your client ID</param>
+        /// <param name="secret">Your client secret</param>
+        /// <param name="url">Your redirect URL, should not have / at end</param>
+        public Twixel(string id,
+            string secret,
+            string url) : this(id, secret, url, APIVersion.v3)
+        {
+        }
+
+        /// <summary>
         /// Twixel constructor
         /// </summary>
         /// <param name="id">Your client ID</param>
         /// <param name="secret">Your client secret</param>
         /// <param name="url">Your redirect URL, should not have / at end</param>
-        public Twixel(string id, string secret, string url)
+        /// <param name="defaultVersion">The API version you want to use</param>
+        public Twixel(string id, string secret, string url, APIVersion defaultVersion)
         {
             clientID = id;
             clientSecret = secret;
             redirectUrl = url;
+            this.DefaultVersion = defaultVersion;
         }
 
         /// <summary>
@@ -191,35 +215,47 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// Gets a live stream. If the stream is offline this method will return null.
+        /// Gets a live stream.
+        /// If the stream is offline this method will throw an exception.
         /// </summary>
         /// <param name="channelName">The channel stream to get</param>
         /// <returns>Returns a stream object.
-        /// If the stream is offline or an error occurs this will return null.</returns>
-        public async Task<Stream> RetrieveStream(string channelName)
+        /// If the stream is offline or an error occurs this will throw an exception.</returns>
+        public async Task<Stream> RetrieveStream(string channelName, APIVersion version = APIVersion.None)
         {
+            if (version == APIVersion.None)
+            {
+                version = defaultVersion;
+            }
+
             Uri uri;
             uri = new Uri("https://api.twitch.tv/kraken/streams/" + channelName);
-
             string responseString;
-            responseString = await GetWebData(uri);
+            try
+            {
+                responseString = await GetWebData(uri);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException("There was a Twitch API error", ex);
+            }
+
             if (GoodStatusCode(responseString))
             {
                 JObject stream = JObject.Parse(responseString);
-                if (stream["stream"].ToString() != "")
+                if (!string.IsNullOrEmpty((string)stream["stream"]))
                 {
-                    return LoadStream((JObject)stream["stream"], (string)stream["_links"]["channel"]);
+                    return HelperMethods.LoadStream(stream, version);
                 }
                 else
                 {
-                    CreateError(channelName + " is offline");
-                    return null;
+                    throw new TwixelException(channelName + " if offline",
+                        (JObject)stream["_links"]);
                 }
             }
             else
             {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException(responseString);
             }
         }
 
@@ -1335,17 +1371,13 @@ namespace TwixelAPI
             return ingest;
         }
 
-        internal void CreateError(string errorStr)
-        {
-            errorString = errorStr;
-            TwixelErrorEventArgs error = new TwixelErrorEventArgs();
-            error.ErrorString = errorString;
-            TwixelErrorEvent(this, error);
-        }
-
-        public static async Task<string> GetWebData(Uri uri, APIVersion version = APIVersion.v2)
+        public static async Task<string> GetWebData(Uri uri, APIVersion version = APIVersion.None)
         {
             HttpClient client = new HttpClient();
+            if (version == APIVersion.None)
+            {
+                version = APIVersion.v3;
+            }
 
             if (version == APIVersion.v2)
                 client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
@@ -1354,11 +1386,11 @@ namespace TwixelAPI
 
             client.DefaultRequestHeaders.Add("Client-ID", clientID);
             HttpResponseMessage response = await client.GetAsync(uri);
+            string responseString = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 // 200 - OK
-                string responseString = await response.Content.ReadAsStringAsync();
                 return responseString;
             }
             else if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -1378,7 +1410,7 @@ namespace TwixelAPI
             }
             else if ((int)response.StatusCode == 422)
             {
-                return "422";
+                throw new TwitchException(JObject.Parse(responseString));
             }
             else if (response.StatusCode == HttpStatusCode.InternalServerError)
             {
