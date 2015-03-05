@@ -79,7 +79,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Custom Packages\Flurl.dll" />
-    <Content Include="Custom Packages\Flurl.pdb" />
     <Content Include="Custom Packages\Flurl.XML" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
