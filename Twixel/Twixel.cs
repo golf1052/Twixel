@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Converters;
 using System.Diagnostics;
 using TwixelAPI.Constants;
+using Flurl;
 
 namespace TwixelAPI
 {
@@ -35,6 +36,14 @@ namespace TwixelAPI
             /// Not a valid version
             /// </summary>
             None
+        }
+
+        public enum RequestType
+        {
+            Get,
+            Put,
+            Post,
+            Delete
         }
 
         /// <summary>
@@ -333,98 +342,49 @@ namespace TwixelAPI
         /// <returns>Returns a list of streams.
         /// If the page of streams contains no streams this will return an empty list.
         /// If an error occurs this returns null.</returns>
-        //public async Task<List<Stream>> RetrieveStreams(string game, List<string> channels, int limit, bool embeddable, bool hls)
+        //public async Task<List<Stream>> RetrieveStreams(string game = null, List<string> channels = null, int limit = 25, int offset = 0, string clientId = null)
         //{
-        //    Uri uri;
-        //    string uriString = "https://api.twitch.tv/kraken/streams";
-
-        //    if (game != "")
+        //    Url url = new Url("https://api.twitch.tv/kraken/streams");
+        //    url.SetQueryParam("game", game);
+        //    if (channels.Count > 0)
         //    {
-        //        uriString = "https://api.twitch.tv/kraken/streams?game=" + game;
-
-        //        if (channels.Count > 0)
+        //        string channelsString = "";
+        //        for (int i = 0; i < channels.Count; i++)
         //        {
-        //            uriString += "&channel=";
-        //            for (int i = 0; i < channels.Count; i++)
+        //            if (i != channels.Count - 1)
         //            {
-        //                if (i != channels.Count - 1)
-        //                {
-        //                    uriString += channels[i] + ",";
-        //                }
-        //                else
-        //                {
-        //                    uriString += channels[i];
-        //                }
+        //                channelsString += channels[i] + ",";
+        //            }
+        //            else
+        //            {
+        //                channelsString += channels[i];
         //            }
         //        }
-
-        //        if (limit <= 100)
-        //        {
-        //            uriString += "&limit=" + limit.ToString();
-        //        }
-        //        else
-        //        {
-        //            uriString += "&limit=100";
-        //        }
-
-        //        if (embeddable)
-        //        {
-        //            uriString += "&embeddable=true";
-        //        }
-
-        //        if (hls)
-        //        {
-        //            uriString += "&hls=true";
-        //        }
+        //        url.SetQueryParam("channel", channelsString);
+        //    }
+        //    if (limit <= 100)
+        //    {
+        //        url.SetQueryParam("limit", limit);
         //    }
         //    else
         //    {
-        //        string seperator = "?";
-
-        //        if (channels.Count > 0)
-        //        {
-        //            uriString += "?channel=";
-        //            seperator = "&";
-        //            for (int i = 0; i < channels.Count; i++)
-        //            {
-        //                if (i != channels.Count - 1)
-        //                {
-        //                    uriString += channels[i] + ",";
-        //                }
-        //                else
-        //                {
-        //                    uriString += channels[i];
-        //                }
-        //            }
-        //        }
-
-        //        if (limit <= 100)
-        //        {
-        //            uriString += seperator + "limit=" + limit.ToString();
-        //        }
-        //        else
-        //        {
-        //            uriString += seperator + "limit=100";
-        //        }
-        //        seperator = "&";
-
-        //        if (embeddable)
-        //        {
-        //            uriString += "&embeddable=true";
-        //        }
-
-        //        if (hls)
-        //        {
-        //            uriString += "&hls=true";
-        //        }
+        //        url.SetQueryParam("limit", 100);
         //    }
+        //    url.SetQueryParam("offset", offset).SetQueryParam("client_id", clientId);
 
-        //    uri = new Uri(uriString);
+        //    Uri uri = new Uri(url.ToString());
         //    string responseString;
-        //    responseString = await GetWebData(uri);
+        //    try
+        //    {
+        //        responseString = await GetWebData(uri);
+        //    }
+        //    catch (TwitchException ex)
+        //    {
+        //        throw new TwixelException("There was a Twitch API error", ex);
+        //    }
         //    if (GoodStatusCode(responseString))
         //    {
-        //        return LoadStreams(JObject.Parse(responseString));
+        //        return HelperMethods.LoadStreams(JObject.Parse(responseString));
         //    }
         //    else
         //    {
@@ -1373,6 +1333,31 @@ namespace TwixelAPI
 
         public static async Task<string> GetWebData(Uri uri, APIVersion version = APIVersion.None)
         {
+            return await DoWebData(uri, RequestType.Get, null, null, version);
+        }
+
+        public static async Task<string> GetWebData(Uri uri, string accessToken, APIVersion version = APIVersion.None)
+        {
+            return await DoWebData(uri, RequestType.Get, accessToken, null, version);
+        }
+
+        public static async Task<string> PutWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.None)
+        {
+            return await DoWebData(uri, RequestType.Put, accessToken, content, version);
+        }
+
+        public static async Task<string> PostWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.None)
+        {
+            return await DoWebData(uri, RequestType.Post, accessToken, content, version);
+        }
+
+        public static async Task<string> DeleteWebData(Uri uri, string accessToken, APIVersion version = APIVersion.None)
+        {
+            return await DoWebData(uri, RequestType.Delete, accessToken, null, version);
+        }
+
+        private static async Task<string> DoWebData(Uri uri, RequestType requestType, string accessToken = null, string content = null, APIVersion version = APIVersion.None)
+        {
             HttpClient client = new HttpClient();
             if (version == APIVersion.None)
             {
@@ -1380,190 +1365,60 @@ namespace TwixelAPI
             }
 
             if (version == APIVersion.v2)
+            {
                 client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            }
             else if (version == APIVersion.v3)
+            {
                 client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
+            }
 
             client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            HttpResponseMessage response = await client.GetAsync(uri);
-            string responseString = await response.Content.ReadAsStringAsync();
 
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
+            }
+
+            StringContent stringContent = new StringContent("", Encoding.UTF8, "application/json");
+            if (requestType == RequestType.Put || requestType == RequestType.Post)
+            {
+                stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+            }
+
+            HttpResponseMessage response = null;
+            if (requestType == RequestType.Get)
+            {
+                response = await client.GetAsync(uri);
+            }
+            else if (requestType == RequestType.Put)
+            {
+                response = await client.PutAsync(uri, stringContent);
+            }
+            else if (requestType == RequestType.Post)
+            {
+                response = await client.PostAsync(uri, stringContent);
+            }
+            else if (requestType == RequestType.Delete)
+            {
+                response = await client.DeleteAsync(uri);
+            }
+
+            string responseString;
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                // 200 - OK
-                return responseString;
-            }
-            else if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // 400 - Bad request
-                return "400";
-            }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                // 401 - Unauthoriezed
-                return "401";
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                throw new TwitchException(JObject.Parse(responseString));
-            }
-            else if ((int)response.StatusCode == 422)
-            {
-                throw new TwitchException(JObject.Parse(responseString));
-            }
-            else if (response.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                // 500 - Internal server error
-                return "500";
-            }
-            else if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
-            {
-                return "503";
-            }
-            else
-            {
-                Debug.WriteLine((int)response.StatusCode);
-                return "Unknown status code";
-            }
-        }
-
-        public static async Task<string> GetWebData(Uri uri, string accessToken, APIVersion version = APIVersion.v2)
-        {
-            HttpClient client = new HttpClient();
-
-            if (version == APIVersion.v2)
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            else if (version == APIVersion.v3)
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
-
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
-            HttpResponseMessage response = await client.GetAsync(uri);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                // 200 - OK
-                string responseString = await response.Content.ReadAsStringAsync();
-                return responseString;
-            }
-            else if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // 400 - Bad request
-                return "400";
-            }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                // 401 - Unauthoriezed
-                return "401";
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                // 404 - Summoner not found
-                return "404";
-            }
-            else if ((int)response.StatusCode == 422)
-            {
-                return "422";
-            }
-            else if (response.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                // 500 - Internal server error
-                return "500";
-            }
-            else
-            {
-                return "Unknown status code";
-            }
-        }
-
-        public static async Task<string> PutWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.v2)
-        {
-            HttpClient client = new HttpClient();
-
-            if (version == APIVersion.v2)
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            else if (version == APIVersion.v3)
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
-
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
-            StringContent stringContent = new StringContent(content, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await client.PutAsync(uri, stringContent);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string responseString = await response.Content.ReadAsStringAsync();
-                return responseString;
-            }
-            else
-            {
-                return "Unknown status code";
-            }
-        }
-
-        public static async Task<string> PostWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.v2)
-        {
-            HttpClient client = new HttpClient();
-
-            if (version == APIVersion.v2)
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            else if (version == APIVersion.v3)
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
-
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
-            StringContent stringContent = new StringContent(content, Encoding.UTF8);
-            HttpResponseMessage response = await client.PostAsync(uri, stringContent);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string responseString = await response.Content.ReadAsStringAsync();
-                return responseString;
-            }
-            else if ((int)response.StatusCode == 422)
-            {
-                return "422";
-            }
-            else
-            {
-                return "Unknown status code";
-            }
-        }
-
-        public static async Task<string> DeleteWebData(Uri uri, string accessToken, APIVersion version = APIVersion.v2)
-        {
-            HttpClient client = new HttpClient();
-
-            if (version == APIVersion.v2)
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            else if (version == APIVersion.v3)
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
-
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
-            HttpResponseMessage response = await client.DeleteAsync(uri);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string responseString = await response.Content.ReadAsStringAsync();
+                responseString = await response.Content.ReadAsStringAsync();
                 return responseString;
             }
             else if (response.StatusCode == HttpStatusCode.NoContent)
             {
-                string responseString = "";
+                responseString = "";
                 return responseString;
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return "404";
-            }
-            else if ((int)response.StatusCode == 422)
-            {
-                return "422";
             }
             else
             {
-                return "Unknown status code";
+                responseString = await response.Content.ReadAsStringAsync();
+                throw new TwitchException(JObject.Parse(responseString));
             }
         }
     }

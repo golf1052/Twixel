@@ -60,15 +60,15 @@ namespace TwixelAPI.Tests
             Stream stream = null;
             // This stream may be offline so it is suggested you edit
             // this line to get a stream that is online.
-            stream = await twixel.RetrieveStream("TSM_TheOddOne");
-            if (stream != null)
-            {
-                Assert.Equal("League of Legends", stream.game);
-            }
-            else
-            {
-                Assert.True(streamOffline);
-            }
+            //stream = await twixel.RetrieveStream("TSM_TheOddOne");
+            //if (stream != null)
+            //{
+            //    Assert.Equal("League of Legends", stream.game);
+            //}
+            //else
+            //{
+            //    Assert.True(streamOffline);
+            //}
 
             TwixelException ex = await Assert.ThrowsAsync<TwixelException>(async () => await twixel.RetrieveStream("dfsfd"));
             Assert.IsType(typeof(TwitchException), ex.InnerException);
