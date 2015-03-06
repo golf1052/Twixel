@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using TwixelAPI;
 using TwixelAPI.Constants;
 using Xunit;
@@ -60,15 +61,15 @@ namespace TwixelAPI.Tests
             Stream stream = null;
             // This stream may be offline so it is suggested you edit
             // this line to get a stream that is online.
-            //stream = await twixel.RetrieveStream("TSM_TheOddOne");
-            //if (stream != null)
-            //{
-            //    Assert.Equal("League of Legends", stream.game);
-            //}
-            //else
-            //{
-            //    Assert.True(streamOffline);
-            //}
+            stream = await twixel.RetrieveStream("MushIsGosu");
+            if (stream != null)
+            {
+                Assert.Equal("League of Legends", stream.game);
+            }
+            else
+            {
+                Assert.True(streamOffline);
+            }
 
             TwixelException ex = await Assert.ThrowsAsync<TwixelException>(async () => await twixel.RetrieveStream("dfsfd"));
             Assert.IsType(typeof(TwitchException), ex.InnerException);
@@ -82,15 +83,22 @@ namespace TwixelAPI.Tests
             Assert.Equal("golf1052 is offline", ex.Message);
         }
 
-        //[Fact]
-        //public async void RetrieveStreamsTest()
-        //{
-        //    List<Stream> topStreams = await twixel.RetrieveStreams(false);
-        //    Assert.Equal(25, topStreams.Count);
+        [Fact]
+        public async void RetrieveStreamsTest()
+        {
+            List<Stream> topStreams = await twixel.RetrieveStreams();
+            Assert.Equal(25, topStreams.Count);
 
-        //    List<Stream> leagueStreams = await twixel.RetrieveStreams("League of Legends");
-        //    Assert.Equal(leagueStreams[0].game, "League of Legends");
-        //}
+            List<Stream> leagueStreams = await twixel.RetrieveStreams("League of Legends");
+            Assert.Equal("League of Legends", leagueStreams[0].game);
+        }
+
+        [Fact]
+        public async void RetrieveAllStreamsTest()
+        {
+            List<Stream> allStreams = await twixel.RetrieveAllStreams();
+            Assert.Equal("Game Development", allStreams[0].game);
+        }
 
         //[Fact]
         //public async void RetrieveFeaturedStreamsTest()

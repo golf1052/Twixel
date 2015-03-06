@@ -20,7 +20,7 @@ namespace TwixelAPI
         {
             if (version == Twixel.APIVersion.v2)
             {
-                return new Channel((bool)o["mature"],
+                return new Channel((bool?)o["mature"],
                     (string)o["status"],
                     (string)o["display_name"],
                     (string)o["game"],
@@ -38,12 +38,12 @@ namespace TwixelAPI
             }
             else if (version == Twixel.APIVersion.v3)
             {
-                return new Channel((bool)o["mature"],
+                return new Channel((bool?)o["mature"],
                     (string)o["status"],
                     (string)o["broadcaster_language"],
                     (string)o["display_name"],
                     (string)o["game"],
-                    (int)o["delay"],
+                    (int?)o["delay"],
                     (long)o["_id"],
                     (string)o["name"],
                     (string)o["created_at"],
@@ -54,7 +54,7 @@ namespace TwixelAPI
                     (string)o["background"],
                     (string)o["profile_banner"],
                     (string)o["profile_banner_background_color"],
-                    (bool)o["partner"],
+                    (bool?)o["partner"],
                     (string)o["url"],
                     (long?)o["views"],
                     (long?)o["followers"],
@@ -91,50 +91,48 @@ namespace TwixelAPI
         //    return user;
         //}
 
-        //internal static List<Stream> LoadStreams(JObject o)
-        //{
-        //    List<Stream> streams = new List<Stream>();
-        //    nextStreams = new Uri((string)o["_links"]["next"]);
+        internal static List<Stream> LoadStreams(JObject o, Twixel.APIVersion version)
+        {
+            List<Stream> streams = new List<Stream>();
 
-        //    foreach (JObject obj in (JArray)o["streams"])
-        //    {
-        //        streams.Add(LoadStream(obj, (string)o["_links"]["channel"]));
-        //    }
+            foreach (JObject obj in (JArray)o["streams"])
+            {
+                streams.Add(LoadStream(obj, version));
+            }
 
-        //    return streams;
-        //}
+            return streams;
+        }
 
         internal static Stream LoadStream(JObject o, Twixel.APIVersion version)
         {
-            JObject streamO = (JObject)o["stream"];
-            JObject channelO = (JObject)streamO["channel"];
+            JObject channelO = (JObject)o["channel"];
             if (version == Twixel.APIVersion.v2)
             {
-                return new Stream((long?)streamO["_id"],
-                    (string)streamO["game"],
-                    (long?)streamO["viewers"],
-                    (string)streamO["created_at"],
-                    (int)streamO["video_height"],
-                    (double)streamO["average_fps"],
-                    (JObject)streamO["_links"],
-                    (string)streamO["name"],
-                    (string)streamO["broadcaster"],
-                    (string)streamO["preview"],
+                return new Stream((long?)o["_id"],
+                    (string)o["game"],
+                    (long?)o["viewers"],
+                    (string)o["created_at"],
+                    (int)o["video_height"],
+                    (double)o["average_fps"],
+                    (JObject)o["_links"],
+                    (string)o["name"],
+                    (string)o["broadcaster"],
+                    (string)o["preview"],
                     channelO,
                     (JObject)o["_links"]);
             }
             else if (version == Twixel.APIVersion.v3)
             {
-                return new Stream((long?)streamO["_id"],
-                    (string)streamO["game"],
-                    (long?)streamO["viewers"],
-                    (string)streamO["created_at"],
-                    (int)streamO["video_height"],
-                    (double)streamO["average_fps"],
-                    (JObject)streamO["_links"],
-                    (string)streamO["name"],
-                    (string)streamO["broadcaster"],
-                    (JObject)streamO["preview"],
+                return new Stream((long?)o["_id"],
+                    (string)o["game"],
+                    (long?)o["viewers"],
+                    (string)o["created_at"],
+                    (int)o["video_height"],
+                    (double)o["average_fps"],
+                    (JObject)o["_links"],
+                    (string)o["name"],
+                    (string)o["broadcaster"],
+                    (JObject)o["preview"],
                     channelO,
                     (JObject)o["_links"]);
             }

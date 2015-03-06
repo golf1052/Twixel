@@ -9,7 +9,7 @@ namespace TwixelAPI
         /// <summary>
         /// v2/v3
         /// </summary>
-        public bool mature;
+        public bool? mature;
 
         /// <summary>
         /// v2/v3
@@ -34,7 +34,7 @@ namespace TwixelAPI
         /// <summary>
         /// v3
         /// </summary>
-        public int delay;
+        public int? delay;
 
         /// <summary>
         /// v3
@@ -104,7 +104,7 @@ namespace TwixelAPI
         /// <summary>
         /// v3
         /// </summary>
-        public bool partner;
+        public bool? partner;
 
         /// <summary>
         /// v2/v3
@@ -128,7 +128,7 @@ namespace TwixelAPI
 
         public Twixel.APIVersion version;
 
-        public Channel(bool mature,
+        public Channel(bool? mature,
             string status,
             string displayName,
             string game,
@@ -171,7 +171,10 @@ namespace TwixelAPI
             {
                 this.background = new Uri(background);
             }
-            this.url = new Uri(url);
+            if (!string.IsNullOrEmpty(url))
+            {
+                this.url = new Uri(url);
+            }
             if (teamsA != null)
             {
                 foreach (JObject team in teamsA)
@@ -181,12 +184,12 @@ namespace TwixelAPI
             }
         }
 
-        public Channel(bool mature,
+        public Channel(bool? mature,
             string status,
             string broadcasterLanguage,
             string displayName,
             string game,
-            int delay,
+            int? delay,
             long id,
             string name,
             string createdAt,
@@ -197,7 +200,7 @@ namespace TwixelAPI
             string background,
             string profileBanner,
             string profileBannerBackgroundColor,
-            bool partner,
+            bool? partner,
             string url,
             long? views,
             long? followers,
@@ -238,7 +241,10 @@ namespace TwixelAPI
             }
             this.profileBannerBackgroundColor = profileBannerBackgroundColor;
             this.partner = partner;
-            this.url = new Uri(url);
+            if (!string.IsNullOrEmpty(url))
+            {
+                this.url = new Uri(url);
+            }
             this.views = views;
             this.followers = followers;
         }

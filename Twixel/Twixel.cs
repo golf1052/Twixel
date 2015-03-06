@@ -227,14 +227,14 @@ namespace TwixelAPI
         /// Gets a live stream.
         /// If the stream is offline this method will throw an exception.
         /// </summary>
-        /// <param name="channelName">The channel stream to get</param>
+        /// <param name="channelName">The channel stream to get.</param>
         /// <returns>Returns a stream object.
         /// If the stream is offline or an error occurs this will throw an exception.</returns>
         public async Task<Stream> RetrieveStream(string channelName, APIVersion version = APIVersion.None)
         {
             if (version == APIVersion.None)
             {
-                version = defaultVersion;
+                version = DefaultVersion;
             }
 
             Uri uri;
@@ -249,149 +249,100 @@ namespace TwixelAPI
                 throw new TwixelException("There was a Twitch API error", ex);
             }
 
-            if (GoodStatusCode(responseString))
+            JObject stream = JObject.Parse(responseString);
+            if (stream["stream"].ToString() != "")
             {
-                JObject stream = JObject.Parse(responseString);
-                if (stream["stream"].ToString() != "")
-                {
-                    return HelperMethods.LoadStream(stream, version);
-                }
-                else
-                {
-                    throw new TwixelException(channelName + " is offline",
-                        (JObject)stream["_links"]);
-                }
+                return HelperMethods.LoadStream((JObject)stream["stream"], version);
             }
             else
             {
-                throw new TwixelException(responseString);
+                throw new TwixelException(channelName + " is offline",
+                    (JObject)stream["_links"]);
             }
         }
 
         /// <summary>
-        /// Gets the top live streams on Twitch
+        /// Gets the top live streams on Twitch.
         /// </summary>
-        /// <param name="getNext">If this method was called before then this will get the next page of streams</param>
+        /// <param name="game">The game you want streams for.</param>
+        /// <param name="channels">Streams from a list of channels.</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="clientId">Only show stream with this client ID. Version 3 only.</param>
         /// <returns>Returns a list of streams.
         /// If the page of streams contains no streams this will return an empty list.
-        /// If an error occurs this will return null.</returns>
-        //public async Task<List<Stream>> RetrieveStreams(bool getNext)
-        //{
-        //    Uri uri;
-        //    if (!getNext)
-        //    {
-        //        uri = new Uri("https://api.twitch.tv/kraken/streams");
-        //    }
-        //    else
-        //    {
-        //        if (nextStreams != null)
-        //        {
-        //            uri = nextStreams.url;
-        //        }
-        //        else
-        //        {
-        //            uri = new Uri("https://api.twitch.tv/kraken/streams");
-        //        }
-        //    }
+        /// If an error occors this will throw an exception.</returns>
+        public async Task<List<Stream>> RetrieveStreams(string game = null, List<string> channels = null, int limit = 25, int offset = 0, string clientId = null, APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
 
-        //    string responseString;
-        //    responseString = await GetWebData(uri);
-        //    if (GoodStatusCode(responseString))
-        //    {
-        //        return LoadStreams(JObject.Parse(responseString));
-        //    }
-        //    else
-        //    {
-        //        CreateError(responseString);
-        //        return null;
-        //    }
-        //}
+            Url url = new Url("https://api.twitch.tv/kraken/streams");
+            url.SetQueryParam("game", game);
+            if (channels != null && channels.Count > 0)
+            {
+                string channelsString = "";
+                for (int i = 0; i < channels.Count; i++)
+                {
+                    if (i != channels.Count - 1)
+                    {
+                        channelsString += channels[i] + ",";
+                    }
+                    else
+                    {
+                        channelsString += channels[i];
+                    }
+                }
+                url.SetQueryParam("channel", channelsString);
+            }
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
+            }
+            else
+            {
+                url.SetQueryParam("limit", 100);
+            }
+            url.SetQueryParam("offset", offset);
+            if (version == APIVersion.v3)
+            {
+                url.SetQueryParam("client_id", clientId);
+            }
 
-        /// <summary>
-        /// Gets the top live streams for the game specified
-        /// </summary>
-        /// <param name="game">The game you want streams for</param>
-        /// <returns>Returns a list of streams.
-        /// If the page of streams contains no streams this will return an empty list.
-        /// If an error occurs this will return null.</returns>
-        //public async Task<List<Stream>> RetrieveStreams(string game)
-        //{
-        //    Uri uri;
-        //    uri = new Uri("https://api.twitch.tv/kraken/streams?game=" + game);
-        //    string responseString;
-        //    responseString = await GetWebData(uri);
-        //    if (GoodStatusCode(responseString))
-        //    {
-        //        return LoadStreams(JObject.Parse(responseString));
-        //    }
-        //    else
-        //    {
-        //        CreateError(responseString);
-        //        return null;
-        //    }
-        //}
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException("There was a Twitch API error", ex);
+            }
+            return HelperMethods.LoadStreams(JObject.Parse(responseString), version);
+        }
 
-        /// <summary>
-        /// Gets the top live streams on Twitch
-        /// </summary>
-        /// <param name="game">The game you want streams for. Can be an empty string. May not be null.</param>
-        /// <param name="channels">Streams from a list of channels. Can be an empty list. May not be null.</param>
-        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <param name="embeddable">If set to true, only returns streams that can be embedded</param>
-        /// <param name="hls">If set to true, only returns streams using HLS</param>
-        /// <returns>Returns a list of streams.
-        /// If the page of streams contains no streams this will return an empty list.
-        /// If an error occurs this returns null.</returns>
-        //public async Task<List<Stream>> RetrieveStreams(string game = null, List<string> channels = null, int limit = 25, int offset = 0, string clientId = null)
-        //{
-        //    Url url = new Url("https://api.twitch.tv/kraken/streams");
-        //    url.SetQueryParam("game", game);
-        //    if (channels.Count > 0)
-        //    {
-        //        string channelsString = "";
-        //        for (int i = 0; i < channels.Count; i++)
-        //        {
-        //            if (i != channels.Count - 1)
-        //            {
-        //                channelsString += channels[i] + ",";
-        //            }
-        //            else
-        //            {
-        //                channelsString += channels[i];
-        //            }
-        //        }
-        //        url.SetQueryParam("channel", channelsString);
-        //    }
-        //    if (limit <= 100)
-        //    {
-        //        url.SetQueryParam("limit", limit);
-        //    }
-        //    else
-        //    {
-        //        url.SetQueryParam("limit", 100);
-        //    }
-        //    url.SetQueryParam("offset", offset).SetQueryParam("client_id", clientId);
+        public async Task<List<Stream>> RetrieveAllStreams(string game = null, List<string> channels = null, string clientId = null, APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
 
-        //    Uri uri = new Uri(url.ToString());
-        //    string responseString;
-        //    try
-        //    {
-        //        responseString = await GetWebData(uri);
-        //    }
-        //    catch (TwitchException ex)
-        //    {
-        //        throw new TwixelException("There was a Twitch API error", ex);
-        //    }
-        //    if (GoodStatusCode(responseString))
-        //    {
-        //        return HelperMethods.LoadStreams(JObject.Parse(responseString));
-        //    }
-        //    else
-        //    {
-        //        CreateError(responseString);
-        //        return null;
-        //    }
-        //}
+            List<Stream> streams = new List<Stream>();
+            List<Stream> collector = new List<Stream>();
+            int offset = 0;
+            do
+            {
+                collector = await RetrieveStreams(game, channels, 100, offset, clientId, version);
+                streams.AddRange(collector);
+                offset += 100;
+            }
+            while (collector.Count > 0);
+            return streams;
+        }
 
         /// <summary>
         /// Gets the featured live streams on Twitch
@@ -1193,22 +1144,6 @@ namespace TwixelAPI
         //        return null;
         //    }
         //}
-
-        /// <summary>
-        /// Checks to see if the status code returned was 200.
-        /// </summary>
-        /// <param name="response">The response</param>
-        /// <returns>If the status code was ok or not</returns>
-        public static bool GoodStatusCode(string response)
-        {
-            return response != "400" &&
-                response != "401" &&
-                response != "404" &&
-                response != "422" &&
-                response != "500" &&
-                response != "503" &&
-                response != "Unknown status code";
-        }
 
         List<Game> LoadGames(JObject o)
         {
