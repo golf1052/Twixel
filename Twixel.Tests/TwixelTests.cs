@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TwixelAPI;
-using TwixelAPI.Constants;
 using Xunit;
 
 namespace TwixelAPI.Tests
@@ -97,7 +91,9 @@ namespace TwixelAPI.Tests
         public async void RetrieveAllStreamsTest()
         {
             List<Stream> allStreams = await twixel.RetrieveAllStreams();
-            Assert.Equal("Game Development", allStreams[0].game);
+            List<Stream> first25 = allStreams.GetRange(0, 25);
+            Stream leagueStream = first25.First((s) => s.game == "League of Legends");
+            Assert.NotNull(leagueStream);
         }
 
         //[Fact]
