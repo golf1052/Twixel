@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -66,15 +63,19 @@ namespace TwixelAPI
             }
         }
 
-        internal static Team LoadTeam(JObject o)
+        internal static Team LoadTeam(JObject o, Twixel.APIVersion version)
         {
-            Team team = new Team((string)o["info"],
-                (string)o["background"],
-                (string)o["banner"],
+            Team team = new Team((long)o["_id"],
                 (string)o["name"],
-                (long)o["_id"],
+                (string)o["info"],
                 (string)o["display_name"],
-                (string)o["logo"]);
+                (string)o["created_at"],
+                (string)o["updated_at"],
+                (string)o["logo"],
+                (string)o["banner"],
+                (string)o["background"],
+                version,
+                (JObject)o["_links"]);
             return team;
         }
 
@@ -97,13 +98,13 @@ namespace TwixelAPI
 
             foreach (JObject obj in (JArray)o["streams"])
             {
-                streams.Add(LoadStream(obj, version));
+                streams.Add(LoadStream(obj, (JObject)o["_links"], version));
             }
 
             return streams;
         }
 
-        internal static Stream LoadStream(JObject o, Twixel.APIVersion version)
+        internal static Stream LoadStream(JObject o, JObject baseLinksO, Twixel.APIVersion version)
         {
             JObject channelO = (JObject)o["channel"];
             if (version == Twixel.APIVersion.v2)
@@ -112,14 +113,14 @@ namespace TwixelAPI
                     (string)o["game"],
                     (long?)o["viewers"],
                     (string)o["created_at"],
-                    (int)o["video_height"],
-                    (double)o["average_fps"],
+                    (int?)o["video_height"],
+                    (double?)o["average_fps"],
                     (JObject)o["_links"],
                     (string)o["name"],
                     (string)o["broadcaster"],
                     (string)o["preview"],
                     channelO,
-                    (JObject)o["_links"]);
+                    baseLinksO);
             }
             else if (version == Twixel.APIVersion.v3)
             {
@@ -134,12 +135,85 @@ namespace TwixelAPI
                     (string)o["broadcaster"],
                     (JObject)o["preview"],
                     channelO,
-                    (JObject)o["_links"]);
+                    baseLinksO);
             }
             else
             {
                 return null;
             }
+        }
+
+        internal static List<FeaturedStream> LoadFeaturedStreams(JObject o, Twixel.APIVersion version)
+        {
+            List<FeaturedStream> streams = new List<FeaturedStream>();
+
+            foreach (JObject obj in (JArray)o["featured"])
+            {
+                if (version == Twixel.APIVersion.v2)
+                {
+                    streams.Add(new FeaturedStream((string)obj["text"],
+                        (string)obj["image"],
+                        (JObject)obj["stream"],
+                        (JObject)o["_links"]));
+                }
+                else if (version == Twixel.APIVersion.v3)
+                {
+                    streams.Add(new FeaturedStream((string)obj["text"],
+                        (string)obj["image"],
+                        (string)obj["title"],
+                        (bool)obj["sponsored"],
+                        (int)obj["priority"],
+                        (bool)obj["scheduled"],
+                        (JObject)obj["stream"],
+                        (JObject)o["_links"]));
+                }
+            }
+
+            return streams;
+        }
+
+        /// <summary>
+        /// Remove HTML tags from string using char array.
+        /// </summary>
+        /// <param name="source">A string</param>
+        /// <remarks>Taken from http://www.dotnetperls.com/remove-html-tags </remarks>
+        /// <returns>A string</returns>
+        public static string RemoveHtmlTags(string source)
+        {
+            char[] array = new char[source.Length];
+            int arrayIndex = 0;
+            bool inside = false;
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                char let = source[i];
+                if (let == '<')
+                {
+                    inside = true;
+                    continue;
+                }
+                if (let == '>')
+                {
+                    inside = false;
+                    continue;
+                }
+                if (!inside)
+                {
+                    array[arrayIndex] = let;
+                    arrayIndex++;
+                }
+            }
+            return new string(array, 0, arrayIndex);
+        }
+
+        /// <summary>
+        /// <![CDATA[Replaces all instances of &amp; with &]]>
+        /// </summary>
+        /// <param name="source">A string</param>
+        /// <returns>A string</returns>
+        public static string ConvertAmp(string source)
+        {
+            return source.Replace("&amp;", "&");
         }
     }
 }

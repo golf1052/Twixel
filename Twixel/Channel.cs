@@ -126,8 +126,6 @@ namespace TwixelAPI
         /// </summary>
         public List<Team> teams;
 
-        public Twixel.APIVersion version;
-
         public Channel(bool? mature,
             string status,
             string displayName,
@@ -145,6 +143,7 @@ namespace TwixelAPI
             JArray teamsA) : base(linksO)
         {
             this.version = Twixel.APIVersion.v2;
+            this.teams = new List<Team>();
             this.mature = mature;
             this.status = status;
             this.displayName = displayName;
@@ -179,7 +178,7 @@ namespace TwixelAPI
             {
                 foreach (JObject team in teamsA)
                 {
-                    teams.Add(HelperMethods.LoadTeam(team));
+                    teams.Add(HelperMethods.LoadTeam(team, version));
                 }
             }
         }

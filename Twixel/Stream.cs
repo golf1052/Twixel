@@ -37,14 +37,14 @@ namespace TwixelAPI
         public DateTime createdAt;
 
         /// <summary>
-        /// v2
+        /// v2/v3
         /// </summary>
-        public int videoHeight;
+        public int? videoHeight;
 
         /// <summary>
-        /// v2
+        /// v2/v3
         /// </summary>
-        public double averageFps;
+        public double? averageFps;
 
         /// <summary>
         /// v2/v3
@@ -80,8 +80,8 @@ namespace TwixelAPI
             string game,
             long? viewers,
             string createdAt,
-            int videoHeight,
-            double averageFps,
+            int? videoHeight,
+            double? averageFps,
             JObject linksO,
             string name,
             string broadcaster,
@@ -94,13 +94,19 @@ namespace TwixelAPI
             this.game = game;
             this.viewers = viewers;
             this.createdAtString = createdAt;
-            this.createdAt = DateTime.Parse(createdAt);
+            if (!string.IsNullOrEmpty(createdAt))
+            {
+                this.createdAt = DateTime.Parse(createdAt);
+            }
             this.videoHeight = videoHeight;
             this.averageFps = averageFps;
             this.links = HelperMethods.LoadLinks(linksO);
             this.name = name;
             this.broadcaster = broadcaster;
-            this.preview = new Uri(preview);
+            if (!string.IsNullOrEmpty(preview))
+            {
+                this.preview = new Uri(preview);
+            }
             this.channel = HelperMethods.LoadChannel(channelO, version);
         }
 

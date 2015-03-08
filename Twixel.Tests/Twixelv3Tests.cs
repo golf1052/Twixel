@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 namespace TwixelAPI.Tests
 {
-    public class TwixelTests
+    public class Twixelv3Tests
     {
         Twixel twixel;
 
-        public TwixelTests()
+        public Twixelv3Tests()
         {
             twixel = new Twixel(ApiKey.clientId, ApiKey.clientSecret, "http://golf1052.com", Twixel.APIVersion.v3);
         }
@@ -55,7 +56,7 @@ namespace TwixelAPI.Tests
             Stream stream = null;
             // This stream may be offline so it is suggested you edit
             // this line to get a stream that is online.
-            stream = await twixel.RetrieveStream("MushIsGosu");
+            stream = await twixel.RetrieveStream("Froggen");
             if (stream != null)
             {
                 Assert.Equal("League of Legends", stream.game);
@@ -96,12 +97,16 @@ namespace TwixelAPI.Tests
             Assert.NotNull(leagueStream);
         }
 
-        //[Fact]
-        //public async void RetrieveFeaturedStreamsTest()
-        //{
-        //    List<FeaturedStream> featuredStreams = await twixel.RetrieveFeaturedStreams();
-        //    Assert.True(featuredStreams.Count >= 5);
-        //}
+        [Fact]
+        public async void RetrieveFeaturedStreamsTest()
+        {
+            List<FeaturedStream> featuredStreams = await twixel.RetrieveFeaturedStreams();
+            foreach (FeaturedStream stream in featuredStreams)
+            {
+                stream.CleanInfoString();
+            }
+            Assert.True(featuredStreams.Count >= 5);
+        }
 
         //[Fact]
         //public async void RetrieveStreamsSummaryTest()
@@ -152,29 +157,29 @@ namespace TwixelAPI.Tests
         //    Assert.NotNull(league);
         //}
 
-        //[Fact]
-        //public async void RetrieveTeamsTest()
-        //{
-        //    List<Team> teams = await twixel.RetrieveTeams(false);
-        //    Team staff = null;
-        //    foreach (Team team in teams)
-        //    {
-        //        if (team.name == "staff")
-        //        {
-        //            staff = team;
-        //            break;
-        //        }
-        //    }
+        [Fact]
+        public async void RetrieveTeamsTest()
+        {
+            List<Team> teams = await twixel.RetrieveTeams();
+            Team staff = null;
+            foreach (Team team in teams)
+            {
+                if (team.name == "staff")
+                {
+                    staff = team;
+                    break;
+                }
+            }
 
-        //    Assert.NotNull(staff);
-        //}
+            Assert.NotNull(staff);
+        }
 
-        //[Fact]
-        //public async void RetrieveTeamTest()
-        //{
-        //    Team staff = await twixel.RetrieveTeam("staff");
-        //    Assert.Equal("staff", staff.name);
-        //}
+        [Fact]
+        public async void RetrieveTeamTest()
+        {
+            Team staff = await twixel.RetrieveTeam("staff");
+            Assert.Equal("staff", staff.name);
+        }
 
         //[Fact]
         //public async void RetrieveVideoTest()
