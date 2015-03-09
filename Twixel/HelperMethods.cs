@@ -11,7 +11,14 @@ namespace TwixelAPI
 
         internal static Dictionary<string, Uri> LoadLinks(JObject o)
         {
-            return JsonConvert.DeserializeObject<Dictionary<string, Uri>>(o.ToString());
+            if (o != null)
+            {
+                return JsonConvert.DeserializeObject<Dictionary<string, Uri>>(o.ToString());
+            }
+            else
+            {
+                return new Dictionary<string, Uri>();
+            }
         }
 
         internal static Channel LoadChannel(JObject o, Twixel.APIVersion version)
@@ -217,6 +224,54 @@ namespace TwixelAPI
             {
                 throw new TwixelException("Video: " + versionCannotBeNoneString);
             }
+        }
+
+        internal static List<Game> LoadGames(JObject o, Twixel.APIVersion version)
+        {
+            List<Game> games = new List<Game>();
+            foreach (JObject obj in (JArray)o["top"])
+            {
+                JObject game = (JObject)obj["game"];
+                games.Add(new Game((long?)obj["viewers"],
+                    (long?)obj["channels"],
+                    (string)game["name"],
+                    (long?)game["_id"],
+                    (long?)game["giantbomb_id"],
+                    (JObject)game["box"],
+                    (JObject)game["logo"],
+                    version,
+                    null));
+            }
+            return games;
+        }
+
+        internal static List<SearchedGame> LoadSearchedGames(JObject o, Twixel.APIVersion version)
+        {
+            List<SearchedGame> games = new List<SearchedGame>();
+            foreach (JObject obj in (JArray)o["games"])
+            {
+                games.Add(new SearchedGame((string)obj["name"],
+                    (long?)obj["popularity"],
+                    (long?)obj["_id"],
+                    (long?)obj["giantbomb_id"],
+                    (JObject)obj["box"],
+                    (JObject)obj["logo"],
+                    version,
+                    null));
+            }
+            return games;
+        }
+
+        internal static Ingest LoadIngest(JObject o, JObject baseLinksO, Twixel.APIVersion version)
+        {
+            Ingest ingest = new Ingest((string)o["name"],
+                (bool)o["default"],
+                (long)o["_id"],
+                (string)o["url_template"],
+                (double)o["availability"],
+                version,
+                baseLinksO);
+            return ingest;
         }
 
         /// <summary>

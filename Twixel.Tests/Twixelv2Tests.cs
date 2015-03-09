@@ -14,13 +14,43 @@ namespace TwixelAPI.Tests
         }
 
         [Fact]
+        public async void RetrieveTopGamesTest()
+        {
+            List<Game> topGames = await twixel.RetrieveTopGames();
+            Game league = null;
+            foreach (Game game in topGames)
+            {
+                if (game.name == "League of Legends")
+                {
+                    league = game;
+                    break;
+                }
+            }
+
+            Assert.NotNull(league);
+
+            List<Game> nextGames = await twixel.RetrieveTopGames(25);
+            league = null;
+            foreach (Game game in nextGames)
+            {
+                if (game.name == "League of Legends")
+                {
+                    league = game;
+                    break;
+                }
+            }
+
+            Assert.Null(league);
+        }
+
+        [Fact]
         public async void RetrieveStreamTest()
         {
             bool streamOffline = false;
             Stream stream = null;
             // This stream may be offline so it is suggested you edit
             // this line to get a stream that is online.
-            stream = await twixel.RetrieveStream("Froggen");
+            stream = await twixel.RetrieveStream("Voyboy");
             if (stream != null)
             {
                 Assert.Equal("League of Legends", stream.game);
@@ -53,19 +83,35 @@ namespace TwixelAPI.Tests
         }
 
         [Fact]
-        public async void RetrieveAllStreamsTest()
-        {
-            List<Stream> allStreams = await twixel.RetrieveAllStreams();
-            List<Stream> first25 = allStreams.GetRange(0, 25);
-            Stream leagueStream = first25.First((s) => s.game == "League of Legends");
-            Assert.NotNull(leagueStream);
-        }
-
-        [Fact]
         public async void RetrieveFeaturedStreamsTest()
         {
             List<FeaturedStream> featuredStreams = await twixel.RetrieveFeaturedStreams();
             Assert.True(featuredStreams.Count >= 5);
+        }
+
+        [Fact]
+        public async void RetrieveStreamsSummaryTest()
+        {
+            Dictionary<string, int> summary = await twixel.RetrieveStreamsSummary();
+            Assert.True(summary["Viewers"] > 1);
+            Assert.True(summary["Channels"] > 1);
+        }
+
+        [Fact]
+        public async void SearchGamesTest()
+        {
+            List<SearchedGame> searchedGames = await twixel.SearchGames("League", true);
+            SearchedGame league = null;
+            foreach (SearchedGame game in searchedGames)
+            {
+                if (game.name == "League of Legends")
+                {
+                    league = game;
+                    break;
+                }
+            }
+
+            Assert.NotNull(league);
         }
 
         [Fact]
@@ -106,7 +152,8 @@ namespace TwixelAPI.Tests
             List<Video> topVideos = await twixel.RetrieveTopVideos();
             Assert.True(topVideos.Count > 0);
 
-            List<Video> topVideosAllTime = await twixel.RetrieveTopVideos(null, Constants.TwitchConstants.Period.All, 100, 0);
+            List<Video> topVideosAllTime = await twixel.RetrieveTopVideos(null,
+                Constants.TwitchConstants.Period.All, 0, 100);
             Video theOddOne = null;
             foreach (Video video in topVideosAllTime)
             {
@@ -122,9 +169,34 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveVideosTest()
         {
-            List<Video> videos = await twixel.RetrieveVideos("golf1052", false);
+            List<Video> videos = await twixel.RetrieveVideos("golf1052");
             Assert.Equal(20, videos[0].length);
             Assert.Equal("League of Legends", videos[0].game);
+        }
+
+        [Fact]
+        public async void RetrieveChannelTest()
+        {
+            Channel golf1052 = await twixel.RetrieveChannel("golf1052");
+
+            Assert.Equal(22747608, golf1052.id);
+            Assert.Equal("golf1052", golf1052.name);
+        }
+
+        [Fact]
+        public async void RetrieveIngestsTest()
+        {
+            List<Ingest> ingests = await twixel.RetrieveIngests();
+            Ingest newYork = null;
+            foreach (Ingest ingest in ingests)
+            {
+                if (ingest.name == "US East: New York, NY")
+                {
+                    newYork = ingest;
+                    break;
+                }
+            }
+            Assert.NotNull(newYork);
         }
     }
 }
