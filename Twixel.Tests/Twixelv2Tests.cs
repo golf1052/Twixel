@@ -91,5 +91,40 @@ namespace TwixelAPI.Tests
             Team staff = await twixel.RetrieveTeam("staff");
             Assert.Equal("staff", staff.name);
         }
+
+        [Fact]
+        public async void RetrieveVideoTest()
+        {
+            Video video = await twixel.RetrieveVideo("c2543719");
+            Assert.Equal(20, video.length);
+            Assert.Equal("League of Legends", video.game);
+        }
+
+        [Fact]
+        public async void RetrieveTopVideosTest()
+        {
+            List<Video> topVideos = await twixel.RetrieveTopVideos();
+            Assert.True(topVideos.Count > 0);
+
+            List<Video> topVideosAllTime = await twixel.RetrieveTopVideos(null, Constants.TwitchConstants.Period.All, 100, 0);
+            Video theOddOne = null;
+            foreach (Video video in topVideosAllTime)
+            {
+                if (video.title == "Hotshot gets baited")
+                {
+                    theOddOne = video;
+                    break;
+                }
+            }
+            Assert.NotNull(theOddOne);
+        }
+
+        [Fact]
+        public async void RetrieveVideosTest()
+        {
+            List<Video> videos = await twixel.RetrieveVideos("golf1052", false);
+            Assert.Equal(20, videos[0].length);
+            Assert.Equal("League of Legends", videos[0].game);
+        }
     }
 }

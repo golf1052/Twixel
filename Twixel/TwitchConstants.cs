@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwixelAPI.Constants
+﻿namespace TwixelAPI.Constants
 {
     public static class TwitchConstants
     {
@@ -100,7 +94,7 @@ namespace TwixelAPI.Constants
             }
             else
             {
-                return "none";
+                return "";
             }
         }
 
@@ -176,7 +170,7 @@ namespace TwixelAPI.Constants
             }
             else
             {
-                return "none";
+                return "";
             }
         }
 
@@ -212,7 +206,7 @@ namespace TwixelAPI.Constants
             }
             else
             {
-                return "none";
+                return "";
             }
         }
 

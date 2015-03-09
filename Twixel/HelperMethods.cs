@@ -7,10 +7,11 @@ namespace TwixelAPI
 {
     public static class HelperMethods
     {
+        private const string versionCannotBeNoneString = "Version cannot be none.";
+
         internal static Dictionary<string, Uri> LoadLinks(JObject o)
         {
-            Dictionary<string, Uri> links = JsonConvert.DeserializeObject<Dictionary<string, Uri>>(o.ToString());
-            return links;
+            return JsonConvert.DeserializeObject<Dictionary<string, Uri>>(o.ToString());
         }
 
         internal static Channel LoadChannel(JObject o, Twixel.APIVersion version)
@@ -59,7 +60,7 @@ namespace TwixelAPI
             }
             else
             {
-                return null;
+                throw new TwixelException("Channel: " + versionCannotBeNoneString);
             }
         }
 
@@ -139,7 +140,7 @@ namespace TwixelAPI
             }
             else
             {
-                return null;
+                throw new TwixelException("Stream: " + versionCannotBeNoneString);
             }
         }
 
@@ -170,6 +171,52 @@ namespace TwixelAPI
             }
 
             return streams;
+        }
+
+        internal static Video LoadVideo(JObject o, Twixel.APIVersion version)
+        {
+            if (version == Twixel.APIVersion.v2)
+            {
+                return new Video((string)o["title"],
+                    (string)o["description"],
+                    (long)o["broadcast_id"],
+                    (string)o["status"],
+                    (string)o["_id"],
+                    (string)o["recorded_at"],
+                    (string)o["game"],
+                    (long)o["length"],
+                    (string)o["preview"],
+                    (string)o["url"],
+                    (string)o["embed"],
+                    (long)o["views"],
+                    (string)o["broadcast_type"],
+                    (JObject)o["channel"],
+                    (JObject)o["_links"]);
+            }
+            else if (version == Twixel.APIVersion.v3)
+            {
+                return new Video((string)o["title"],
+                    (string)o["description"],
+                    (long)o["broadcast_id"],
+                    (string)o["status"],
+                    (string)o["tag_list"],
+                    (string)o["_id"],
+                    (string)o["recorded_at"],
+                    (string)o["game"],
+                    (long)o["length"],
+                    (string)o["preview"],
+                    (string)o["url"],
+                    (long)o["views"],
+                    o["fps"].ToString(),
+                    o["resolutions"].ToString(),
+                    (string)o["broadcast_type"],
+                    (JObject)o["channel"],
+                    (JObject)o["_links"]);
+            }
+            else
+            {
+                throw new TwixelException("Video: " + versionCannotBeNoneString);
+            }
         }
 
         /// <summary>

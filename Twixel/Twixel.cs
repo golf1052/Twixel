@@ -627,7 +627,7 @@ namespace TwixelAPI
             string responseString;
             try
             {
-                responseString = await GetWebData(uri);
+                responseString = await GetWebData(uri, version);
             }
             catch (TwitchException ex)
             {
@@ -658,7 +658,7 @@ namespace TwixelAPI
             string responseString;
             try
             {
-                responseString = await GetWebData(uri);
+                responseString = await GetWebData(uri, version);
             }
             catch (TwitchException ex)
             {
@@ -672,22 +672,26 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="id">The video ID</param>
         /// <returns>A video</returns>
-        //public async Task<Video> RetrieveVideo(string id)
-        //{
-        //    Uri uri;
-        //    uri = new Uri("https://api.twitch.tv/kraken/videos/" + id);
-        //    string responseString;
-        //    responseString = await GetWebData(uri);
-        //    if (GoodStatusCode(responseString))
-        //    {
-        //        return LoadVideo(JObject.Parse(responseString));
-        //    }
-        //    else
-        //    {
-        //        CreateError(responseString);
-        //        return null;
-        //    }
-        //}
+        public async Task<Video> RetrieveVideo(string id,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(baseUrl).AppendPathSegments("videos", id);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadVideo(JObject.Parse(responseString), version);
+        }
 
         /// <summary>
         /// Gets the top videos on Twitch
@@ -738,91 +742,44 @@ namespace TwixelAPI
         /// <param name="game">The name of the game to get videos for</param>
         /// <param name="period">The time period you want to look in</param>
         /// <returns>A list of videos</returns>
-        //public async Task<List<Video>> RetrieveTopVideos(int limit, string game, TwitchConstants.Period period)
-        //{
-        //    Uri uri;
-        //    string url = "https://api.twitch.tv/kraken/videos/top";
-        //    if (limit <= 100)
-        //    {
-        //        url += "?limit=" + limit.ToString();
-        //    }
-        //    else
-        //    {
-        //        CreateError("You cannot load more than 100 videos at a time");
-        //        return null;
-        //    }
+        public async Task<List<Video>> RetrieveTopVideos(string game = null,
+            TwitchConstants.Period period = TwitchConstants.Period.Week,
+            int limit = 25, int offset = 0,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(baseUrl).AppendPathSegments("videos", "top");
+            url.SetQueryParam("game", game);
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
+            }
+            else
+            {
+                url.SetQueryParam("limit", 100);
+            }
+            url.SetQueryParam("period", TwitchConstants.PeriodToString(period));
 
-        //    if (game != "")
-        //    {
-        //        url += "&game=" + game;
-        //    }
-
-        //    if (period != TwitchConstants.Period.None)
-        //    {
-        //        url += "&period=" + TwitchConstants.PeriodToString(period);
-        //    }
-
-        //    uri = new Uri(url);
-        //    string responseString;
-        //    responseString = await GetWebData(uri);
-        //    if (GoodStatusCode(responseString))
-        //    {
-        //        List<Video> videos = new List<Video>();
-        //        nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-        //        foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-        //        {
-        //            videos.Add(LoadTopVideo(video));
-        //        }
-        //        return videos;
-        //    }
-        //    else
-        //    {
-        //        CreateError(responseString);
-        //        return null;
-        //    }
-        //}
-
-        /// <summary>
-        /// Gets a list of videos for a specified channel
-        /// </summary>
-        /// <param name="channel">The name of the channel</param>
-        /// <param name="getNext">If this method was called before then this will get the next page of videos</param>
-        /// <returns></returns>
-        //public async Task<List<Video>> RetrieveVideos(string channel, bool getNext)
-        //{
-        //    Uri uri;
-        //    if (!getNext)
-        //    {
-        //        uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
-        //    }
-        //    else
-        //    {
-        //        if (nextVideos != null)
-        //        {
-        //            uri = nextVideos.url;
-        //        }
-        //        else
-        //        {
-        //            uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
-        //        }
-        //    }
-        //    string responseString;
-        //    responseString = await GetWebData(uri);
-        //    if (GoodStatusCode(responseString))
-        //    {
-        //        List<Video> videos = new List<Video>();
-        //        foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-        //        {
-        //            videos.Add(LoadVideo(video));
-        //        }
-        //        return videos;
-        //    }
-        //    else
-        //    {
-        //        CreateError(responseString);
-        //        return null;
-        //    }
-        //}
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(twitchAPIErrorString, ex);
+            }
+            List<Video> videos = new List<Video>();
+            foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
+            {
+                videos.Add(HelperMethods.LoadVideo(video, version));
+            }
+            return videos;
+        }
 
         /// <summary>
         /// Gets a list of videos for a specified channel
@@ -831,48 +788,47 @@ namespace TwixelAPI
         /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
         /// <param name="broadcasts">Returns only broadcasts when true. Otherwise only highlights are returned. Default is false.</param>
         /// <returns>A list of videos</returns>
-        //public async Task<List<Video>> RetrieveVideos(string channel, int limit, bool broadcasts)
-        //{
-        //    Uri uri;
-        //    string url = "https://api.twitch.tv/kraken/channels/" + channel;
-        //    if (limit <= 100)
-        //    {
-        //        url += "/videos?limit=" + limit.ToString();
-        //    }
-        //    else
-        //    {
-        //        CreateError("You cannot load more than 100 videos at a time");
-        //        return null;
-        //    }
+        public async Task<List<Video>> RetrieveVideos(string channel = null,
+            bool broadcasts = false,
+            int limit = 25, int offset = 0,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(baseUrl).AppendPathSegments("channels", channel, "videos");
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
+            }
+            else
+            {
+                url.SetQueryParam("limit", 100);
+            }
+            url.SetQueryParams(new
+            {
+                broadcasts = broadcasts,
+                offset = offset
+            });
 
-        //    if (broadcasts)
-        //    {
-        //        url += "&broadcasts=true";
-        //    }
-        //    else
-        //    {
-        //        url += "&broadcasts=false";
-        //    }
-
-        //    uri = new Uri(url);
-        //    string responseString;
-        //    responseString = await GetWebData(uri);
-        //    if (GoodStatusCode(responseString))
-        //    {
-        //        List<Video> videos = new List<Video>();
-        //        nextVideos = new Uri((string)JObject.Parse(responseString)["_links"]["next"]);
-        //        foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-        //        {
-        //            videos.Add(LoadVideo(video));
-        //        }
-        //        return videos;
-        //    }
-        //    else
-        //    {
-        //        CreateError(responseString);
-        //        return null;
-        //    }
-        //}
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(twitchAPIErrorString, ex);
+            }
+            List<Video> videos = new List<Video>();
+            foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
+            {
+                videos.Add(HelperMethods.LoadVideo(video, version));
+            }
+            return videos;
+        }
 
         /// <summary>
         /// Gets a list of users following a specified user
@@ -1147,37 +1103,37 @@ namespace TwixelAPI
             return user;
         }
 
-        Video LoadVideo(JObject o)
-        {
-            Video video = new Video((string)o["recorded_at"],
-                (string)o["title"],
-                (string)o["url"],
-                (string)o["_id"],
-                (string)o["_links"]["channel"],
-                (string)o["embed"],
-                (int)o["views"],
-                (string)o["description"],
-                (int)o["length"],
-                (string)o["game"],
-                (string)o["preview"]);
-            return video;
-        }
+        //Video LoadVideo(JObject o)
+        //{
+        //    Video video = new Video((string)o["recorded_at"],
+        //        (string)o["title"],
+        //        (string)o["url"],
+        //        (string)o["_id"],
+        //        (string)o["_links"]["channel"],
+        //        (string)o["embed"],
+        //        (int)o["views"],
+        //        (string)o["description"],
+        //        (int)o["length"],
+        //        (string)o["game"],
+        //        (string)o["preview"]);
+        //    return video;
+        //}
 
-        Video LoadTopVideo(JObject o)
-        {
-            Video video = new Video((string)o["recorded_at"],
-                (string)o["title"],
-                (string)o["url"],
-                (string)o["_id"],
-                (string)o["_links"]["channel"],
-                (int)o["views"],
-                (string)o["description"],
-                (int)o["length"],
-                (string)o["game"],
-                (string)o["preview"],
-                (string)o["channel"]["name"]);
-            return video;
-        }
+        //Video LoadTopVideo(JObject o)
+        //{
+        //    Video video = new Video((string)o["recorded_at"],
+        //        (string)o["title"],
+        //        (string)o["url"],
+        //        (string)o["_id"],
+        //        (string)o["_links"]["channel"],
+        //        (int)o["views"],
+        //        (string)o["description"],
+        //        (int)o["length"],
+        //        (string)o["game"],
+        //        (string)o["preview"],
+        //        (string)o["channel"]["name"]);
+        //    return video;
+        //}
 
         Ingest LoadIngest(JObject o)
         {
