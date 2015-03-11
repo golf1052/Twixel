@@ -30,30 +30,32 @@ namespace TwixelAPI.Tests
                 /*Whatever your redirect URL is*/ "");
         }
 
-        // This method returns a URL that you will need to navigate to and then log into
-        // to get an access token, the access token will be in the URL. After you get the
-        // access token then paste it into the access token field.
-        //[Fact]
-        //public void LoginTest()
-        //{
-        //    List<TwitchConstants.Scope> scopes = new List<TwitchConstants.Scope>();
-        //    scopes.Add(TwitchConstants.Scope.UserRead);
-        //    scopes.Add(TwitchConstants.Scope.ChannelCheckSubscription);
-        //    scopes.Add(TwitchConstants.Scope.ChannelCommercial);
-        //    scopes.Add(TwitchConstants.Scope.ChannelEditor);
-        //    scopes.Add(TwitchConstants.Scope.ChannelRead);
-        //    scopes.Add(TwitchConstants.Scope.ChannelStream);
-        //    scopes.Add(TwitchConstants.Scope.ChannelSubscriptions);
-        //    scopes.Add(TwitchConstants.Scope.ChatLogin);
-        //    scopes.Add(TwitchConstants.Scope.UserBlocksEdit);
-        //    scopes.Add(TwitchConstants.Scope.UserBlocksRead);
-        //    scopes.Add(TwitchConstants.Scope.UserFollowsEdit);
-        //    scopes.Add(TwitchConstants.Scope.UserSubcriptions);
+        // This method returns an access token. After you get the
+        // access token paste it into the access token field.
+        [Fact]
+        public async void LoginTest()
+        {
+            // Collect scopes
+            List<TwitchConstants.Scope> scopes = new List<TwitchConstants.Scope>();
+            scopes.Add(TwitchConstants.Scope.UserRead);
+            scopes.Add(TwitchConstants.Scope.ChannelCheckSubscription);
+            scopes.Add(TwitchConstants.Scope.ChannelCommercial);
+            scopes.Add(TwitchConstants.Scope.ChannelEditor);
+            scopes.Add(TwitchConstants.Scope.ChannelRead);
+            scopes.Add(TwitchConstants.Scope.ChannelStream);
+            scopes.Add(TwitchConstants.Scope.ChannelSubscriptions);
+            scopes.Add(TwitchConstants.Scope.ChatLogin);
+            scopes.Add(TwitchConstants.Scope.UserBlocksEdit);
+            scopes.Add(TwitchConstants.Scope.UserBlocksRead);
+            scopes.Add(TwitchConstants.Scope.UserFollowsEdit);
+            scopes.Add(TwitchConstants.Scope.UserSubcriptions);
 
-        //    Uri loginUri = twixel.Login(scopes);
-        //    Debug.WriteLine(loginUri.ToString());
-        //    Assert.True(true);
-        //}
+            // Get access token
+            string accessToken = await twixel.Login(/*Your Twitch username*/ "",
+                /*Your Twitch password*/ "",
+                scopes);
+            Assert.True(!string.IsNullOrEmpty(accessToken));
+        }
 
         //[Fact]
         //public async void RetrieveUserTest()
