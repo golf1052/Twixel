@@ -365,49 +365,104 @@ namespace TwixelAPI
         /// <param name="scopes">The permissions you are requesting. Must contain at least one permission.</param>
         /// <returns>Returns a URL to be used for authenticating a user.
         /// If the scopes list contained no scopes this returns null.</returns>
-        //public Uri Login(List<TwitchConstants.Scope> scopes)
-        //{
-        //    if (scopes == null)
-        //    {
-        //        CreateError("The list of scopes cannot be null.");
-        //        return null;
-        //    }
+        public Uri Login(List<TwitchConstants.Scope> scopes)
+        {
+            if (scopes == null)
+            {
+                throw new TwixelException("The list of scopes cannot be null.");
+            }
 
-        //    if (scopes.Count > 0)
-        //    {
-        //        List<TwitchConstants.Scope> cleanScopes = new List<TwitchConstants.Scope>();
-        //        for (int i = 0; i < scopes.Count; i++)
-        //        {
-        //            if (!cleanScopes.Contains(scopes[i]))
-        //            {
-        //                cleanScopes.Add(scopes[i]);
-        //            }
-        //            else
-        //            {
-        //                scopes.RemoveAt(i);
-        //                i--;
-        //            }
-        //        }
-        //        Uri uri;
-        //        uri = new Uri("https://api.twitch.tv/kraken/oauth2/authorize" +
-        //        "?response_type=token" +
-        //        "&client_id=" + clientID +
-        //        "&redirect_uri=" + redirectUrl +
-        //        "&scope=");
-        //        string originalString = uri.OriginalString;
-        //        foreach (TwitchConstants.Scope scope in scopes)
-        //        {
-        //            originalString += TwitchConstants.ScopeToString(scope) + " ";
-        //        }
-        //        uri = new Uri(originalString);
-        //        return uri;
-        //    }
-        //    else
-        //    {
-        //        CreateError("You must have at least 1 scope");
-        //        return null;
-        //    }
-        //}
+            if (scopes.Count > 0)
+            {
+                List<TwitchConstants.Scope> cleanScopes = new List<TwitchConstants.Scope>();
+                for (int i = 0; i < scopes.Count; i++)
+                {
+                    if (!cleanScopes.Contains(scopes[i]))
+                    {
+                        cleanScopes.Add(scopes[i]);
+                    }
+                    else
+                    {
+                        scopes.RemoveAt(i);
+                        i--;
+                    }
+                }
+                string scopesString = "";
+                foreach (TwitchConstants.Scope scope in scopes)
+                {
+                    scopesString += TwitchConstants.ScopeToString(scope) + " ";
+                }
+                Url url = new Url(baseUrl).AppendPathSegments("oauth2", "authorize").SetQueryParams(new
+                {
+                    response_type = "token",
+                    client_id = clientID,
+                    redirect_uri = redirectUrl,
+                    scope = scopesString
+                });
+                Uri uri = new Uri(url.ToString());
+                return uri;
+            }
+            else
+            {
+                throw new TwixelException("You must have at least 1 scope.");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves an access token for the given user using their credentials
+        /// </summary>
+        /// <param name="loginUrl">The login URL</param>
+        /// <param name="scopes">The permissions you are requesting. Must contain at least one permission.</param>
+        /// <param name="userName">The user's username</param>
+        /// <param name="password">The user's password</param>
+        /// <returns>An access token used for API calls that require authorization</returns>
+        public async Task<string> Login(Uri loginUrl, List<TwitchConstants.Scope> scopes, string userName, string password)
+        {
+            // Send request for Twitch login page
+            HttpClient client = new HttpClient();
+            HttpResponseMessage getResponse = await client.GetAsync(loginUrl);
+            string getResponseString = await getResponse.Content.ReadAsStringAsync();
+
+            // Pull out authenticity token
+            string authTokenString = "authenticity_token";
+            string valueString = "value=\"";
+            int authStringLocation = getResponseString.IndexOf(authTokenString);
+            int valueStringLocation = getResponseString.IndexOf(valueString, authStringLocation);
+            int authTokenEndLocation = getResponseString.IndexOf('"', valueStringLocation + valueString.Length);
+            string authToken = getResponseString.Substring(valueStringLocation + valueString.Length, authTokenEndLocation - valueStringLocation - valueString.Length);
+
+            // Send request with authenticity token and user credentials
+            FormUrlEncodedContent formContent = new FormUrlEncodedContent(new KeyValuePair<string, string>[] {
+                new KeyValuePair<string, string>(authTokenString, authToken),
+                new KeyValuePair<string, string>("login_type", "login"),
+                new KeyValuePair<string, string>("client_id", clientID),
+                new KeyValuePair<string, string>("redirect_uri", redirectUrl),
+                new KeyValuePair<string, string>("response_type", "token"),
+                new KeyValuePair<string, string>("scope", TwitchConstants.ListOfScopesToStringOfScopes(scopes)),
+                new KeyValuePair<string, string>("user[login]", userName),
+                new KeyValuePair<string, string>("user[password]", password)
+            });
+            Url url = new Url("https://api.twitch.tv/kraken/oauth2/login");
+            HttpResponseMessage postResponse = await client.PostAsync(url.ToString(), formContent);
+
+            // Pull out access token
+            string[] splitString = postResponse.RequestMessage.RequestUri.Fragment.Split('=');
+            string[] secondSplitString = splitString[1].Split('&');
+            string accessToken = secondSplitString[0];
+            return accessToken;
+        }
+
+        public async Task<string> Login(string userName, string password, List<TwitchConstants.Scope> scopes)
+        {
+            try
+            {
+                return await Login(Login(scopes), scopes, userName, password);
+            }
+            catch
+            {
+                throw;
+            }
+        }
 
         /// <summary>
         /// Gets a user by their name

@@ -1,4 +1,5 @@
-﻿namespace TwixelAPI.Constants
+﻿using System.Collections.Generic;
+namespace TwixelAPI.Constants
 {
     public static class TwitchConstants
     {
@@ -98,6 +99,16 @@
             }
         }
 
+        public static string ListOfScopesToStringOfScopes(List<Scope> scopes)
+        {
+            string scopesString = "";
+            foreach (Scope scope in scopes)
+            {
+                scopesString += ScopeToString(scope) + " ";
+            }
+            return scopesString.Substring(0, scopesString.Length - 1);
+        }
+
         public static Scope StringToScope(string scope)
         {
             if (scope == "user_read")
@@ -152,6 +163,16 @@
             {
                 return Scope.None;
             }
+        }
+
+        public static List<Scope> StringOfScopesToListOfScopes(string scopes)
+        {
+            List<Scope> scopesList = new List<Scope>();
+            foreach (string scope in scopes.Split(' '))
+            {
+                scopesList.Add(StringToScope(scope));
+            }
+            return scopesList;
         }
 
         public static string PeriodToString(Period period)
