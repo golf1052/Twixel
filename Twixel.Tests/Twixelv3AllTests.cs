@@ -10,7 +10,7 @@ namespace TwixelAPI.Tests
 
         public Twixelv3AllTests()
         {
-            twixel = new Twixel(ApiKey.clientId, ApiKey.clientSecret, "http://golf1052.com", Twixel.APIVersion.v3);
+            twixel = new Twixel(Secrets.ClientId, Secrets.ClientSecret, "http://golf1052.com", Twixel.APIVersion.v3);
         }
 
         [Fact]

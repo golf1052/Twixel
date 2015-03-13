@@ -1,37 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TwixelAPI;
+﻿using System.Collections.Generic;
 using TwixelAPI.Constants;
 using Xunit;
 
 namespace TwixelAPI.Tests
 {
-    // Test class for user based functions (mainly from User.cs)
-    // You will need to fill in this class with relevent data
-    public class UserTests
+    public class TwixelUserTests
     {
         Twixel twixel;
+        string accessToken = Secrets.AccessToken;
 
-        // Your client ID and client secret;
-        string clientId = ApiKey.clientId;
-        string clientSecret = ApiKey.clientSecret;
-
-        // Account access token
-        string accessToken = "";
-
-        public UserTests()
+        public TwixelUserTests()
         {
-            twixel = new Twixel(clientId,
-                clientSecret,
-                /*Whatever your redirect URL is*/ "");
+            twixel = new Twixel(Secrets.ClientId, Secrets.ClientSecret, Secrets.RedirectUrl, Twixel.APIVersion.v3);
         }
 
-        // This method returns an access token. After you get the
-        // access token paste it into the access token field.
         [Fact]
         public async void LoginTest()
         {
@@ -51,18 +33,15 @@ namespace TwixelAPI.Tests
             scopes.Add(TwitchConstants.Scope.UserSubcriptions);
 
             // Get access token
-            string accessToken = await twixel.Login(/*Your Twitch username*/ "",
-                /*Your Twitch password*/ "",
-                scopes);
+            string accessToken = await twixel.Login(Secrets.Username, Secrets.Password, scopes);
             Assert.True(!string.IsNullOrEmpty(accessToken));
         }
 
         //[Fact]
         //public async void RetrieveUserTest()
         //{
-        //    // Enter a username to retrieve
-        //    User user = await twixel.RetrieveUser("");
-        //    Assert.Equal("", user.displayName);
+        //    User golf1052 = await twixel.RetrieveUser("twixeltest");
+        //    Assert.Equal("twixeltest", golf1052.displayName);
         //}
 
         //[Fact]
@@ -229,9 +208,7 @@ namespace TwixelAPI.Tests
         //    User twixelTest = await twixel.RetrieveUserWithAccessToken(accessToken);
         //    Channel channel = null;
         //    channel = await twixelTest.RetrieveChannel();
-
-        //    // You should enter your account id here
-        //    Assert.Equal(0, channel.id);
+        //    Assert.Equal(66960156, channel.id);
         //}
 
         //[Fact]
@@ -239,17 +216,16 @@ namespace TwixelAPI.Tests
         //{
         //    User twixelTest = await twixel.RetrieveUserWithAccessToken(accessToken);
         //    List<User> editors = await twixelTest.RetrieveChannelEditors();
-        //    User user = null;
-        //    foreach (User u in editors)
+        //    User golf1052 = null;
+        //    foreach (User user in editors)
         //    {
-        //        // Enter editor name here
-        //        if (u.name == "")
+        //        if (user.name == "golf1052")
         //        {
-        //            user = u;
+        //            golf1052 = user;
         //            break;
         //        }
         //    }
-        //    Assert.NotNull(user);
+        //    Assert.NotNull(golf1052);
         //}
 
         //[Fact]

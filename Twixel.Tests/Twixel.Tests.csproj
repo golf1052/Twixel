@@ -37,7 +37,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ApiKey.cs" />
+    <Compile Include="Secrets.cs" />
     <Compile Include="Twixelv2AllTests.cs" />
     <Compile Include="Twixelv3AllTests.cs" />
     <Compile Include="Twixelv3Tests.cs" />
