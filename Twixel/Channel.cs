@@ -54,17 +54,7 @@ namespace TwixelAPI
         /// <summary>
         /// v2/v3
         /// </summary>
-        public string createdAtString;
-
-        /// <summary>
-        /// v2/v3
-        /// </summary>
         public DateTime createdAt;
-
-        /// <summary>
-        /// v2/v3
-        /// </summary>
-        public string updatedAtString;
 
         /// <summary>
         /// v2/v3
@@ -150,9 +140,7 @@ namespace TwixelAPI
             this.game = game;
             this.id = id;
             this.name = name;
-            this.createdAtString = createdAt;
             this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAtString = updatedAt;
             this.updatedAt = DateTime.Parse(updatedAt);
             if (!string.IsNullOrEmpty(logo))
             {
@@ -214,9 +202,7 @@ namespace TwixelAPI
             this.delay = delay;
             this.id = id;
             this.name = name;
-            this.createdAtString = createdAt;
             this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAtString = updatedAt;
             this.updatedAt = DateTime.Parse(updatedAt);
             if (!string.IsNullOrEmpty(logo))
             {

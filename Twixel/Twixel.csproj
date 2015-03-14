@@ -36,10 +36,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Badge.cs" />
     <Compile Include="Channel.cs" />
+    <Compile Include="Follow.cs" />
     <Compile Include="HelperMethods.cs" />
     <Compile Include="Ingest.cs" />
     <Compile Include="Subscription.cs" />
+    <Compile Include="Total.cs" />
     <Compile Include="TwitchConstants.cs" />
     <Compile Include="Emoticon.cs" />
     <Compile Include="EmoticonImage.cs" />

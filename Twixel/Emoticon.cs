@@ -3,27 +3,31 @@ using Newtonsoft.Json.Linq;
 
 namespace TwixelAPI
 {
-    public class Emoticon
+    public class Emoticon : TwixelObjectBase
     {
         public string regex;
         public List<EmoticonImage> emoticonImages;
 
-        public Emoticon(string regex, JArray imagesA)
+        public Emoticon(string regex, JArray imagesA, Twixel.APIVersion version,
+            JObject baseLinksO) : base(baseLinksO)
         {
+            this.version = version;
             emoticonImages = new List<EmoticonImage>();
             this.regex = regex;
-            LoadEmoticonImages(imagesA);
+            emoticonImages = LoadEmoticonImages(imagesA);
         }
 
-        void LoadEmoticonImages(JArray a)
+        List<EmoticonImage> LoadEmoticonImages(JArray a)
         {
+            List<EmoticonImage> images = new List<EmoticonImage>();
             foreach(JObject o in a)
             {
-                emoticonImages.Add(new EmoticonImage((int?)o["emoticon_set"],
+                images.Add(new EmoticonImage((int?)o["emoticon_set"],
                     (int)o["height"],
                     (int)o["width"],
                     (string)o["url"]));
             }
+            return images;
         }
     }
 }

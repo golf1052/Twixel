@@ -87,18 +87,37 @@ namespace TwixelAPI
             return team;
         }
 
-        //internal static User LoadUser(JObject o)
-        //{
-        //    User user = new User((string)o["name"],
-        //        (string)o["logo"],
-        //        (long)o["_id"],
-        //        (string)o["display_name"],
-        //        (bool?)o["staff"],
-        //        (string)o["created_at"],
-        //        (string)o["updated_at"],
-        //        (string)o["bio"]);
-        //    return user;
-        //}
+        internal static User LoadUser(JObject o,
+            Twixel.APIVersion version)
+        {
+            if (version == Twixel.APIVersion.v2)
+            {
+                return new User((string)o["display_name"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (bool)o["staff"],
+                    (string)o["created_at"],
+                    (string)o["updated_at"],
+                    (string)o["logo"],
+                    (JObject)o["_links"]);
+            }
+            else if (version == Twixel.APIVersion.v3)
+            {
+                return new User((string)o["display_name"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (string)o["type"],
+                    (string)o["bio"],
+                    (string)o["created_at"],
+                    (string)o["updated_at"],
+                    (string)o["logo"],
+                    (JObject)o["_links"]);
+            }
+            else
+            {
+                throw new TwixelException("User: " + versionCannotBeNoneString);
+            }
+        }
 
         internal static List<Stream> LoadStreams(JObject o, Twixel.APIVersion version)
         {
@@ -272,6 +291,68 @@ namespace TwixelAPI
                 version,
                 baseLinksO);
             return ingest;
+        }
+
+        internal static List<Emoticon> LoadEmoticons(JObject o,
+            Twixel.APIVersion version)
+        {
+            List<Emoticon> emoticons = new List<Emoticon>();
+            foreach (JObject obj in (JArray)o["emoticons"])
+            {
+                emoticons.Add(new Emoticon((string)obj["regex"],
+                    (JArray)obj["images"],
+                    version,
+                    (JObject)o["_links"]));
+            }
+            return emoticons;
+        }
+
+        internal static List<Badge> LoadBadges(JObject o,
+            Twixel.APIVersion version)
+        {
+            List<Badge> badges = new List<Badge>();
+            List<string> names = new List<string>(
+                new string[] {"global_mod", "admin", "broadcaster",
+                "mod", "staff", "turbo", "subscriber"});
+            JObject links = (JObject)o["_links"];
+            foreach (string str in names)
+            {
+                JObject obj = null;
+                if (o[str].Type != JTokenType.Null)
+                {
+                    obj = (JObject)o[str];
+                }
+                badges.Add(new Badge(str, obj, version, links));
+            }
+            return badges;
+        }
+
+        internal static List<Follow> LoadFollows(JObject o, Twixel.APIVersion version)
+        {
+            List<Follow> follows = new List<Follow>();
+            foreach (JObject obj in (JArray)o["follows"])
+            {
+                follows.Add(LoadFollow(obj, version));
+            }
+            return follows;
+        }
+
+        internal static Follow LoadFollow(JObject o, Twixel.APIVersion version)
+        {
+            return new Follow((string)o["created_at"],
+                (bool)o["notifications"],
+                (JObject)o["user"],
+                version,
+                (JObject)o["_links"]);
+        }
+
+        internal static Total<T> LoadTotal<T>(JObject o, T t,
+            Twixel.APIVersion version)
+        {
+            return new Total<T>((long)o["_total"],
+                t,
+                version,
+                (JObject)o["_links"]);
         }
 
         /// <summary>

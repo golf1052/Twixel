@@ -28,17 +28,7 @@ namespace TwixelAPI
         /// <summary>
         /// v2/v3
         /// </summary>
-        public string createdAtString;
-
-        /// <summary>
-        /// v2/v3
-        /// </summary>
         public DateTime createdAt;
-
-        /// <summary>
-        /// v2/v3
-        /// </summary>
-        public string updatedAtString;
 
         /// <summary>
         /// v2/v3
@@ -77,9 +67,7 @@ namespace TwixelAPI
             this.name = name;
             this.info = info;
             this.displayName = displayName;
-            this.createdAtString = createdAt;
             this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAtString = updatedAt;
             this.updatedAt = DateTime.Parse(updatedAt);
             if (logo != null)
             {

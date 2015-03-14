@@ -102,29 +102,68 @@ namespace TwixelAPI.Tests
             Assert.True(summary["Channels"] > 1);
         }
 
-        //[Fact]
-        //public async void RetrieveChatTest()
-        //{
-        //    List<Uri> chatLinks = await twixel.RetrieveChat("golf1052");
-        //    Assert.Equal(3, chatLinks.Count);
-        //}
+        [Fact]
+        public async void RetrieveChatTest()
+        {
+            Dictionary<string, Uri> chatLinks = await twixel.RetrieveChat("golf1052");
+            Assert.Equal(3, chatLinks.Count);
+        }
 
-        //[Fact]
-        //public async void RetrieveEmoticonsTest()
-        //{
-        //    List<Emoticon> emotes = await twixel.RetrieveEmoticons();
-        //    Emoticon rotations = null;
-        //    foreach (Emoticon emote in emotes)
-        //    {
-        //        if (emote.regex == "ognTSM")
-        //        {
-        //            rotations = emote;
-        //            break;
-        //        }
-        //    }
+        [Fact]
+        public async void RetrieveEmoticonsTest()
+        {
+            List<Emoticon> emotes = await twixel.RetrieveEmoticons();
+            Emoticon rotations = null;
+            foreach (Emoticon emote in emotes)
+            {
+                if (emote.regex == "ognTSM")
+                {
+                    rotations = emote;
+                    break;
+                }
+            }
 
-        //    Assert.NotNull(rotations);
-        //}
+            Assert.NotNull(rotations);
+        }
+
+        [Fact]
+        public async void RetrieveBadgesTest()
+        {
+            List<Badge> badges = await twixel.RetrieveBadges("golf1052");
+            Assert.Equal(7, badges.Count);
+        }
+
+        [Fact]
+        public async void SearchChannelsTest()
+        {
+            List<Channel> searchedChannels = await twixel.SearchChannels("golf1052");
+            Channel channel = null;
+            foreach (Channel c in searchedChannels)
+            {
+                if (c.name == "golf1052")
+                {
+                    channel = c;
+                    break;
+                }
+            }
+            Assert.NotNull(channel);
+        }
+
+        [Fact]
+        public async void SearchStreamsTest()
+        {
+            List<Stream> searchedStreams = await twixel.SearchStreams("league");
+            Stream leagueStream = null;
+            foreach (Stream stream in searchedStreams)
+            {
+                if (stream.game == "League of Legends")
+                {
+                    leagueStream = stream;
+                    break;
+                }
+            }
+            Assert.NotNull(leagueStream);
+        }
 
         [Fact]
         public async void SearchGamesTest()
@@ -203,21 +242,21 @@ namespace TwixelAPI.Tests
             Assert.Equal("League of Legends", videos[0].game);
         }
 
-        //[Fact]
-        //public async void RetrieveFollowersTest()
-        //{
-        //    List<User> followers = await twixel.RetrieveFollowers("golf1052", false);
-        //    User zeroAurora = null;
-        //    foreach (User follower in followers)
-        //    {
-        //        if (follower.name == "zero_aurora")
-        //        {
-        //            zeroAurora = follower;
-        //            break;
-        //        }
-        //    }
-        //    Assert.NotNull(zeroAurora);
-        //}
+        [Fact]
+        public async void RetrieveFollowersTest()
+        {
+            Total<List<Follow>> followers = await twixel.RetrieveFollowers("golf1052");
+            User zeroAurora = null;
+            foreach (Follow follower in followers.wrapped)
+            {
+                if (follower.user.name == "zero_aurora")
+                {
+                    zeroAurora = follower.user;
+                    break;
+                }
+            }
+            Assert.NotNull(zeroAurora);
+        }
 
         [Fact]
         public async void RetrieveChannelTest()
@@ -242,6 +281,13 @@ namespace TwixelAPI.Tests
                 }
             }
             Assert.NotNull(newYork);
+        }
+
+        [Fact]
+        public async void RetrieveUserTest()
+        {
+            User golf1052 = await twixel.RetrieveUser("golf1052");
+            Assert.Equal("golf1052", golf1052.displayName);
         }
     }
 }

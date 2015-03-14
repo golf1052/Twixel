@@ -52,11 +52,6 @@ namespace TwixelAPI
         /// <summary>
         /// v2/v3
         /// </summary>
-        public string recordedAtString;
-
-        /// <summary>
-        /// v2/v3
-        /// </summary>
         public DateTime recordedAt;
 
         /// <summary>
@@ -131,7 +126,6 @@ namespace TwixelAPI
             this.broadcastId = broadcastId;
             this.status = status;
             this.id = id;
-            this.recordedAtString = recordedAt;
             this.recordedAt = DateTime.Parse(recordedAt);
             this.game = game;
             this.length = length;
@@ -171,7 +165,6 @@ namespace TwixelAPI
             this.status = status;
             this.tagList = tagList;
             this.id = id;
-            this.recordedAtString = recordedAt;
             this.recordedAt = DateTime.Parse(recordedAt);
             this.game = game;
             this.length = length;

@@ -29,11 +29,6 @@ namespace TwixelAPI
         /// <summary>
         /// v2/v3
         /// </summary>
-        public string createdAtString;
-
-        /// <summary>
-        /// v2/v3
-        /// </summary>
         public DateTime createdAt;
 
         /// <summary>
@@ -93,7 +88,6 @@ namespace TwixelAPI
             this.id = id;
             this.game = game;
             this.viewers = viewers;
-            this.createdAtString = createdAt;
             if (!string.IsNullOrEmpty(createdAt))
             {
                 this.createdAt = DateTime.Parse(createdAt);
@@ -128,7 +122,6 @@ namespace TwixelAPI
             this.id = id;
             this.game = game;
             this.viewers = viewers;
-            this.createdAtString = createdAt;
             this.createdAt = DateTime.Parse(createdAt);
             this.videoHeight = videoHeight;
             this.averageFps = averageFps;

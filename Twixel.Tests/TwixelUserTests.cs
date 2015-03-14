@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using TwixelAPI.Constants;
 using Xunit;
 
@@ -34,15 +35,9 @@ namespace TwixelAPI.Tests
 
             // Get access token
             string accessToken = await twixel.Login(Secrets.Username, Secrets.Password, scopes);
+            Debug.WriteLine(accessToken);
             Assert.True(!string.IsNullOrEmpty(accessToken));
         }
-
-        //[Fact]
-        //public async void RetrieveUserTest()
-        //{
-        //    User golf1052 = await twixel.RetrieveUser("twixeltest");
-        //    Assert.Equal("twixeltest", golf1052.displayName);
-        //}
 
         //[Fact]
         //public async void RetrieveUserWithAccessToken()

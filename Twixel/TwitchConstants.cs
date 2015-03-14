@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 namespace TwixelAPI.Constants
 {
     public static class TwitchConstants

@@ -10,13 +10,23 @@ using TwixelAPI.Constants;
 
 namespace TwixelAPI
 {
+    public struct Notification
+    {
+        public readonly bool email;
+        public readonly bool push;
+
+        public Notification(bool email, bool push)
+        {
+            this.email = email;
+            this.push = push;
+        }
+    }
+
     /// <summary>
     /// User class
     /// </summary>
-    public class User
+    public class User : TwixelObjectBase
     {
-        Twixel twixel;
-
         /// <summary>
         /// Authorization status
         /// </summary>
@@ -25,7 +35,7 @@ namespace TwixelAPI
         /// <summary>
         /// User's access token
         /// </summary>
-        public string accessToken = "";
+        public string accessToken;
 
         /// <summary>
         /// List of scopes user has given permission to
@@ -33,49 +43,76 @@ namespace TwixelAPI
         public List<TwitchConstants.Scope> authorizedScopes;
 
         /// <summary>
+        /// v2/v3
         /// Name of the user
         /// </summary>
         public string name;
 
         /// <summary>
+        /// v2/v3
         /// User's logo
         /// </summary>
         public Uri logo;
 
         /// <summary>
+        /// v2/v3
         /// User's ID
         /// </summary>
         public long id;
 
         /// <summary>
+        /// v2/v3
         /// User's public display name
         /// </summary>
         public string displayName;
 
         /// <summary>
+        /// v2/v3
         /// User's email address
         /// </summary>
         public string email;
 
         /// <summary>
+        /// v2
         /// If the user is a staff member of Twitch
         /// </summary>
-        public bool? staff;
+        public bool staff;
 
         /// <summary>
+        /// v3
+        /// User's status on Twitch
+        /// </summary>
+        public string type;
+
+        /// <summary>
+        /// v2/v3
         /// If the user is partnered with Twitch
         /// </summary>
         public bool? partnered;
 
         /// <summary>
+        /// v2/v3
         /// When the user was created
         /// </summary>
         public DateTime createdAt;
 
         /// <summary>
+        /// v2/v3
         /// When the user was last updated
         /// </summary>
         public DateTime updatedAt;
+
+        /// <summary>
+        /// v3
+        /// User's bio
+        /// </summary>
+        public string bio;
+
+        /// <summary>
+        /// v2/v3
+        /// Notification settings for user
+        /// </summary>
+        public Notification notifications;
 
         List<Stream> followedStreams;
         List<User> blockedUsers;
@@ -95,104 +132,79 @@ namespace TwixelAPI
         public string streamKey;
 
         /// <summary>
-        /// User's bio
+        /// Load an unauthed v2 user
         /// </summary>
-        public string bio;
-
-        /// <summary>
-        /// Next subscribers URL
-        /// </summary>
-        public Uri nextSubs;
-
-        /// <summary>
-        /// Next following URL
-        /// </summary>
-        public Uri nextFollowing;
-
-        /// <summary>
-        /// Next following streams URL
-        /// </summary>
-        public Uri nextFollowingStreams;
-
-        internal User(Twixel twixel,
-            string accessToken,
-            List<TwitchConstants.Scope> authorizedScopes,
-            string name,
-            string logo,
+        /// <param name="displayName">Display name</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="staff">Are they staff</param>
+        /// <param name="createdAt">Time created at</param>
+        /// <param name="updatedAt">Time updated at</param>
+        /// <param name="logo">Logo link</param>
+        /// <param name="baseLinksO">Base links</param>
+        public User(string displayName,
             long id,
-            string displayName,
-            string email,
-            bool? staff,
-            bool? partnered,
+            string name,
+            bool staff,
             string createdAt,
             string updatedAt,
-            string bio)
+            string logo,
+            JObject baseLinksO) : base(baseLinksO)
         {
-            this.twixel = twixel;
-            blockedUsers = new List<User>();
-            subscribedUsers = new List<Subscription>();
-            channelEditors = new List<User>();
-            authorized = true;
-            this.accessToken = accessToken;
-            this.authorizedScopes = authorizedScopes;
+            this.version = Twixel.APIVersion.v2;
+            this.displayName = displayName;
+            this.id = id;
             this.name = name;
-            if (logo != null)
+            this.staff = staff;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(logo))
             {
                 this.logo = new Uri(logo);
             }
-            this.id = id;
-            this.displayName = displayName;
-            if (email != null)
-            {
-                this.email = email;
-            }
-            if (staff != null)
-            {
-                this.staff = staff;
-            }
-            if (partnered != null)
-            {
-                this.partnered = partnered;
-            }
-            this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAt = DateTime.Parse(updatedAt);
-            if (bio != null)
-            {
-                this.bio = bio;
-            }
+            this.authorized = false;
+            this.accessToken = "";
+            this.authorizedScopes = new List<TwitchConstants.Scope>();
         }
 
-        internal User(Twixel twixel,
-            string name,
-            string logo,
+        /// <summary>
+        /// Load an unauthed v3 user
+        /// </summary>
+        /// <param name="displayName">Display name</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="type">Type of user</param>
+        /// <param name="bio">Bio</param>
+        /// <param name="createdAt">Time created at</param>
+        /// <param name="updatedAt">Time updated at</param>
+        /// <param name="logo">Logo link</param>
+        /// <param name="baseLinksO">Base links</param>
+        public User(string displayName,
             long id,
-            string displayName,
-            bool? staff,
+            string name,
+            string type,
+            string bio,
             string createdAt,
             string updatedAt,
-            string bio)
+            string logo,
+            JObject baseLinksO)
+            : base(baseLinksO)
         {
-            blockedUsers = new List<User>();
-            subscribedUsers = new List<Subscription>();
-            channelEditors = new List<User>();
-            authorized = false;
+            this.version = Twixel.APIVersion.v2;
+            this.displayName = displayName;
+            this.id = id;
             this.name = name;
-            if (logo != null)
+            this.type = type;
+            this.bio = bio;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(logo))
             {
                 this.logo = new Uri(logo);
             }
-            this.id = id;
-            this.displayName = displayName;
-            if (staff != null)
-            {
-                this.staff = staff;
-            }
-            this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAt = DateTime.Parse(updatedAt);
-            if (bio != null)
-            {
-                this.bio = bio;
-            }
+            this.authorized = false;
+            this.accessToken = "";
+            this.authorizedScopes = new List<TwitchConstants.Scope>();
         }
 
         User GetBlockedUser(string username)
@@ -995,16 +1007,16 @@ namespace TwixelAPI
         //    }
         //}
 
-        Subscription LoadSubscriber(JObject o)
-        {
-            Subscription sub = new Subscription((string)o["_id"], (JObject)o["user"], (string)o["created_at"], twixel);
-            return sub;
-        }
+        //Subscription LoadSubscriber(JObject o)
+        //{
+        //    Subscription sub = new Subscription((string)o["_id"], (JObject)o["user"], (string)o["created_at"]);
+        //    return sub;
+        //}
 
-        Subscription LoadSubscription(JObject o)
-        {
-            Subscription sub = new Subscription((string)o["_id"], (string)o["created_at"], (JObject)o["channel"], twixel);
-            return sub;
-        }
+        //Subscription LoadSubscription(JObject o)
+        //{
+        //    Subscription sub = new Subscription((string)o["_id"], (string)o["created_at"], (JObject)o["channel"]);
+        //    return sub;
+        //}
     }
 }
