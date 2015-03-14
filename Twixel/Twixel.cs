@@ -122,7 +122,7 @@ namespace TwixelAPI
         /// <returns>Returns a list of games.
         /// If the page of games contains no games this will return an empty list.
         /// If an error occurs this will throw an exception.</returns>
-        public async Task<List<Game>> RetrieveTopGames(int offset = 0, int limit = 25,
+        public async Task<Total<List<Game>>> RetrieveTopGames(int offset = 0, int limit = 25,
             APIVersion version = APIVersion.None)
         {
             if (version == APIVersion.None)
@@ -150,7 +150,9 @@ namespace TwixelAPI
             {
                 throw new TwixelException(twitchAPIErrorString, ex);
             }
-            return HelperMethods.LoadGames(JObject.Parse(responseString), version);
+            JObject responseObject = JObject.Parse(responseString);
+            List<Game> games = HelperMethods.LoadGames(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, games, version);
         }
 
         /// <summary>
@@ -184,7 +186,6 @@ namespace TwixelAPI
             if (stream["stream"].ToString() != "")
             {
                 return HelperMethods.LoadStream((JObject)stream["stream"],
-                    (JObject)stream["_links"],
                     version);
             }
             else
@@ -571,7 +572,7 @@ namespace TwixelAPI
         /// <param name="limit">How many channels to get at one time. Default is 25. Maximum is 100.</param>
         /// <param name="version">Twitch API version</param>
         /// <returns>A list of channels matching the search query</returns>
-        public async Task<List<Channel>> SearchChannels(string query,
+        public async Task<Total<List<Channel>>> SearchChannels(string query,
             int offset = 0, int limit = 25,
             APIVersion version = APIVersion.None)
         {
@@ -602,12 +603,13 @@ namespace TwixelAPI
                 {
                     throw new TwixelException(twitchAPIErrorString, ex);
                 }
+                JObject responseObject = JObject.Parse(responseString);
                 List<Channel> channels = new List<Channel>();
-                foreach (JObject o in JObject.Parse(responseString)["channels"])
+                foreach (JObject o in ((JObject)responseObject)["channels"])
                 {
                     channels.Add(HelperMethods.LoadChannel(o, version));
                 }
-                return channels;
+                return HelperMethods.LoadTotal(responseObject, channels, version);
             }
             else
             {
@@ -622,7 +624,7 @@ namespace TwixelAPI
         /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
         /// <returns>Returns list of streams.
         /// If an error occurs this will return null.</returns>
-        public async Task<List<Stream>> SearchStreams(string query,
+        public async Task<Total<List<Stream>>> SearchStreams(string query,
             int offset = 0, int limit = 25, bool? hls = null, 
             APIVersion version = APIVersion.None)
         {
@@ -658,7 +660,9 @@ namespace TwixelAPI
             {
                 throw new TwixelException(twitchAPIErrorString, ex);
             }
-            return HelperMethods.LoadStreams(JObject.Parse(responseString), version);
+            JObject responseObject = JObject.Parse(responseString);
+            List<Stream> streams = HelperMethods.LoadStreams(JObject.Parse(responseString), version);
+            return HelperMethods.LoadTotal(responseObject, streams, version);
         }
 
         /// <summary>

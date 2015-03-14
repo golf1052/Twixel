@@ -51,7 +51,7 @@ namespace TwixelAPI
             {
                 this.image = new Uri(image);
             }
-            this.stream = HelperMethods.LoadStream(streamO, baseLinksO, version);
+            this.stream = HelperMethods.LoadStream(streamO, version);
         }
 
         public FeaturedStream(string text,
@@ -73,7 +73,7 @@ namespace TwixelAPI
             this.sponsored = sponsored;
             this.priority = priority;
             this.scheduled = scheduled;
-            this.stream = HelperMethods.LoadStream(streamO, baseLinksO, version);
+            this.stream = HelperMethods.LoadStream(streamO, version);
         }
 
         public void CleanInfoString()

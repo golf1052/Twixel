@@ -17,9 +17,9 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveTopGamesTest()
         {
-            List<Game> topGames = await twixel.RetrieveTopGames();
+            Total<List<Game>> topGames = await twixel.RetrieveTopGames();
             Game league = null;
-            foreach (Game game in topGames)
+            foreach (Game game in topGames.wrapped)
             {
                 if (game.name == "League of Legends")
                 {
@@ -30,9 +30,9 @@ namespace TwixelAPI.Tests
 
             Assert.NotNull(league);
 
-            List<Game> nextGames = await twixel.RetrieveTopGames(25);
+            Total<List<Game>> nextGames = await twixel.RetrieveTopGames(25);
             league = null;
-            foreach (Game game in nextGames)
+            foreach (Game game in nextGames.wrapped)
             {
                 if (game.name == "League of Legends")
                 {
@@ -51,7 +51,7 @@ namespace TwixelAPI.Tests
             Stream stream = null;
             // This stream may be offline so it is suggested you edit
             // this line to get a stream that is online.
-            stream = await twixel.RetrieveStream("Voyboy");
+            stream = await twixel.RetrieveStream("esl_lol");
             if (stream != null)
             {
                 Assert.Equal("League of Legends", stream.game);
@@ -136,9 +136,9 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void SearchChannelsTest()
         {
-            List<Channel> searchedChannels = await twixel.SearchChannels("golf1052");
+            Total<List<Channel>> searchedChannels = await twixel.SearchChannels("golf1052");
             Channel channel = null;
-            foreach (Channel c in searchedChannels)
+            foreach (Channel c in searchedChannels.wrapped)
             {
                 if (c.name == "golf1052")
                 {
@@ -146,15 +146,16 @@ namespace TwixelAPI.Tests
                     break;
                 }
             }
+            Assert.Equal(1, searchedChannels.total);
             Assert.NotNull(channel);
         }
 
         [Fact]
         public async void SearchStreamsTest()
         {
-            List<Stream> searchedStreams = await twixel.SearchStreams("league");
+            Total<List<Stream>> searchedStreams = await twixel.SearchStreams("league");
             Stream leagueStream = null;
-            foreach (Stream stream in searchedStreams)
+            foreach (Stream stream in searchedStreams.wrapped)
             {
                 if (stream.game == "League of Legends")
                 {

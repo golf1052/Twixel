@@ -125,13 +125,13 @@ namespace TwixelAPI
 
             foreach (JObject obj in (JArray)o["streams"])
             {
-                streams.Add(LoadStream(obj, (JObject)o["_links"], version));
+                streams.Add(LoadStream(obj, version));
             }
 
             return streams;
         }
 
-        internal static Stream LoadStream(JObject o, JObject baseLinksO, Twixel.APIVersion version)
+        internal static Stream LoadStream(JObject o, Twixel.APIVersion version)
         {
             JObject channelO = (JObject)o["channel"];
             if (version == Twixel.APIVersion.v2)
@@ -142,12 +142,11 @@ namespace TwixelAPI
                     (string)o["created_at"],
                     (int?)o["video_height"],
                     (double?)o["average_fps"],
-                    (JObject)o["_links"],
                     (string)o["name"],
                     (string)o["broadcaster"],
                     (string)o["preview"],
                     channelO,
-                    baseLinksO);
+                    (JObject)o["_links"]);
             }
             else if (version == Twixel.APIVersion.v3)
             {
@@ -157,12 +156,11 @@ namespace TwixelAPI
                     (string)o["created_at"],
                     (int)o["video_height"],
                     (double)o["average_fps"],
-                    (JObject)o["_links"],
                     (string)o["name"],
                     (string)o["broadcaster"],
                     (JObject)o["preview"],
                     channelO,
-                    baseLinksO);
+                    (JObject)o["_links"]);
             }
             else
             {

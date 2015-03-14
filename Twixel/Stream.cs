@@ -44,11 +44,6 @@ namespace TwixelAPI
         /// <summary>
         /// v2/v3
         /// </summary>
-        public Dictionary<string, Uri> links;
-
-        /// <summary>
-        /// v2/v3
-        /// </summary>
         public string name;
 
         /// <summary>
@@ -77,7 +72,6 @@ namespace TwixelAPI
             string createdAt,
             int? videoHeight,
             double? averageFps,
-            JObject linksO,
             string name,
             string broadcaster,
             string preview,
@@ -94,7 +88,6 @@ namespace TwixelAPI
             }
             this.videoHeight = videoHeight;
             this.averageFps = averageFps;
-            this.links = HelperMethods.LoadLinks(linksO);
             this.name = name;
             this.broadcaster = broadcaster;
             if (!string.IsNullOrEmpty(preview))
@@ -110,7 +103,6 @@ namespace TwixelAPI
             string createdAt,
             int videoHeight,
             double averageFps,
-            JObject linksO,
             string name,
             string broadcaster,
             JObject previewO,
@@ -125,7 +117,6 @@ namespace TwixelAPI
             this.createdAt = DateTime.Parse(createdAt);
             this.videoHeight = videoHeight;
             this.averageFps = averageFps;
-            this.links = HelperMethods.LoadLinks(linksO);
             this.name = name;
             this.broadcaster = broadcaster;
             this.previewList = HelperMethods.LoadLinks(previewO);

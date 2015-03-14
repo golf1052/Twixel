@@ -17,9 +17,9 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveTopGamesTest()
         {
-            List<Game> topGames = await twixel.RetrieveTopGames();
+            Total<List<Game>> topGames = await twixel.RetrieveTopGames();
             Game league = null;
-            foreach (Game game in topGames)
+            foreach (Game game in topGames.wrapped)
             {
                 if (game.name == "League of Legends")
                 {
@@ -30,9 +30,9 @@ namespace TwixelAPI.Tests
 
             Assert.NotNull(league);
 
-            List<Game> nextGames = await twixel.RetrieveTopGames(25);
+            Total<List<Game>> nextGames = await twixel.RetrieveTopGames(25);
             league = null;
-            foreach (Game game in nextGames)
+            foreach (Game game in nextGames.wrapped)
             {
                 if (game.name == "League of Legends")
                 {
@@ -138,9 +138,9 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void SearchStreamsTest()
         {
-            List<Stream> searchedStreams = await twixel.SearchStreams("league");
+            Total<List<Stream>> searchedStreams = await twixel.SearchStreams("league");
             Stream leagueStream = null;
-            foreach (Stream stream in searchedStreams)
+            foreach (Stream stream in searchedStreams.wrapped)
             {
                 if (stream.game == "League of Legends")
                 {
