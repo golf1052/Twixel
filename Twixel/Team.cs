@@ -1,47 +1,125 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Converters;
 
 namespace TwixelAPI
 {
-    public class Team
+    /// <summary>
+    /// Team object
+    /// </summary>
+    public class Team : TwixelObjectBase
     {
-        public string info;
-        public WebUrl background;
-        public WebUrl banner;
-        public string name;
+        /// <summary>
+        /// ID
+        /// </summary>
         public long id;
-        public string displayName;
-        public WebUrl logo;
 
-        public Team(string info,
-            string background,
-            string banner,
+        /// <summary>
+        /// Name
+        /// </summary>
+        public string name;
+
+        /// <summary>
+        /// Info.
+        /// Contains HTML tags by default.
+        /// </summary>
+        public string info;
+
+        /// <summary>
+        /// Display name
+        /// </summary>
+        public string displayName;
+
+        /// <summary>
+        /// Creation date
+        /// </summary>
+        public DateTime createdAt;
+
+        /// <summary>
+        /// Last updated
+        /// </summary>
+        public DateTime updatedAt;
+
+        /// <summary>
+        /// Link to logo
+        /// </summary>
+        public Uri logo;
+
+        /// <summary>
+        /// Link to banner
+        /// </summary>
+        public Uri banner;
+
+        /// <summary>
+        /// Link to background
+        /// </summary>
+        public Uri background;
+        
+        /// <summary>
+        /// Team constructor
+        /// </summary>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="info">Info</param>
+        /// <param name="displayName">Display name</param>
+        /// <param name="createdAt">Creation date</param>
+        /// <param name="updatedAt">Last updated</param>
+        /// <param name="logo">Link to logo</param>
+        /// <param name="banner">Link to banner</param>
+        /// <param name="background">Link to background</param>
+        /// <param name="version">Twitch API version</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
+        public Team(long id,
             string name,
-            long id,
+            string info,
             string displayName,
-            string logo)
+            string createdAt,
+            string updatedAt,
+            string logo,
+            string banner,
+            string background,
+            Twixel.APIVersion version,
+            JObject baseLinksO) : base(baseLinksO)
         {
+            this.version = version;
+            this.id = id;
+            this.name = name;
             this.info = info;
-            if (background != null)
+            this.displayName = displayName;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (logo != null)
             {
-                this.background = new WebUrl(background);
+                this.logo = new Uri(logo);
             }
             if (banner != null)
             {
-                this.banner = new WebUrl(banner);
+                this.banner = new Uri(banner);
             }
-            this.name = name;
-            this.id = id;
-            this.displayName = displayName;
-            if (logo != null)
+            if (background != null)
             {
-                this.logo = new WebUrl(logo);
+                this.background = new Uri(background);
+            }
+        }
+
+        /// <summary>
+        /// Remove HTML tags and HTML decode info string
+        /// </summary>
+        public void CleanInfoString()
+        {
+            info = HelperMethods.ConvertAmp(HelperMethods.RemoveHtmlTags(info)).Trim();
+            char lastChar = '\0';
+            for (int i = 0; i < info.Length; i++)
+            {
+                if (info[i] == '\n')
+                {
+                    if (lastChar == '\n')
+                    {
+                        i -= 1;
+                        info = info.Remove(i);
+                        break;
+                    }
+                }
+                lastChar = info[i];
             }
         }
     }

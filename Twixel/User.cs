@@ -1,31 +1,53 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Flurl;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Converters;
 using TwixelAPI.Constants;
 
 namespace TwixelAPI
 {
     /// <summary>
+    /// Notification struct
+    /// </summary>
+    public struct Notification
+    {
+        /// <summary>
+        /// Email status
+        /// </summary>
+        public readonly bool email;
+
+        /// <summary>
+        /// Push status
+        /// </summary>
+        public readonly bool push;
+
+        /// <summary>
+        /// Notification constructor
+        /// </summary>
+        /// <param name="email">Email status</param>
+        /// <param name="push">Push status</param>
+        public Notification(bool email, bool push)
+        {
+            this.email = email;
+            this.push = push;
+        }
+    }
+
+    /// <summary>
     /// User class
     /// </summary>
-    public class User
+    public class User : TwixelObjectBase
     {
-        Twixel twixel;
-
         /// <summary>
         /// Authorization status
         /// </summary>
-        public bool authorized;
+        public readonly bool authorized;
 
         /// <summary>
         /// User's access token
         /// </summary>
-        public string accessToken = "";
+        public string accessToken;
 
         /// <summary>
         /// List of scopes user has given permission to
@@ -33,978 +55,1230 @@ namespace TwixelAPI
         public List<TwitchConstants.Scope> authorizedScopes;
 
         /// <summary>
-        /// Name of the user
+        /// Name
+        /// v2/v3
         /// </summary>
         public string name;
 
         /// <summary>
-        /// User's logo
+        /// Link to logo
+        /// v2/v3
         /// </summary>
-        public WebUrl logo;
+        public Uri logo;
 
         /// <summary>
-        /// User's ID
+        /// ID
+        /// v2/v3
         /// </summary>
         public long id;
 
         /// <summary>
-        /// User's public display name
+        /// Display name
+        /// v2/v3
         /// </summary>
         public string displayName;
 
         /// <summary>
-        /// User's email address
+        /// Email address.
+        /// Requires authentication.
+        /// Requires user_read.
+        /// v2/v3
         /// </summary>
         public string email;
 
         /// <summary>
         /// If the user is a staff member of Twitch
+        /// v2
         /// </summary>
-        public bool? staff;
+        public bool staff;
 
         /// <summary>
-        /// If the user is partnered with Twitch
+        /// Status on Twitch
+        /// v3
         /// </summary>
-        public bool? partnered;
+        public string type;
 
         /// <summary>
-        /// When the user was created
+        /// Partnership status.
+        /// Requires authentication.
+        /// Requires user_read.
+        /// v2/v3
+        /// </summary>
+        public bool partnered;
+
+        /// <summary>
+        /// Creation date
+        /// v2/v3
         /// </summary>
         public DateTime createdAt;
 
         /// <summary>
-        /// When the user was last updated
+        /// Last updated
+        /// v2/v3
         /// </summary>
         public DateTime updatedAt;
 
-        List<Stream> followedStreams;
-        List<User> blockedUsers;
-
         /// <summary>
-        /// The number of subscribers this user has
-        /// </summary>
-        public int totalSubscribers;
-
-        List<Subscription> subscribedUsers;
-        Channel channel;
-        List<User> channelEditors;
-
-        /// <summary>
-        /// User's stream key
-        /// </summary>
-        public string streamKey;
-
-        /// <summary>
-        /// User's bio
+        /// Bio
+        /// v3
         /// </summary>
         public string bio;
 
         /// <summary>
-        /// Next subscribers URL
+        /// Notification settings
+        /// v2/v3
         /// </summary>
-        public WebUrl nextSubs;
+        public Notification notifications;
 
         /// <summary>
-        /// Next following URL
+        /// Cached channel object.
+        /// Null until a retrieve or update is done on the user's channel.
         /// </summary>
-        public WebUrl nextFollowing;
+        public Channel channel;
 
         /// <summary>
-        /// Next following streams URL
+        /// Stream key
+        /// Null until a retrieve or update is done on the user's channel.
         /// </summary>
-        public WebUrl nextFollowingStreams;
+        public string streamKey;
 
-        internal User(Twixel twixel,
-            string accessToken,
-            List<TwitchConstants.Scope> authorizedScopes,
-            string name,
-            string logo,
+        /// <summary>
+        /// User constructor. Unauthorized. Twitch API v2.
+        /// </summary>
+        /// <param name="displayName">Display name</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="staff">Are they staff</param>
+        /// <param name="createdAt">Time created at</param>
+        /// <param name="updatedAt">Time updated at</param>
+        /// <param name="logo">Logo link</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
+        public User(string displayName,
             long id,
-            string displayName,
-            string email,
-            bool? staff,
-            bool? partnered,
+            string name,
+            bool staff,
             string createdAt,
             string updatedAt,
-            string bio)
+            string logo,
+            JObject baseLinksO) : base(baseLinksO)
         {
-            this.twixel = twixel;
-            blockedUsers = new List<User>();
-            subscribedUsers = new List<Subscription>();
-            channelEditors = new List<User>();
-            authorized = true;
+            Initv2(displayName, id, name, staff, createdAt, updatedAt, logo);
+            this.authorized = false;
+            this.accessToken = "";
+            this.authorizedScopes = new List<TwitchConstants.Scope>();
+        }
+
+        /// <summary>
+        /// User constructor. Authorized. Twitch API v2.
+        /// </summary>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="authorizedScopes">List of authorized scopes</param>
+        /// <param name="displayName">Display name</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="staff">Are they staff</param>
+        /// <param name="createdAt">Time created at</param>
+        /// <param name="updatedAt">Time updated at</param>
+        /// <param name="logo">Logo link</param>
+        /// <param name="email">Email</param>
+        /// <param name="partnered">Are they partnered</param>
+        /// <param name="notificationsO">Notification status</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
+        public User(string accessToken,
+            List<TwitchConstants.Scope> authorizedScopes,
+            string displayName,
+            long id,
+            string name,
+            bool staff,
+            string createdAt,
+            string updatedAt,
+            string logo,
+            string email,
+            bool partnered,
+            JObject notificationsO,
+            JObject baseLinksO) : base(baseLinksO)
+        {
+            InitAuth(accessToken, authorizedScopes, email, partnered, notificationsO);
+            Initv2(displayName, id, name, staff, createdAt, updatedAt, logo);
+            this.authorized = true;
+        }
+
+        private void Initv2(string displayName,
+            long id,
+            string name,
+            bool staff,
+            string createdAt,
+            string updatedAt,
+            string logo)
+        {
+            this.version = Twixel.APIVersion.v2;
+            this.displayName = displayName;
+            this.id = id;
+            this.name = name;
+            this.staff = staff;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(logo))
+            {
+                this.logo = new Uri(logo);
+            }
+        }
+
+        /// <summary>
+        /// User constructor. Unauthorized. Twitch API v3.
+        /// </summary>
+        /// <param name="displayName">Display name</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="type">Type of user</param>
+        /// <param name="bio">Bio</param>
+        /// <param name="createdAt">Time created at</param>
+        /// <param name="updatedAt">Time updated at</param>
+        /// <param name="logo">Logo link</param>
+        /// <param name="baseLinksO">Base links</param>
+        public User(string displayName,
+            long id,
+            string name,
+            string type,
+            string bio,
+            string createdAt,
+            string updatedAt,
+            string logo,
+            JObject baseLinksO) : base(baseLinksO)
+        {
+            Initv3(displayName, id, name, type, bio, createdAt, updatedAt, logo);
+            this.authorized = false;
+            this.accessToken = "";
+            this.authorizedScopes = new List<TwitchConstants.Scope>();
+        }
+
+        /// <summary>
+        /// User constructor. Authorized. Twitch API v3.
+        /// </summary>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="authorizedScopes">List of authorized scopes</param>
+        /// <param name="displayName">Display name</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="type">Type of user</param>
+        /// <param name="bio">Bio</param>
+        /// <param name="createdAt">Time created at</param>
+        /// <param name="updatedAt">Time updated at</param>
+        /// <param name="logo">Logo link</param>
+        /// <param name="email">Email</param>
+        /// <param name="partnered">Are they partnered</param>
+        /// <param name="notificationsO">Notification status</param>
+        /// <param name="baseLinksO">Base links</param>
+        public User(string accessToken,
+            List<TwitchConstants.Scope> authorizedScopes,
+            string displayName,
+            long id,
+            string name,
+            string type,
+            string bio,
+            string createdAt,
+            string updatedAt,
+            string logo,
+            string email,
+            bool partnered,
+            JObject notificationsO,
+            JObject baseLinksO) : base(baseLinksO)
+        {
+            InitAuth(accessToken, authorizedScopes, email, partnered, notificationsO);
+            Initv3(displayName, id, name, type, bio, createdAt, updatedAt, logo);
+            this.authorized = true;
+        }
+
+        private void Initv3(string displayName,
+            long id,
+            string name,
+            string type,
+            string bio,
+            string createdAt,
+            string updatedAt,
+            string logo)
+        {
+            this.version = Twixel.APIVersion.v3;
+            this.displayName = displayName;
+            this.id = id;
+            this.name = name;
+            this.type = type;
+            this.bio = bio;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(logo))
+            {
+                this.logo = new Uri(logo);
+            }
+        }
+
+        private void InitAuth(string accessToken,
+            List<TwitchConstants.Scope> authorizedScopes,
+            string email,
+            bool partnered,
+            JObject notificationsO)
+        {
+            this.email = email;
+            this.partnered = partnered;
+            this.notifications = LoadNotifications(notificationsO);
             this.accessToken = accessToken;
             this.authorizedScopes = authorizedScopes;
-            this.name = name;
-            if (logo != null)
-            {
-                this.logo = new WebUrl(logo);
-            }
-            this.id = id;
-            this.displayName = displayName;
-            if (email != null)
-            {
-                this.email = email;
-            }
-            if (staff != null)
-            {
-                this.staff = staff;
-            }
-            if (partnered != null)
-            {
-                this.partnered = partnered;
-            }
-            this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAt = DateTime.Parse(updatedAt);
-            if (bio != null)
-            {
-                this.bio = bio;
-            }
         }
 
-        internal User(Twixel twixel,
-            string name,
-            string logo,
-            long id,
-            string displayName,
-            bool? staff,
-            string createdAt,
-            string updatedAt,
-            string bio)
+        private string NotAuthedError()
         {
-            blockedUsers = new List<User>();
-            subscribedUsers = new List<Subscription>();
-            channelEditors = new List<User>();
-            authorized = false;
-            this.name = name;
-            if (logo != null)
-            {
-                this.logo = new WebUrl(logo);
-            }
-            this.id = id;
-            this.displayName = displayName;
-            if (staff != null)
-            {
-                this.staff = staff;
-            }
-            this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAt = DateTime.Parse(updatedAt);
-            if (bio != null)
-            {
-                this.bio = bio;
-            }
+            return name + " is not authorized.";
         }
 
-        User GetBlockedUser(string username)
+        private string MissingPermissionError(TwitchConstants.Scope scope)
         {
-            foreach (User user in blockedUsers)
-            {
-                if (user.name == username)
-                {
-                    return user;
-                }
-            }
-
-            return null;
+            return name + " has not given " + TwitchConstants.ScopeToString(scope) + " permissions.";
         }
 
-        Subscription GetSubscriber(string username)
+        private string NotPartneredError()
         {
-            foreach (Subscription sub in subscribedUsers)
-            {
-                if (sub.user.name == username)
-                {
-                    return sub;
-                }
-            }
-
-            return null;
-        }
-
-        bool ContainsBlockedUser(string username)
-        {
-            foreach (User user in blockedUsers)
-            {
-                if (user.name == username)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        bool ContainsEditor(string username)
-        {
-            foreach (User user in channelEditors)
-            {
-                if (user.name == username)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        bool ContainsSubscriber(string username)
-        {
-            foreach (Subscription sub in subscribedUsers)
-            {
-                if (sub.user.name == username)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return name + " is not partnered with Twitch.";
         }
 
         /// <summary>
-        /// Gets a list of live streams that the user is following. Requires user authorization.
+        /// Gets a list of users that the user has blocked.
+        /// Requires authorization.
+        /// Requires user_blocks_read.
         /// </summary>
-        /// <returns>A list of streams</returns>
-        public async Task<List<Stream>> RetrieveOnlineFollowedStreams()
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">Maximum number of objects in array. Default is 25. Maximum is 100.</param>
+        /// <returns>A list of blocked users</returns>
+        public async Task<List<Block>> RetrieveBlockedUsers(int offset = 0, int limit = 25)
         {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserBlocksRead;
+            if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/streams/followed");
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                followedStreams = twixel.LoadStreams(JObject.Parse(responseString));
-                return followedStreams;
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
-                {
-                    twixel.CreateError(name + " has not given user_read permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of users that the user has blocked. Requires user authorization.
-        /// </summary>
-        /// <returns>A list of users</returns>
-        public async Task<List<User>> RetrieveBlockedUsers()
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserBlocksRead))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/blocks");
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                foreach (JObject user in JObject.Parse(responseString)["blocks"])
-                {
-                    User temp = twixel.LoadUser((JObject)user["user"]);
-                    if (!ContainsBlockedUser(temp.name))
-                    {
-                        blockedUsers.Add(temp);
-                    }
-                }
-                return blockedUsers;
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.UserBlocksRead))
-                {
-                    twixel.CreateError(name + " has not given user_blocks_read permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Blocks a user. Requires user authorization.
-        /// </summary>
-        /// <param name="username">The name of the user to block</param>
-        /// <returns>The current list of blocked users</returns>
-        public async Task<List<User>> BlockUser(string username)
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserBlocksEdit))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/blocks/" + username);
-                string responseString = await Twixel.PutWebData(uri, accessToken, "");
-                User temp = twixel.LoadUser((JObject)JObject.Parse(responseString)["user"]);
-                if (!ContainsBlockedUser(temp.name))
-                {
-                    blockedUsers.Add(temp);
-                }
-
-                return blockedUsers;
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.UserBlocksEdit))
-                {
-                    twixel.CreateError(name + " has not given user_blocks_edit permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Unblocks a user. Requires user authorization.
-        /// </summary>
-        /// <param name="username">The name of the user to block</param>
-        /// <returns>The current list of blocked users</returns>
-        public async Task<List<User>> UnblockUser(string username)
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserBlocksEdit))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/blocks/" + username);
-                string responseString = await Twixel.DeleteWebData(uri, accessToken);
-                if (responseString == "")
-                {
-                    blockedUsers.Remove(GetBlockedUser(username));
-                    return blockedUsers;
-                }
-                else if (responseString == "404")
-                {
-                    twixel.CreateError(username + "was never blocked");
-                    return null;
-                }
-                else if (responseString == "422")
-                {
-                    twixel.CreateError(username + " could not be unblocked. Try again.");
-                    return null;
-                }
-                else
-                {
-                    twixel.CreateError(responseString);
-                    return null;
-                }
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.UserBlocksEdit))
-                {
-                    twixel.CreateError(name + " has not given user_blocks_edit permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of users subscribed to this user. Requires user authorization. Requires Twitch partnership.
-        /// </summary>
-        /// <param name="getNext">If this method was called before then this will get the next page of subscriptions</param>
-        /// <returns>A list of subscriptions</returns>
-        public async Task<List<Subscription>> RetriveSubscribers(bool getNext)
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelSubscriptions))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + name + "/subscriptions");
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                if (responseString != "422")
-                {
-                    totalSubscribers = (int)JObject.Parse(responseString)["_total"];
-                    nextSubs = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                    foreach (JObject o in (JArray)JObject.Parse(responseString)["subscriptions"])
-                    {
-                        if (!ContainsSubscriber((string)o["user"]["name"]))
-                        {
-                            subscribedUsers.Add(LoadSubscriber(o));
-                        }
-                    }
-                    return subscribedUsers;
-                }
-                else
-                {
-                    twixel.CreateError("You aren't partnered so you cannot have subs");
-                    return null;
-                }
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.ChannelSubscriptions))
-                {
-                    twixel.CreateError(name + " has not given channel_subscriptions permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Get a list of users subscribed to this user. Requires user authorization. Requires Twitch partnership.
-        /// </summary>
-        /// <param name="limit">How many subscriptions to get at one time. Default is 25. Maximum is 100</param>
-        /// <param name="direction">Creation date sorting direction</param>
-        /// <returns>A list of subscriptions</returns>
-        public async Task<List<Subscription>> RetriveSubscribers(int limit, TwitchConstants.Direction direction)
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelSubscriptions))
-            {
-                Uri uri;
-                string url = "https://api.twitch.tv/kraken/channels/" + name + "/subscriptions";
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks");
                 if (limit <= 100)
                 {
-                    url += "?limit=" + limit.ToString();
+                    url.SetQueryParam("limit", limit);
                 }
                 else
                 {
-                    twixel.CreateError("You cannot fetch more than 100 subs at a time");
-                    return null;
+                    url.SetQueryParam("limit", 100);
                 }
-
-                if (direction != TwitchConstants.Direction.None)
+                url.SetQueryParam("offset", offset);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
                 {
-                    url += "&direction=" + TwitchConstants.DirectionToString(direction);
+                    responseString = await Twixel.GetWebData(uri, accessToken, version);
                 }
-
-                uri = new Uri(url);
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                if (responseString != "422")
+                catch (TwitchException ex)
                 {
-                    totalSubscribers = (int)JObject.Parse(responseString)["_total"];
-                    nextSubs = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                    foreach (JObject o in (JArray)JObject.Parse(responseString)["subscriptions"])
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadBlocks(JObject.Parse(responseString), version);
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Blocks a user.
+        /// Requires authorization.
+        /// Requires user_blocks_edit.
+        /// </summary>
+        /// <param name="username">The name of the user to block</param>
+        /// <returns>The blocked user</returns>
+        public async Task<Block> BlockUser(string username)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserBlocksEdit;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks", username);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.PutWebData(uri, accessToken, "", version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadBlock(JObject.Parse(responseString), version);
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unblocks a user.
+        /// Requires authorization.
+        /// Requires user_blocks_edit.
+        /// </summary>
+        /// <param name="username">The name of the user to block</param>
+        /// <returns>
+        /// Returns true if the request succeeded.
+        /// Throws an exception if the user was never blocked.
+        /// Throws an exception if the user could not be unblocked.
+        /// </returns>
+        public async Task<bool> UnblockUser(string username)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserBlocksEdit;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks", username);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.DeleteWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    if (ex.Status == 404)
                     {
-                        if (!ContainsSubscriber((string)o["user"]["name"]))
-                        {
-                            subscribedUsers.Add(LoadSubscriber(o));
-                        }
+                        throw new TwixelException(username + " was never blocked", ex);
                     }
-                    return subscribedUsers;
+                    else if (ex.Status == 422)
+                    {
+                        throw new TwixelException(username + " could not be unblocked. Try again.", ex);
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
+                }
+                if (string.IsNullOrEmpty(responseString))
+                {
+                    return true;
                 }
                 else
                 {
-                    twixel.CreateError("You aren't partnered so you cannot have subs");
-                    return null;
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
                 }
             }
             else
             {
                 if (!authorized)
                 {
-                    twixel.CreateError(name + " is not authorized");
+                    throw new TwixelException(NotAuthedError());
                 }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.ChannelSubscriptions))
+                else if (!authorizedScopes.Contains(relevantScope))
                 {
-                    twixel.CreateError(name + " has not given channel_subscriptions permissions");
+                    throw new TwixelException(MissingPermissionError(relevantScope));
                 }
-                return null;
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
             }
         }
 
         /// <summary>
-        /// Checks to see if a specified user is subscribed to this user. Requires user authorization. Requires Twitch partnership.
+        /// Gets the channel object for this user. Also retrieves their stream key.
+        /// Updates channel object.
+        /// Requires authorization.
+        /// Requires channel_read.
         /// </summary>
-        /// <param name="username">The name of the user</param>
-        /// <returns>A subscription object if the user is subscribed</returns>
-        public async Task<Subscription> RetrieveSubsciber(string username)
+        /// <returns>A channel</returns>
+        public async Task<Channel> RetrieveChannel()
         {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelCheckSubscription))
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelRead;
+            if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + name + "/subscriptions/" + username);
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                if (responseString != "422" && responseString != "404")
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("channel");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
                 {
-                    return LoadSubscriber(JObject.Parse(responseString));
+                    responseString = await Twixel.GetWebData(uri, accessToken, version);
                 }
-                else if (responseString == "404")
+                catch (TwitchException ex)
                 {
-                    twixel.CreateError(username + " is not subscribed");
-                    return null;
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
                 }
-                else if (responseString == "422")
+                JObject responseObject = JObject.Parse(responseString);
+                streamKey = (string)responseObject["stream_key"];
+                channel = HelperMethods.LoadChannel(responseObject, version);
+                return channel;
+            }
+            else
+            {
+                if (!authorized)
                 {
-                    twixel.CreateError("You aren't partnered so you cannot have subs");
-                    return null;
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
                 }
                 else
                 {
-                    twixel.CreateError(responseString);
-                    return null;
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the list of users that can edit this user's channel.
+        /// Requires authorization.
+        /// Requires channel_read.
+        /// </summary>
+        /// <returns>A list of users</returns>
+        public async Task<List<User>> RetrieveChannelEditors()
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelRead;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "editors");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.GetWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadUsers(JObject.Parse(responseString), version);
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates a channel's status.
+        /// Updates channel object.
+        /// Requires authorization.
+        /// Requires Twitch partnership if setting a delay above 0.
+        /// Requires channel_editor.
+        /// </summary>
+        /// <param name="status">The new status</param>
+        /// <param name="game">The new game</param>
+        /// <param name="delay">Delay, requires Twitch partnership if above 0</param>
+        /// <returns>
+        /// Returns the channel if the request succeeded.
+        /// Throws an exception if the user is not allowed to use delay.
+        /// </returns>
+        public async Task<Channel> UpdateChannel(string status = "", string game = "",
+            int delay = 0)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelEditor;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
+                Uri uri = new Uri(url.ToString());
+                JObject content = new JObject();
+                content["channel"] = new JObject();
+                content["channel"]["status"] = status;
+                content["channel"]["game"] = game;
+                if (version == Twixel.APIVersion.v3)
+                {
+                    content["channel"]["delay"] = delay;
+                }
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.PutWebData(uri, accessToken, content.ToString(), version);
+                }
+                catch (TwitchException ex)
+                {
+                    if (ex.Status == 422)
+                    {
+                        throw new TwixelException(name + " is not allowed to use delay.", ex);
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
+                }
+                channel = HelperMethods.LoadChannel(JObject.Parse(responseString), version);
+                return channel;
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resets this user's stream key.
+        /// Updates channel object.
+        /// Requires authorization.
+        /// Requires channel_stream.
+        /// </summary>
+        /// <returns>The new stream key</returns>
+        public async Task<string> ResetStreamKey()
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelStream;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "stream_key");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.DeleteWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    if (ex.Status == 422)
+                    {
+                        throw new TwixelException("Error resetting stream key.", ex);
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
+                }
+                JObject responseObject = JObject.Parse(responseString);
+                channel = HelperMethods.LoadChannel(responseObject, version);
+                streamKey = (string)responseObject["stream_key"];
+                return streamKey;
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Starts a commercial on this user's live stream.
+        /// Requires authorization.
+        /// Requires Twitch partnership.
+        /// Requires channel_commercial.
+        /// </summary>
+        /// <param name="length">The length of the commercial</param>
+        /// <returns>
+        /// Returns true if the request succeeded.
+        /// Throws an exception if the user is not partnered.
+        /// </returns>
+        public async Task<bool> StartCommercial(TwitchConstants.CommercialLength length)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelCommercial;
+            if (authorized && authorizedScopes.Contains(relevantScope) && partnered)
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "commercial");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.PostWebData(uri, accessToken,
+                        "length=" + TwitchConstants.LengthToInt(length).ToString(), version);
+                }
+                catch (TwitchException ex)
+                {
+                    if (ex.Status == 422)
+                    {
+                        throw new TwixelException(ex.Message, ex);
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
+                }
+                if (string.IsNullOrEmpty(responseString))
+                {
+                    return true;
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
                 }
             }
             else
             {
                 if (!authorized)
                 {
-                    twixel.CreateError(name + " is not authorized");
+                    throw new TwixelException(NotAuthedError());
                 }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.ChannelCheckSubscription))
+                else if (!authorizedScopes.Contains(relevantScope))
                 {
-                    twixel.CreateError(name + " has not given channel_check_subscription permissions");
+                    throw new TwixelException(MissingPermissionError(relevantScope));
                 }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Checks to see if this user is subcribed to a specified channel. Requires user authorization.
-        /// </summary>
-        /// <param name="channel">The name of the channel</param>
-        /// <returns>A subscription object</returns>
-        public async Task<Subscription> RetrieveSubscription(string channel)
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserSubcriptions))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/subscriptions/" + channel);
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                if (responseString != "422" && responseString != "404")
+                else if (!partnered)
                 {
-                    return LoadSubscription(JObject.Parse(responseString));
-                }
-                else if (responseString == "404")
-                {
-                    twixel.CreateError("You are not subscribed to " + channel);
-                    return null;
-                }
-                else if (responseString == "422")
-                {
-                    twixel.CreateError(channel + " has no subscription program");
-                    return null;
+                    throw new TwixelException(NotPartneredError());
                 }
                 else
                 {
-                    twixel.CreateError(responseString);
-                    return null;
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
                 }
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.UserSubcriptions))
-                {
-                    twixel.CreateError(name + " has not given user_subscriptions permissions");
-                }
-                return null;
             }
         }
 
         /// <summary>
-        /// Gets a list of channels this user is following
+        /// Gets a Total object containing a list of Follow objects of type User following the specified user
         /// </summary>
-        /// <param name="getNext">If this method was called before then this will get the next page of channels</param>
-        /// <returns>A list of channels</returns>
-        public async Task<List<Channel>> RetrieveFollowing(bool getNext)
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many users to get at one time. Default is 25. Maximum is 100</param>
+        /// <param name="direction">Creation date sorting direction. Default is Descending.</param>
+        /// <returns>A Total object containing a list of Follow objects of type User</returns>
+        public async Task<Total<List<Follow<User>>>> RetrieveFollowers(int offset = 0, int limit = 25,
+            TwitchConstants.Direction direction = TwitchConstants.Direction.Decending)
         {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels");
-            }
-            else
-            {
-                if (nextFollowing != null)
-                {
-                    uri = nextFollowing.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels");
-                }
-            }
-            string responseString = await Twixel.GetWebData(uri);
-            if (Twixel.GoodStatusCode(responseString))
-            {
-                nextFollowing = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                List<Channel> followedChannels = new List<Channel>();
-                foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
-                {
-                    followedChannels.Add(twixel.LoadChannel((JObject)o["channel"]));
-                }
-                return followedChannels;
-            }
-            else
-            {
-                twixel.CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of channels this user is following
-        /// </summary>
-        /// <param name="limit">How many channels to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>A list of channels</returns>
-        public async Task<List<Channel>> RetrieveFollowing(int limit)
-        {
-            Uri uri;
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "follows");
             if (limit <= 100)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels?limit=" + limit.ToString());
+                url.SetQueryParam("limit", limit);
             }
             else
             {
-                twixel.CreateError("You cannot get more than 100 channels at a time");
-                return null;
+                url.SetQueryParam("limit", 100);
             }
-            string responseString = await Twixel.GetWebData(uri);
-            if (Twixel.GoodStatusCode(responseString))
+            url.SetQueryParams(new
             {
-                nextFollowing = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                List<Channel> followedChannels = new List<Channel>();
-                foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
-                {
-                    followedChannels.Add(twixel.LoadChannel((JObject)o["channel"]));
-                }
-                return followedChannels;
+                offset = offset,
+                direction = TwitchConstants.DirectionToString(direction)
+            });
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await Twixel.GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject responseObject = JObject.Parse(responseString);
+            List<Follow<User>> follows = HelperMethods.LoadUserFollows(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, follows, version);
+        }
+
+        /// <summary>
+        /// Gets a Total object containing a list of Follow objects of type Channel this user is following
+        /// </summary>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many channels to get at one time. Default is 25. Maximum is 100</param>
+        /// <param name="direction">Sorting direction. Default is Decending.</param>
+        /// <param name="sortBy">Sort by. Default is CreatedAt.</param>
+        /// <returns>A Total object containing a list of Follow objects of type Channel</returns>
+        public async Task<Total<List<Follow<Channel>>>> RetrieveFollowing(int offset = 0, int limit = 25,
+            TwitchConstants.Direction direction = TwitchConstants.Direction.Decending,
+            TwitchConstants.SortBy sortBy = TwitchConstants.SortBy.CreatedAt)
+        {
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels");
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
             }
             else
             {
-                twixel.CreateError(responseString);
-                return null;
+                url.SetQueryParam("limit", 100);
             }
+            url.SetQueryParams(new
+            {
+                offset = offset,
+                direction = TwitchConstants.DirectionToString(direction),
+                sortby = TwitchConstants.SortByToString(sortBy)
+            });
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await Twixel.GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject responseObject = JObject.Parse(responseString);
+            List<Follow<Channel>> channels = HelperMethods.LoadChannelFollows(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, channels, version);
         }
 
         /// <summary>
         /// Checks to see if this user is following a specified channel
         /// </summary>
         /// <param name="channel">The name of the channel</param>
-        /// <returns>A channel object</returns>
-        public async Task<Channel> RetrieveFollowing(string channel)
+        /// <returns>
+        /// A Follow object of type Channel if the request succeeded.
+        /// Throws an exception if the user is not following the specified channel.
+        /// </returns>
+        public async Task<Follow<Channel>> RetrieveFollowing(string channel)
         {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels/" + channel);
-            string responseString = await Twixel.GetWebData(uri);
-            if (responseString != "404")
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels", channel);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
             {
-                return twixel.LoadChannel((JObject)JObject.Parse(responseString)["channel"]);
+                responseString = await Twixel.GetWebData(uri, version);
             }
-            else if (responseString == "404")
+            catch (TwitchException ex)
             {
-                twixel.CreateError(name + " is not following " + channel);
-                return null;
-            }
-            else
-            {
-                twixel.CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Follows a channel. Requires user authorization.
-        /// </summary>
-        /// <param name="channel">The name of the channel</param>
-        /// <returns>A channel object</returns>
-        public async Task<Channel> FollowChannel(string channel)
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserFollowsEdit))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels/" + channel);
-                string responseString = await Twixel.PutWebData(uri, accessToken, "");
-                if (responseString != "422")
+                if (ex.Status == 404)
                 {
-                    Channel temp = twixel.LoadChannel((JObject)JObject.Parse(responseString)["channel"]);
-                    return temp;
-                }
-                else if (responseString == "422")
-                {
-                    twixel.CreateError("Could not follow " + channel);
-                    return null;
+                    throw new TwixelException(name + " is not following " + channel, ex);
                 }
                 else
                 {
-                    twixel.CreateError(responseString);
-                    return null;
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
                 }
+            }
+            return HelperMethods.LoadChannelFollow(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Follows a channel.
+        /// Requires authorization.
+        /// Requires user_follows_edit.
+        /// </summary>
+        /// <param name="channel">The name of the channel</param>
+        /// <param name="notifications">
+        /// Whether :user should receive email/push notifications
+        /// (depending on their notification settings) when the specified channel goes live.
+        /// Default is false.
+        /// </param>
+        /// <returns>
+        /// A Follow object of type Channel if the request succeeds.
+        /// Throws an exception if the request was not processed.
+        /// </returns>
+        public async Task<Follow<Channel>> FollowChannel(string channel, bool notifications = false)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserFollowsEdit;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name,
+                    "follows", "channels", channel).SetQueryParam("notifications", notifications);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.PutWebData(uri, accessToken, "", version);
+                }
+                catch (TwitchException ex)
+                {
+                    if (ex.Status == 422)
+                    {
+                        throw new TwixelException("Could not follow " + channel);
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
+                }
+                return HelperMethods.LoadChannelFollow(JObject.Parse(responseString), version);
             }
             else
             {
                 if (!authorized)
                 {
-                    twixel.CreateError(name + " is not authorized");
+                    throw new TwixelException(NotAuthedError());
                 }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.UserFollowsEdit))
+                else if (!authorizedScopes.Contains(relevantScope))
                 {
-                    twixel.CreateError(name + " has not given user_follows_edit permissions");
+                    throw new TwixelException(MissingPermissionError(relevantScope));
                 }
-                return null;
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
             }
         }
 
         /// <summary>
-        /// Unfollows a channel. Requires user authorization.
+        /// Unfollows a channel.
+        /// Requires authorization.
+        /// Requires user_follows_edit.
         /// </summary>
         /// <param name="channel">The name of the channel</param>
-        /// <returns>If the request succeeded</returns>
+        /// <returns>
+        /// Returns true the request succeeded.
+        /// Throws an exception if the channel was not being followed.
+        /// Throws an exception if the channel could not be unfollowed.
+        /// </returns>
         public async Task<bool> UnfollowChannel(string channel)
         {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.UserFollowsEdit))
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserFollowsEdit;
+            if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/users/" + name + "/follows/channels/" + channel);
-                string responseString = await Twixel.DeleteWebData(uri, accessToken);
-                if (responseString == "")
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels", channel);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
                 {
-                    return true;
+                    responseString = await Twixel.DeleteWebData(uri, accessToken, version);
                 }
-                else if (responseString == "404")
+                catch (TwitchException ex)
                 {
-                    twixel.CreateError(channel + "was not being followed");
-                    return false;
-                }
-                else if (responseString == "422")
-                {
-                    twixel.CreateError(channel + " could not be unfollowed. Try again.");
-                    return false;
-                }
-                else
-                {
-                    twixel.CreateError(responseString);
-                    return false;
-                }
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.UserFollowsEdit))
-                {
-                    twixel.CreateError(name + " has not given user_follows_edit permissions");
-                }
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Gets the channel object for this user. Requires user authorization.
-        /// </summary>
-        /// <returns>A channel object</returns>
-        public async Task<Channel> RetrieveChannel()
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelRead))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/channel");
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                if (Twixel.GoodStatusCode(responseString))
-                {
-                    streamKey = (string)JObject.Parse(responseString)["stream_key"];
-                    channel = twixel.LoadChannel(JObject.Parse(responseString));
-                    return channel;
-                }
-                else
-                {
-                    twixel.CreateError(responseString);
-                    return null;
-                }
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.ChannelRead))
-                {
-                    twixel.CreateError(name + " has not given channel_read permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the list of users that can edit this user's channel. Requires user authorization.
-        /// </summary>
-        /// <returns>A list of users</returns>
-        public async Task<List<User>> RetrieveChannelEditors()
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelRead))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + name + "/editors");
-                string responseString = await Twixel.GetWebData(uri, accessToken);
-                if (Twixel.GoodStatusCode(responseString))
-                {
-                    foreach (JObject o in (JArray)JObject.Parse(responseString)["users"])
+                    if (ex.Status == 404)
                     {
-                        if (!ContainsEditor((string)o["name"]))
-                        {
-                            channelEditors.Add(twixel.LoadUser(o));
-                        }
+                        throw new TwixelException(channel + " was not being followed.", ex);
                     }
-                    return channelEditors;
+                    else if (ex.Status == 422)
+                    {
+                        throw new TwixelException(channel + " could not be unfollowed. Try again.", ex);
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
                 }
-                else
-                {
-                    twixel.CreateError(responseString);
-                    return null;
-                }
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.ChannelRead))
-                {
-                    twixel.CreateError(name + " has not given channel_read permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Updates a channel's status. Requires user authorization.
-        /// </summary>
-        /// <param name="status">The new status</param>
-        /// <param name="game">The new game</param>
-        /// <returns></returns>
-        public async Task<Channel> UpdateChannel(string status, string game)
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelEditor))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + name);
-                JObject content = new JObject();
-                content["channel"] = new JObject();
-                content["channel"]["status"] = status;
-                content["channel"]["game"] = game;
-                string responseString = await Twixel.PutWebData(uri, accessToken, content.ToString());
-                if (Twixel.GoodStatusCode(responseString))
-                {
-                    return twixel.LoadChannel(JObject.Parse(responseString));
-                }
-                else
-                {
-                    twixel.CreateError(responseString);
-                    return null;
-                }
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.ChannelEditor))
-                {
-                    twixel.CreateError(name + " has not given channel_editor permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Resets this user's stream key. Requires user authorization.
-        /// </summary>
-        /// <returns>The new stream key</returns>
-        public async Task<string> ResetStreamKey()
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelStream))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + name + "/stream_key");
-                string responseString = await Twixel.DeleteWebData(uri, accessToken);
-                if (responseString != "422")
-                {
-                    streamKey = (string)JObject.Parse(responseString)["stream_key"];
-                    return streamKey;
-                }
-                else if (responseString == "422")
-                {
-                    twixel.CreateError("Error reseting stream key");
-                    return null;
-                }
-                else
-                {
-                    twixel.CreateError(responseString);
-                    return null;
-                }
-            }
-            else
-            {
-                if (!authorized)
-                {
-                    twixel.CreateError(name + " is not authorized");
-                }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.ChannelStream))
-                {
-                    twixel.CreateError(name + " has not given channel_stream permissions");
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Starts a commercial on this user's live stream. Requires user authorization. Requires Twitch partnership
-        /// </summary>
-        /// <param name="length">The length of the commercial</param>
-        /// <returns>If the request succeeded</returns>
-        public async Task<bool> StartCommercial(TwitchConstants.Length length)
-        {
-            if (authorized && authorizedScopes.Contains(TwitchConstants.Scope.ChannelCommercial))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/channels/test_user1/commercial");
-                string responseString = await Twixel.PostWebData(uri, accessToken, "length=" + TwitchConstants.LengthToInt(length).ToString());
-                if (responseString == "")
+                if (string.IsNullOrEmpty(responseString))
                 {
                     return true;
                 }
-                else if (responseString == "422")
-                {
-                    twixel.CreateError("You are not partnered so you cannot run commercials");
-                    return false;
-                }
                 else
                 {
-                    twixel.CreateError(responseString);
-                    return false;
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
                 }
             }
             else
             {
                 if (!authorized)
                 {
-                    twixel.CreateError(name + " is not authorized");
+                    throw new TwixelException(NotAuthedError());
                 }
-                else if (!authorizedScopes.Contains(TwitchConstants.Scope.ChannelCommercial))
+                else if (!authorizedScopes.Contains(relevantScope))
                 {
-                    twixel.CreateError(name + " has not given channel_commercial permissions");
+                    throw new TwixelException(MissingPermissionError(relevantScope));
                 }
-                return false;
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
             }
         }
 
-        Subscription LoadSubscriber(JObject o)
+        /// <summary>
+        /// Get a Total object containing a list of Subscription of type User
+        /// Requires authorization.
+        /// Requires Twitch partnership.
+        /// Requires channel_subscriptions.
+        /// </summary>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many subscriptions to get at one time. Default is 25. Maximum is 100</param>
+        /// <param name="direction">Creation date sorting direction. Default is Ascending.</param>
+        /// <returns>A Total object containing a list of Subscription objects of type User</returns>
+        public async Task<Total<List<Subscription<User>>>> RetriveSubscribers(int offset = 0, int limit = 25,
+            TwitchConstants.Direction direction = TwitchConstants.Direction.Ascending)
         {
-            Subscription sub = new Subscription((string)o["_id"], (JObject)o["user"], (string)o["created_at"], twixel);
-            return sub;
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelSubscriptions;
+            if (authorized && authorizedScopes.Contains(relevantScope) && partnered)
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "subscriptions");
+                if (limit <= 100)
+                {
+                    url.SetQueryParam("limit", limit);
+                }
+                else
+                {
+                    url.SetQueryParam("limit", 100);
+                }
+                url.SetQueryParams(new
+                {
+                    offset = offset,
+                    direction = TwitchConstants.DirectionToString(direction)
+                });
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.GetWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                JObject responseObject = JObject.Parse(responseString);
+                List<Subscription<User>> subs = HelperMethods.LoadUserSubscriptions(JObject.Parse(responseString), version);
+                return HelperMethods.LoadTotal(responseObject, subs, version);
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else if (!partnered)
+                {
+                    throw new TwixelException(NotPartneredError());
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
         }
 
-        Subscription LoadSubscription(JObject o)
+        /// <summary>
+        /// Checks to see if a specified user is subscribed to this user.
+        /// Requires authorization.
+        /// Requires Twitch partnership.
+        /// Requires channel_check_subscription.
+        /// </summary>
+        /// <param name="username">The name of the user</param>
+        /// <returns>A Subscription object of type User if the user is subscribed</returns>
+        public async Task<Subscription<User>> RetrieveSubsciber(string username)
         {
-            Subscription sub = new Subscription((string)o["_id"], (string)o["created_at"], (JObject)o["channel"], twixel);
-            return sub;
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelCheckSubscription;
+            if (authorized && authorizedScopes.Contains(relevantScope) && partnered)
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "subcriptions", username);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.GetWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    if (ex.Status == 404)
+                    {
+                        throw new TwixelException(username + " is not subscribed.", ex);
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
+                }
+                return HelperMethods.LoadUserSubscription(JObject.Parse(responseString), version);
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else if (!partnered)
+                {
+                    throw new TwixelException(NotPartneredError());
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if this user is subcribed to a specified channel.
+        /// Requires authorization.
+        /// Requires user_subscriptions.
+        /// </summary>
+        /// <param name="channel">The name of the channel</param>
+        /// <returns>
+        /// A subscription object of type Channel if the request succeeds.
+        /// Throws an exception if the user is not subscribed to the channel.
+        /// Throws an exception if the channel is not partnered.</returns>
+        public async Task<Subscription<Channel>> RetrieveSubscription(string channel)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserSubcriptions;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "subscriptions", channel);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.GetWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    if (ex.Status == 404)
+                    {
+                        throw new TwixelException("You are not subscribed to " + channel, ex);
+                    }
+                    else if (ex.Status == 422)
+                    {
+                        throw new TwixelException(channel + " has no subscription program", ex);
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
+                }
+                return HelperMethods.LoadChannelSubscription(JObject.Parse(responseString), version);
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a list of live streams that the user is following.
+        /// Requires authorization.
+        /// Requires user_read.
+        /// </summary>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many streams to get at once. Default is 25. Maximum is 100.</param>
+        /// <returns>A list of streams</returns>
+        public async Task<List<Stream>> RetrieveOnlineFollowedStreams(int offset = 0, int limit = 25)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserRead;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "followed");
+                if (limit <= 100)
+                {
+                    url.SetQueryParam("limit", limit);
+                }
+                else
+                {
+                    url.SetQueryParam("limit", 100);
+                }
+                url.SetQueryParam("offset", offset);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.GetWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadStreams(JObject.Parse(responseString), version);
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a list of videos from the channels this user follows
+        /// </summary>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many videos to get at once. Default is 25. Maximum is 100.</param>
+        /// <returns>A list of videos.</returns>
+        public async Task<List<Video>> RetrieveFollowedVideos(int offset = 0, int limit = 10)
+        {
+            if (version == Twixel.APIVersion.v3)
+            {
+                TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserRead;
+                if (authorized && authorizedScopes.Contains(relevantScope))
+                {
+                    Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", "followed");
+                    Uri uri = new Uri(url.ToString());
+                    string responseString;
+                    try
+                    {
+                        responseString = await Twixel.GetWebData(uri, accessToken, version);
+                    }
+                    catch (TwitchException ex)
+                    {
+                        throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                    }
+                    return HelperMethods.LoadVideos(JObject.Parse(responseString), version);
+                }
+                else
+                {
+                    if (!authorized)
+                    {
+                        throw new TwixelException(NotAuthedError());
+                    }
+                    else if (!authorizedScopes.Contains(relevantScope))
+                    {
+                        throw new TwixelException(MissingPermissionError(relevantScope));
+                    }
+                    else
+                    {
+                        throw new TwixelException(TwitchConstants.unknownErrorString);
+                    }
+                }
+            }
+            else
+            {
+                throw new TwixelException(TwitchConstants.v2UnsupportedErrorString);
+            }
+        }
+
+        Notification LoadNotifications(JObject o)
+        {
+            return new Notification((bool)o["email"], (bool)o["push"]);
         }
     }
 }

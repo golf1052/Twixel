@@ -4,20 +4,20 @@ using Newtonsoft.Json.Linq;
 namespace TwixelAPI
 {
     /// <summary>
-    /// Subscription object
+    /// Follow object
     /// </summary>
     /// <typeparam name="T">Wrapped object, usually either User or Channel object</typeparam>
-    public class Subscription<T> : TwixelObjectBase
+    public class Follow<T> : TwixelObjectBase
     {
-        /// <summary>
-        /// ID
-        /// </summary>
-        public string id;
-
         /// <summary>
         /// Creation date
         /// </summary>
         public DateTime createdAt;
+
+        /// <summary>
+        /// Notification status
+        /// </summary>
+        public bool notifications;
 
         /// <summary>
         /// Wrapped object, usually either User or Channel object
@@ -25,22 +25,22 @@ namespace TwixelAPI
         public T wrapped;
 
         /// <summary>
-        /// Subscription constructor
+        /// Follow constructor
         /// </summary>
         /// <param name="createdAt">Creation date</param>
-        /// <param name="id">ID</param>
+        /// <param name="notifications">Notification status</param>
         /// <param name="t">Wrapped object</param>
         /// <param name="version">Twitch API version</param>
         /// <param name="baseLinksO">Base links JSON object</param>
-        public Subscription(string createdAt,
-            string id,
+        public Follow(string createdAt,
+            bool notifications,
             T t,
             Twixel.APIVersion version,
             JObject baseLinksO) : base(baseLinksO)
         {
             this.version = version;
             this.createdAt = DateTime.Parse(createdAt);
-            this.id = id;
+            this.notifications = notifications;
             this.wrapped = t;
         }
     }

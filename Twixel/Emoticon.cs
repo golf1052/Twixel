@@ -1,35 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Converters;
 
 namespace TwixelAPI
 {
-    public class Emoticon
+    /// <summary>
+    /// Emoticon object
+    /// </summary>
+    public class Emoticon : TwixelObjectBase
     {
+        /// <summary>
+        /// Regex
+        /// </summary>
         public string regex;
+
+        /// <summary>
+        /// List of emoticon images
+        /// </summary>
         public List<EmoticonImage> emoticonImages;
 
-        public Emoticon(string regex, JArray imagesA)
+        /// <summary>
+        /// Emoticon constructor
+        /// </summary>
+        /// <param name="regex">Regex</param>
+        /// <param name="imagesA">Emoticon images JSON object</param>
+        /// <param name="version">Twitch API version</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
+        public Emoticon(string regex, JArray imagesA, Twixel.APIVersion version,
+            JObject baseLinksO) : base(baseLinksO)
         {
+            this.version = version;
             emoticonImages = new List<EmoticonImage>();
             this.regex = regex;
-            LoadEmoticonImages(imagesA);
+            emoticonImages = LoadEmoticonImages(imagesA);
         }
 
-        void LoadEmoticonImages(JArray a)
+        private List<EmoticonImage> LoadEmoticonImages(JArray a)
         {
+            List<EmoticonImage> images = new List<EmoticonImage>();
             foreach(JObject o in a)
             {
-                emoticonImages.Add(new EmoticonImage((int?)o["emoticon_set"],
+                images.Add(new EmoticonImage((int?)o["emoticon_set"],
                     (int)o["height"],
                     (int)o["width"],
                     (string)o["url"]));
             }
+            return images;
         }
     }
 }

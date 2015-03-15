@@ -1,32 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
-using Newtonsoft.Json;
+using System.Text;
+using System.Threading.Tasks;
+using Flurl;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Converters;
-using System.Diagnostics;
 using TwixelAPI.Constants;
 
 namespace TwixelAPI
 {
-    public delegate void TwixelErrorHandler(object source, TwixelErrorEventArgs e);
-    public class TwixelErrorEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The error that occurred
-        /// </summary>
-        public string ErrorString { get; internal set; }
-    }
-
     /// <summary>
     /// Twixel class
     /// </summary>
     public class Twixel
     {
+        /// <summary>
+        /// The enum of available API versions
+        /// </summary>
+        public enum APIVersion
+        {
+            /// <summary>
+            /// Version 2 of the API
+            /// </summary>
+            v2,
+            /// <summary>
+            /// Version 3 of the API
+            /// </summary>
+            v3,
+            /// <summary>
+            /// Not a valid version
+            /// </summary>
+            None
+        }
+
+        /// <summary>
+        /// Request types
+        /// </summary>
+        public enum RequestType
+        {
+            Get,
+            Put,
+            Post,
+            Delete
+        }
+
         /// <summary>
         /// Your client ID
         /// </summary>
@@ -42,53 +60,41 @@ namespace TwixelAPI
         /// </summary>
         public string redirectUrl = "";
 
-        /// <summary>
-        /// Twixel error event
-        /// </summary>
-        public event TwixelErrorHandler TwixelErrorEvent;
-
-        string errorString = "";
+        private APIVersion defaultVersion;
 
         /// <summary>
-        /// Error string, is set when error occurs
+        /// The default version that gets sent to the API
         /// </summary>
-        public string ErrorString
+        public APIVersion DefaultVersion
         {
             get
             {
-                return errorString;
+                return defaultVersion;
+            }
+            set
+            {
+                if (value == APIVersion.None)
+                {
+                    defaultVersion = APIVersion.v3;
+                }
+                else
+                {
+                    defaultVersion = value;
+                }
             }
         }
 
         /// <summary>
-        /// The next games URL
+        /// Default Twixel constructor, sets API version to v3
         /// </summary>
-        public WebUrl nextGames;
-
-        /// <summary>
-        /// How many games are live on Twitch at the moment
-        /// </summary>
-        public int? maxGames;
-
-        /// <summary>
-        /// The next streams URL
-        /// </summary>
-        public WebUrl nextStreams;
-
-        /// <summary>
-        /// The next teams URL
-        /// </summary>
-        public WebUrl nextTeams;
-
-        /// <summary>
-        /// The next videos URL
-        /// </summary>
-        public WebUrl nextVideos;
-
-        /// <summary>
-        /// The next follows URL
-        /// </summary>
-        public WebUrl nextFollows;
+        /// <param name="id">Your client ID</param>
+        /// <param name="secret">Your client secret</param>
+        /// <param name="url">Your redirect URL, should not have / at end</param>
+        public Twixel(string id,
+            string secret,
+            string url) : this(id, secret, url, APIVersion.v3)
+        {
+        }
 
         /// <summary>
         /// Twixel constructor
@@ -96,379 +102,698 @@ namespace TwixelAPI
         /// <param name="id">Your client ID</param>
         /// <param name="secret">Your client secret</param>
         /// <param name="url">Your redirect URL, should not have / at end</param>
-        public Twixel(string id, string secret, string url)
+        /// <param name="defaultVersion">The API version you want to use</param>
+        public Twixel(string id, string secret, string url, APIVersion defaultVersion)
         {
             clientID = id;
             clientSecret = secret;
             redirectUrl = url;
+            this.DefaultVersion = defaultVersion;
         }
 
         /// <summary>
-        /// Gets games by number of viewers
+        /// Gets the channel of the specified user.
         /// </summary>
-        /// <param name="getNext">If this method was called before then this will get the next page of games</param>
-        /// <returns>Returns a list of games (default length 25).
-        /// If the page of games contains no games this will return an empty list.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<Game>> RetrieveTopGames(bool getNext)
+        /// <param name="name">The name of the user</param>
+        /// <param name="version">Twich API version</param>
+        /// <returns>A channel</returns>
+        public async Task<Channel> RetrieveChannel(string name,
+            APIVersion version = APIVersion.None)
         {
-            Uri uri;
-
-            if (!getNext)
+            if (version == APIVersion.None)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/games/top");
+                version = DefaultVersion;
             }
-            else
-            {
-                if (nextGames != null)
-                {
-                    uri = nextGames.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/games/top");
-                }
-            }
-
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
+            Uri uri = new Uri(url.ToString());
             string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            try
             {
-                return LoadGames(JObject.Parse(responseString));
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadChannel(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Retrieve teams the specified user is a member of.
+        /// </summary>
+        /// <param name="user">The name of the user</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>List of teams</returns>
+        public async Task<List<Team>> RetrieveTeams(string user,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (version == APIVersion.v3)
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "teams");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadTeams(JObject.Parse(responseString), version);
             }
             else
             {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException(TwitchConstants.v2UnsupportedErrorString);
             }
         }
 
         /// <summary>
-        /// Gets games by number of viewers, can specify how many games to get
+        /// Gets the chat URL's for the specified user
         /// </summary>
-        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <param name="hls">If set to true, only returns streams using HLS</param>
-        /// <returns>Returns a list of games.
-        /// If an error occurs this returns null.</returns>
-        public async Task<List<Game>> RetrieveTopGames(int limit, bool hls)
+        /// <param name="user">The name of the user</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A dictionary of links</returns>
+        public async Task<Dictionary<string, Uri>> RetrieveChat(string user,
+            APIVersion version = APIVersion.None)
         {
-            Uri uri;
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadLinks((JObject)JObject.Parse(responseString)["_links"]);
+        }
+
+        /// <summary>
+        /// Gets the list of emoticons on Twitch
+        /// </summary>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of emoticons</returns>
+        public async Task<List<Emoticon>> RetrieveEmoticons(APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", "emoticons");
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadEmoticons(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Gets the list of badges that can be used in the specified user's channel
+        /// </summary>
+        /// <param name="user">The name of the user</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>List of badges</returns>
+        public async Task<List<Badge>> RetrieveBadges(string user,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user, "badges");
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadBadges(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Gets top games on Twitch.
+        /// </summary>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of games</returns>
+        public async Task<Total<List<Game>>> RetrieveTopGames(int offset = 0, int limit = 25,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("games", "top");
 
             if (limit <= 100)
             {
-                if (!hls)
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=" + limit.ToString());
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/games/top?limit=" + limit.ToString() + "&hls=true");
-                }
+                url.SetQueryParam("limit", limit);
             }
             else
             {
-                CreateError("The max number of top games you can get at one time is 100");
-                return null;
+                url.SetQueryParam("limit", 100);
             }
-
+            url.SetQueryParam("offset", offset);
+            Uri uri = new Uri(url.ToString());
             string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            try
             {
-                return LoadGames(JObject.Parse(responseString));
+                responseString = await GetWebData(uri, version);
             }
-            else
+            catch (TwitchException ex)
             {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
+            JObject responseObject = JObject.Parse(responseString);
+            List<Game> games = HelperMethods.LoadGames(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, games, version);
         }
 
         /// <summary>
-        /// Gets a live stream. If the stream is offline this method will return null.
+        /// Gets the list of RTMP ingest points
         /// </summary>
-        /// <param name="channelName">The channel stream to get</param>
-        /// <returns>Returns a stream object.
-        /// If the stream is offline or an error occurs this will return null.</returns>
-        public async Task<Stream> RetrieveStream(string channelName)
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A list of ingests</returns>
+        public async Task<List<Ingest>> RetrieveIngests(APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/streams/" + channelName);
-
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("ingests");
+            Uri uri = new Uri(url.ToString());
             string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            try
             {
-                JObject stream = JObject.Parse(responseString);
-                if (stream["stream"].ToString() != "")
-                {
-                    return LoadStream((JObject)stream["stream"], (string)stream["_links"]["channel"]);
-                }
-                else
-                {
-                    CreateError(channelName + " is offline");
-                    return null;
-                }
+                responseString = await GetWebData(uri, version);
             }
-            else
+            catch (TwitchException ex)
             {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
+            return HelperMethods.LoadIngests(JObject.Parse(responseString), version);
         }
 
         /// <summary>
-        /// Gets the top live streams on Twitch
+        /// Search channels on Twitch. Twitch API v3 only.
         /// </summary>
-        /// <param name="getNext">If this method was called before then this will get the next page of streams</param>
-        /// <returns>Returns a list of streams.
-        /// If the page of streams contains no streams this will return an empty list.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<Stream>> RetrieveStreams(bool getNext)
+        /// <param name="query">The search query</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many channels to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Total object containing a list of channels matching the search query</returns>
+        public async Task<Total<List<Channel>>> SearchChannels(string query,
+            int offset = 0, int limit = 25,
+            APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            if (!getNext)
+            if (version == APIVersion.None)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/streams");
+                version = DefaultVersion;
             }
-            else
+            if (version == APIVersion.v3)
             {
-                if (nextStreams != null)
-                {
-                    uri = nextStreams.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/streams");
-                }
-            }
-
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the top live streams for the game specified
-        /// </summary>
-        /// <param name="game">The game you want streams for</param>
-        /// <returns>Returns a list of streams.
-        /// If the page of streams contains no streams this will return an empty list.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<Stream>> RetrieveStreams(string game)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/streams?game=" + game);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the top live streams on Twitch
-        /// </summary>
-        /// <param name="game">The game you want streams for. Can be an empty string. May not be null.</param>
-        /// <param name="channels">Streams from a list of channels. Can be an empty list. May not be null.</param>
-        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <param name="embeddable">If set to true, only returns streams that can be embedded</param>
-        /// <param name="hls">If set to true, only returns streams using HLS</param>
-        /// <returns>Returns a list of streams.
-        /// If the page of streams contains no streams this will return an empty list.
-        /// If an error occurs this returns null.</returns>
-        public async Task<List<Stream>> RetrieveStreams(string game, List<string> channels, int limit, bool embeddable, bool hls)
-        {
-            Uri uri;
-            string uriString = "https://api.twitch.tv/kraken/streams";
-
-            if (game != "")
-            {
-                uriString = "https://api.twitch.tv/kraken/streams?game=" + game;
-
-                if (channels.Count > 0)
-                {
-                    uriString += "&channel=";
-                    for (int i = 0; i < channels.Count; i++)
-                    {
-                        if (i != channels.Count - 1)
-                        {
-                            uriString += channels[i] + ",";
-                        }
-                        else
-                        {
-                            uriString += channels[i];
-                        }
-                    }
-                }
-
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "channels").SetQueryParam("query", query);
                 if (limit <= 100)
                 {
-                    uriString += "&limit=" + limit.ToString();
+                    url.SetQueryParam("limit", limit);
                 }
                 else
                 {
-                    uriString += "&limit=100";
+                    url.SetQueryParam("limit", 100);
                 }
-
-                if (embeddable)
+                url.SetQueryParam("offset", offset);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
                 {
-                    uriString += "&embeddable=true";
+                    responseString = await GetWebData(uri, version);
                 }
-
-                if (hls)
+                catch (TwitchException ex)
                 {
-                    uriString += "&hls=true";
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
                 }
+                JObject responseObject = JObject.Parse(responseString);
+                List<Channel> channels = HelperMethods.LoadChannels(responseObject, version);
+                return HelperMethods.LoadTotal(responseObject, channels, version);
             }
             else
             {
-                string seperator = "?";
+                throw new TwixelException("");
+            }
+        }
 
-                if (channels.Count > 0)
+        /// <summary>
+        /// Search streams on Twitch
+        /// </summary>
+        /// <param name="query">The search query</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="hls">If set to true, only returns streams using HLS. If set to false, only returns streams that are non-HLS.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Total object containing a list of streams</returns>
+        public async Task<Total<List<Stream>>> SearchStreams(string query,
+            int offset = 0, int limit = 25, bool? hls = null,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "streams").SetQueryParam("query", query);
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
+            }
+            else
+            {
+                url.SetQueryParam("limit", 100);
+            }
+            url.SetQueryParam("offset", offset);
+            if (version == APIVersion.v3)
+            {
+                if (hls == null)
                 {
-                    uriString += "?channel=";
-                    seperator = "&";
-                    for (int i = 0; i < channels.Count; i++)
+                    hls = false;
+                }
+                url.SetQueryParam("hls", hls);
+            }
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject responseObject = JObject.Parse(responseString);
+            List<Stream> streams = HelperMethods.LoadStreams(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, streams, version);
+        }
+
+        /// <summary>
+        /// Search games on Twitch
+        /// </summary>
+        /// <param name="query">The search query</param>
+        /// <param name="live">If true, only returns games that are live on at least one channel. Default is false.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of searched games</returns>
+        public async Task<List<SearchedGame>> SearchGames(string query,
+            bool live = false,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "games").SetQueryParams(new
+            {
+                query = query,
+                type = "suggest",
+                live = live
+            });
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadSearchedGames(JObject.Parse(responseString), version);
+        }
+
+
+        /// <summary>
+        /// Gets a live stream.
+        /// If the stream is offline this method will throw an exception.
+        /// </summary>
+        /// <param name="channelName">The channel stream to get.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>
+        /// Returns a stream object.
+        /// If the stream is offline or an error occurs this will throw an exception.
+        /// </returns>
+        public async Task<Stream> RetrieveStream(string channelName,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", channelName);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+
+            JObject stream = JObject.Parse(responseString);
+            if (stream["stream"].ToString() != "")
+            {
+                return HelperMethods.LoadStream((JObject)stream["stream"],
+                    version);
+            }
+            else
+            {
+                throw new TwixelException(channelName + " is offline",
+                    (JObject)stream["_links"]);
+            }
+        }
+
+        /// <summary>
+        /// Gets the top live streams on Twitch.
+        /// </summary>
+        /// <param name="game">The game you want streams for.</param>
+        /// <param name="channels">Streams from a list of channels.</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="clientId">Only show stream with this client ID. Version 3 only.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of streams</returns>
+        public async Task<List<Stream>> RetrieveStreams(string game = null,
+            List<string> channels = null,
+            int offset = 0, int limit = 25,
+            string clientId = null,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("streams");
+            url.SetQueryParam("game", game);
+            if (channels != null && channels.Count > 0)
+            {
+                string channelsString = "";
+                for (int i = 0; i < channels.Count; i++)
+                {
+                    if (i != channels.Count - 1)
                     {
-                        if (i != channels.Count - 1)
-                        {
-                            uriString += channels[i] + ",";
-                        }
-                        else
-                        {
-                            uriString += channels[i];
-                        }
+                        channelsString += channels[i] + ",";
+                    }
+                    else
+                    {
+                        channelsString += channels[i];
                     }
                 }
-
-                if (limit <= 100)
-                {
-                    uriString += seperator + "limit=" + limit.ToString();
-                }
-                else
-                {
-                    uriString += seperator + "limit=100";
-                }
-                seperator = "&";
-
-                if (embeddable)
-                {
-                    uriString += "&embeddable=true";
-                }
-
-                if (hls)
-                {
-                    uriString += "&hls=true";
-                }
+                url.SetQueryParam("channel", channelsString);
             }
-
-            uri = new Uri(uriString);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            if (limit <= 100)
             {
-                return LoadStreams(JObject.Parse(responseString));
+                url.SetQueryParam("limit", limit);
             }
             else
             {
-                CreateError(responseString);
-                return null;
+                url.SetQueryParam("limit", 100);
             }
+            url.SetQueryParam("offset", offset);
+            if (version == APIVersion.v3)
+            {
+                url.SetQueryParam("client_id", clientId);
+            }
+
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadStreams(JObject.Parse(responseString), version);
         }
 
         /// <summary>
         /// Gets the featured live streams on Twitch
         /// </summary>
-        /// <returns>Returns a list of featured streams.
-        /// If the page of featured streams contains no streams this will return an empty list.
-        /// If a error occurs this will return null.</returns>
-        public async Task<List<FeaturedStream>> RetrieveFeaturedStreams()
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many featured streams to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of featured streams</returns>
+        public async Task<List<FeaturedStream>> RetrieveFeaturedStreams(int offset = 0, int limit = 25,
+            APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/streams/featured");
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            if (version == APIVersion.None)
             {
-                return LoadFeaturedStreams(JObject.Parse(responseString));
+                version = DefaultVersion;
             }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
 
-        /// <summary>
-        /// Gets the featured live streams on Twitch
-        /// </summary>
-        /// <param name="limit">How many featured streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <param name="hls">If set to true, only returns streams using HLS</param>
-        /// <returns>Returns a list of featured streams.
-        /// If the page of featured streams contains no streams this will return an empty list.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<FeaturedStream>> RetrieveFeaturedStreams(int limit, bool hls)
-        {
-            Uri uri;
-            if (!hls)
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "featured");
+            if (limit <= 100)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/streams/featured?limit=" + limit.ToString());
+                url.SetQueryParam("limit", limit);
             }
             else
             {
-                uri = new Uri("https://api.twitch.tv/kraken/streams/featured?limit=" + limit.ToString() + "&hls=true");
+                url.SetQueryParam("limit", 100);
             }
+            url.SetQueryParam("offset", offset);
+            Uri uri = new Uri(url.ToString());
             string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            try
             {
-                return LoadFeaturedStreams(JObject.Parse(responseString));
+                responseString = await GetWebData(uri, version);
             }
-            else
+            catch (TwitchException ex)
             {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
+            return HelperMethods.LoadFeaturedStreams(JObject.Parse(responseString), version);
         }
 
         /// <summary>
         /// Gets a summary of live streams on Twitch
         /// </summary>
-        /// <returns>A Dictionary with the first key of Viewers and the second key of Channels.
-        /// If an error occurs this will return null.</returns>
-        public async Task<Dictionary<string, int>> RetrieveStreamsSummary()
+        /// <param name="game">Only show stats for this game</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Dictionary with the first key of Viewers and the second key of Channels.</returns>
+        public async Task<Dictionary<string, int>> RetrieveStreamsSummary(string game = null,
+            APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/streams/summary");
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            if (version == APIVersion.None)
             {
-                JObject summary = JObject.Parse(responseString);
-                Dictionary<string, int> summaryDict = new Dictionary<string, int>();
-                summaryDict.Add("Viewers", (int)summary["viewers"]);
-                summaryDict.Add("Channels", (int)summary["channels"]);
-                return summaryDict;
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "summary");
+            if (!string.IsNullOrEmpty(game))
+            {
+                url.SetQueryParam("game", game);
+            }
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject summary = JObject.Parse(responseString);
+            Dictionary<string, int> summaryDict = new Dictionary<string, int>();
+            summaryDict.Add("Viewers", (int)summary["viewers"]);
+            summaryDict.Add("Channels", (int)summary["channels"]);
+            return summaryDict;
+        }
+
+        /// <summary>
+        /// Gets the list of teams from Twitch
+        /// </summary>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many teams to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A list of teams</returns>
+        public async Task<List<Team>> RetrieveTeams(int offset = 0, int limit = 25,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("teams");
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
             }
             else
             {
-                CreateError(responseString);
-                return null;
+                url.SetQueryParam("limit", 100);
+            }
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadTeams(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Gets a team by name
+        /// </summary>
+        /// <param name="name">The name of the team</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A team</returns>
+        public async Task<Team> RetrieveTeam(string name,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("teams", name);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadTeam(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Gets a user by their name
+        /// </summary>
+        /// <param name="name">The name of the user</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a user</returns>
+        public async Task<User> RetrieveUser(string name,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadUser(JObject.Parse(responseString), version);
+        }
+
+
+        private async Task<User> RetrieveAuthenticatedUser(string accessToken,
+            List<TwitchConstants.Scope> authorizedScopes,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("user");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadAuthedUser(JObject.Parse(responseString),
+                    accessToken, authorizedScopes, version);
+            }
+            else
+            {
+                throw new TwixelException("This user has not given user_read permissions");
+            }
+        }
+
+        /// <summary>
+        /// Gets the status of an access token, if the token is valid this returns an
+        /// authorized user object
+        /// </summary>
+        /// <param name="accessToken">The access token</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>
+        /// An authorized user if the request succeeds.
+        /// Throws an exception if the token is not valid.</returns>
+        public async Task<User> RetrieveUserWithAccessToken(string accessToken,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await Twixel.GetWebData(uri, accessToken, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject responseObject = JObject.Parse(responseString);
+            JObject token = (JObject)responseObject["token"];
+            if ((bool)token["valid"])
+            {
+                JArray userScopesA = (JArray)token["authorization"]["scopes"];
+                List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
+                foreach (string scope in userScopesA)
+                {
+                    userScopes.Add(TwitchConstants.StringToScope(scope));
+                }
+                return await RetrieveAuthenticatedUser(accessToken, userScopes, version);
+            }
+            else
+            {
+                throw new TwixelException(accessToken + " is not a valid access token",
+                    (JObject)responseObject["_links"]);
             }
         }
 
@@ -476,14 +801,15 @@ namespace TwixelAPI
         /// Creates a URL that can be used to authenticate a user
         /// </summary>
         /// <param name="scopes">The permissions you are requesting. Must contain at least one permission.</param>
-        /// <returns>Returns a URL to be used for authenticating a user.
-        /// If the scopes list contained no scopes this returns null.</returns>
+        /// <returns>
+        /// Returns a URL to be used for authenticating a user.
+        /// Throws an exception if the scopes list contained no scopes.
+        /// </returns>
         public Uri Login(List<TwitchConstants.Scope> scopes)
         {
             if (scopes == null)
             {
-                CreateError("The list of scopes cannot be null.");
-                return null;
+                throw new TwixelException("The list of scopes cannot be null.");
             }
 
             if (scopes.Count > 0)
@@ -501,278 +827,19 @@ namespace TwixelAPI
                         i--;
                     }
                 }
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/oauth2/authorize" +
-                "?response_type=token" +
-                "&client_id=" + clientID +
-                "&redirect_uri=" + redirectUrl +
-                "&scope=");
-                string originalString = uri.OriginalString;
-                foreach (TwitchConstants.Scope scope in scopes)
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("oauth2", "authorize").SetQueryParams(new
                 {
-                    originalString += TwitchConstants.ScopeToString(scope) + " ";
-                }
-                uri = new Uri(originalString);
+                    response_type = "token",
+                    client_id = clientID,
+                    redirect_uri = redirectUrl,
+                    scope = TwitchConstants.ListOfScopesToStringOfScopes(scopes)
+                });
+                Uri uri = new Uri(url.ToString());
                 return uri;
             }
             else
             {
-                CreateError("You must have at least 1 scope");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a user by their name
-        /// </summary>
-        /// <param name="name">The name of the user</param>
-        /// <returns>Returns a user.
-        /// If an error occurs this returns null.</returns>
-        public async Task<User> RetrieveUser(string name)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/users/" + name);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadUser(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the chat URL's for the specified user
-        /// </summary>
-        /// <param name="user">The name of the user</param>
-        /// <returns>Returns list of URLs.
-        /// If an error occurs this returns null.</returns>
-        public async Task<List<WebUrl>> RetrieveChat(string user)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/chat/" + user);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<WebUrl> chatLinks = new List<WebUrl>();
-                chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["self"]));
-                chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["emoticons"]));
-                chatLinks.Add(new WebUrl((string)JObject.Parse(responseString)["_links"]["badges"]));
-                return chatLinks;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the list of emoticons on Twitch
-        /// </summary>
-        /// <returns>Returns a list of emoticons.
-        /// If an error occurs this returns null.</returns>
-        public async Task<List<Emoticon>> RetrieveEmoticons()
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/chat/emoticons");
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadEmoticons(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of live streams based upon a search query
-        /// </summary>
-        /// <param name="query">The search query</param>
-        /// <returns>Returns a list of streams.
-        /// If an errr occurs this will return null.</returns>
-        public async Task<List<Stream>> SearchStreams(string query)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of live streams based upon a search query
-        /// </summary>
-        /// <param name="query">The search query</param>
-        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>Returns list of streams.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<Stream>> SearchStreams(string query, int limit)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/search/streams?q=" + query + "&limit=" + limit.ToString());
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadStreams(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of games based upon a search query
-        /// </summary>
-        /// <param name="query">The search query</param>
-        /// <param name="live">If true, only returns games that are live on at least one channel</param>
-        /// <returns>Returns a list of searched games.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<SearchedGame>> SearchGames(string query, bool live)
-        {
-            Uri uri;
-            
-            if (live)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=true");
-            }
-            else
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/search/games?q=" + query + "&type=suggest&live=false");
-            }
-
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadSearchedGames(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the list of teams from Twitch
-        /// </summary>
-        /// <param name="getNext">If this method was called before then this will get the next page of teams</param>
-        /// <returns>Returns a list of teams.
-        /// If the page of teams contains no teams this will return an empty list.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<Team>> RetrieveTeams(bool getNext)
-        {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/teams");
-            }
-            else
-            {
-                if (nextTeams != null)
-                {
-                    uri = nextTeams.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/teams");
-                }
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Team> teams = new List<Team>();
-                nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject o in JObject.Parse(responseString)["teams"])
-                {
-                    teams.Add(LoadTeam(o));
-                }
-                return teams;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the list of teams from Twitch
-        /// </summary>
-        /// <param name="limit">How many teams to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>A list of teams</returns>
-        public async Task<List<Team>> RetrieveTeams(int limit)
-        {
-            Uri uri;
-            if (limit <= 100)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/teams?limit=" + limit.ToString());
-            }
-            else
-            {
-                CreateError("The max number of teams you can get at once is 100");
-                return null;
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Team> teams = new List<Team>();
-                nextTeams = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject o in JObject.Parse(responseString)["teams"])
-                {
-                    teams.Add(LoadTeam(o));
-                }
-                return teams;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a team by name
-        /// </summary>
-        /// <param name="name">The name of the team</param>
-        /// <returns>A team</returns>
-        public async Task<Team> RetrieveTeam(string name)
-        {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/teams/" + name);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadTeam(JObject.Parse(responseString));
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException("You must have at least 1 scope.");
             }
         }
 
@@ -780,814 +847,254 @@ namespace TwixelAPI
         /// Gets a video by ID
         /// </summary>
         /// <param name="id">The video ID</param>
+        /// <param name="version">Twitch API version</param>
         /// <returns>A video</returns>
-        public async Task<Video> RetrieveVideo(string id)
+        public async Task<Video> RetrieveVideo(string id,
+            APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/videos/" + id);
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", id);
+            Uri uri = new Uri(url.ToString());
             string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            try
             {
-                return LoadVideo(JObject.Parse(responseString));
+                responseString = await GetWebData(uri, version);
             }
-            else
+            catch (TwitchException ex)
             {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
+            return HelperMethods.LoadVideo(JObject.Parse(responseString), version);
         }
 
         /// <summary>
         /// Gets the top videos on Twitch
         /// </summary>
-        /// <param name="getNext">If this method was called before then this will get the next page of videos</param>
-        /// <returns>A list of videos</returns>
-        public async Task<List<Video>> RetrieveTopVideos(bool getNext)
-        {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/videos/top");
-            }
-            else
-            {
-                if (nextVideos != null)
-                {
-                    uri = nextVideos.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/videos/top");
-                }
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                List<Video> videos = new List<Video>();
-                foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-                {
-                    videos.Add(LoadTopVideo(video));
-                }
-                return videos;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the top videos on Twitch
-        /// </summary>
-        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
         /// <param name="game">The name of the game to get videos for</param>
         /// <param name="period">The time period you want to look in</param>
-        /// <returns>A list of videos</returns>
-        public async Task<List<Video>> RetrieveTopVideos(int limit, string game, TwitchConstants.Period period)
-        {
-            Uri uri;
-            string url = "https://api.twitch.tv/kraken/videos/top";
-            if (limit <= 100)
-            {
-                url += "?limit=" + limit.ToString();
-            }
-            else
-            {
-                CreateError("You cannot load more than 100 videos at a time");
-                return null;
-            }
-
-            if (game != "")
-            {
-                url += "&game=" + game;
-            }
-
-            if (period != TwitchConstants.Period.None)
-            {
-                url += "&period=" + TwitchConstants.PeriodToString(period);
-            }
-
-            uri = new Uri(url);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Video> videos = new List<Video>();
-                nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-                {
-                    videos.Add(LoadTopVideo(video));
-                }
-                return videos;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of videos for a specified channel
-        /// </summary>
-        /// <param name="channel">The name of the channel</param>
-        /// <param name="getNext">If this method was called before then this will get the next page of videos</param>
-        /// <returns></returns>
-        public async Task<List<Video>> RetrieveVideos(string channel, bool getNext)
-        {
-            Uri uri;
-            if (!getNext)
-            {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
-            }
-            else
-            {
-                if (nextVideos != null)
-                {
-                    uri = nextVideos.url;
-                }
-                else
-                {
-                    uri = new Uri("https://api.twitch.tv/kraken/channels/" + channel + "/videos");
-                }
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Video> videos = new List<Video>();
-                foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-                {
-                    videos.Add(LoadVideo(video));
-                }
-                return videos;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of videos for a specified channel
-        /// </summary>
-        /// <param name="channel">The name of the channel</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
         /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
-        /// <param name="broadcasts">Returns only broadcasts when true. Otherwise only highlights are returned. Default is false.</param>
+        /// <param name="version">Twitch API version</param>
         /// <returns>A list of videos</returns>
-        public async Task<List<Video>> RetrieveVideos(string channel, int limit, bool broadcasts)
+        public async Task<List<Video>> RetrieveTopVideos(string game = null,
+            TwitchConstants.Period period = TwitchConstants.Period.Week,
+            int offset = 0, int limit = 25,
+            APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            string url = "https://api.twitch.tv/kraken/channels/" + channel;
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", "top");
+            url.SetQueryParam("game", game);
             if (limit <= 100)
             {
-                url += "/videos?limit=" + limit.ToString();
+                url.SetQueryParam("limit", limit);
             }
             else
             {
-                CreateError("You cannot load more than 100 videos at a time");
-                return null;
+                url.SetQueryParam("limit", 100);
             }
+            url.SetQueryParam("period", TwitchConstants.PeriodToString(period));
 
-            if (broadcasts)
-            {
-                url += "&broadcasts=true";
-            }
-            else
-            {
-                url += "&broadcasts=false";
-            }
-
-            uri = new Uri(url);
+            Uri uri = new Uri(url.ToString());
             string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            try
             {
-                List<Video> videos = new List<Video>();
-                nextVideos = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-                {
-                    videos.Add(LoadVideo(video));
-                }
-                return videos;
+                responseString = await GetWebData(uri, version);
             }
-            else
+            catch (TwitchException ex)
             {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
+            return HelperMethods.LoadVideos(JObject.Parse(responseString), version);
         }
 
         /// <summary>
-        /// Gets a list of users following a specified user
+        /// Gets a Total object containing a list of videos for a specified channel
         /// </summary>
-        /// <param name="user">The name of the user</param>
-        /// <param name="getNext">If this method was called before then this will get the next page of users</param>
-        /// <returns>A list of users</returns>
-        public async Task<List<User>> RetrieveFollowers(string user, bool getNext)
+        /// <param name="channel">The name of the channel</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100.</param>
+        /// <param name="broadcasts">Returns only broadcasts when true. Otherwise only highlights are returned. Default is false.</param>
+        /// <param name="hls">Returns only HLS VoDs when true. Otherwise only non-HLS VoDs are returned. Default is false.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Total object containing list of videos</returns>
+        public async Task<Total<List<Video>>> RetrieveVideos(string channel = null,
+            int offset = 0, int limit = 25,
+            bool broadcasts = false,
+            bool? hls = null,
+            APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            if (!getNext)
+            if (version == APIVersion.None)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows");
+                version = DefaultVersion;
             }
-            else
-            {
-                if (nextFollows != null)
-                {
-                    uri = nextFollows.url;
-                }
-                else
-                {
-                    uri = uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows");
-                }
-            }
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<User> following = new List<User>();
-                nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
-                {
-                    following.Add(LoadUser((JObject)o["user"]));
-                }
-                return following;
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of users following a specified user
-        /// </summary>
-        /// <param name="user">The name of the user</param>
-        /// <param name="limit">How many users to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>A list of users</returns>
-        public async Task<List<User>> RetrieveFollowers(string user, int limit)
-        {
-            Uri uri;
-
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", channel, "videos");
             if (limit <= 100)
             {
-                uri = new Uri("https://api.twitch.tv/kraken/channels/" + user + "/follows?limit=" + limit.ToString());
+                url.SetQueryParam("limit", limit);
             }
             else
             {
-                CreateError("You cannot retrieve more than 100 followers at a time");
-                return null;
+                url.SetQueryParam("limit", 100);
+            }
+            url.SetQueryParams(new
+            {
+                broadcasts = broadcasts,
+                offset = offset
+            });
+            if (version == APIVersion.v3)
+            {
+                if (hls == null)
+                {
+                    hls = false;
+                }
+                url.SetQueryParam("hls", hls);
             }
 
+            Uri uri = new Uri(url.ToString());
             string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
+            try
             {
-                List<User> following = new List<User>();
-                nextFollows = new WebUrl((string)JObject.Parse(responseString)["_links"]["next"]);
-                foreach (JObject o in (JArray)JObject.Parse(responseString)["follows"])
-                {
-                    following.Add(LoadUser((JObject)o["user"]));
-                }
-                return following;
+                responseString = await GetWebData(uri, version);
             }
-            else
+            catch (TwitchException ex)
             {
-                CreateError(responseString);
-                return null;
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
+            JObject responseObject = JObject.Parse(responseString);
+            List<Video> videos = HelperMethods.LoadVideos(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, videos, version);
         }
 
         /// <summary>
-        /// Gets the channel of the specified user
+        /// Get web data.
         /// </summary>
-        /// <param name="name">The name of the user</param>
-        /// <returns>A channel</returns>
-        public async Task<Channel> RetrieveChannel(string name)
+        /// <param name="uri">URL</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
+        public static async Task<string> GetWebData(Uri uri, APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/channels/" + name);
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                return LoadChannel(JObject.Parse(responseString));
-            }
-            else
-            {
-                if (responseString == "404")
-                {
-                    CreateError(name + " was not found");
-                }
-                else
-                {
-                    CreateError(responseString);
-                }
-                return null;
-            }
+            return await DoWebData(uri, RequestType.Get, null, null, version);
         }
 
         /// <summary>
-        /// Gets the list of RTMP ingest points
+        /// Get web data with an access token.
         /// </summary>
-        /// <returns>A list of ingests</returns>
-        public async Task<List<Ingest>> RetrieveIngests()
+        /// <param name="uri">URL</param>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
+        public static async Task<string> GetWebData(Uri uri, string accessToken, APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken/ingests");
-            string responseString;
-            responseString = await GetWebData(uri);
-            if (GoodStatusCode(responseString))
-            {
-                List<Ingest> ingests = new List<Ingest>();
-                foreach (JObject o in (JArray)JObject.Parse(responseString)["ingests"])
-                {
-                    ingests.Add(LoadIngest(o));
-                }
-
-                return ingests;
-            }
-            else
-            {
-                if (responseString == "503")
-                {
-                    CreateError("Error retrieving ingest status");
-                    return null;
-                }
-                else
-                {
-                    CreateError(responseString);
-                    return null;
-                }
-            }
-        }
-
-        async Task<User> RetrieveAuthenticatedUser(string accessToken, List<TwitchConstants.Scope> authorizedScopes)
-        {
-            if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
-            {
-                Uri uri;
-                uri = new Uri("https://api.twitch.tv/kraken/user");
-                string responseString;
-                responseString = await GetWebData(uri, accessToken);
-                if (GoodStatusCode(responseString))
-                {
-                    return LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
-                }
-                else
-                {
-                    CreateError(responseString);
-                    return null;
-                }
-            }
-            else
-            {
-                CreateError("This user has not given user_read permissions");
-                return null;
-            }
+            return await DoWebData(uri, RequestType.Get, accessToken, null, version);
         }
 
         /// <summary>
-        /// Gets the status of an access token, if the token is valid this returns an
-        /// authorized user object
+        /// Put web data
         /// </summary>
-        /// <param name="accessToken">The access token</param>
-        /// <returns>An authorized user</returns>
-        public async Task<User> RetrieveUserWithAccessToken(string accessToken)
+        /// <param name="uri">URL</param>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="content">JSON object as a string</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
+        public static async Task<string> PutWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.None)
         {
-            Uri uri;
-            uri = new Uri("https://api.twitch.tv/kraken");
-            string responseString;
-            responseString = await Twixel.GetWebData(uri, accessToken);
-            if (GoodStatusCode(responseString))
-            {
-                JObject o = JObject.Parse(responseString);
-                if ((bool)JObject.Parse(responseString)["token"]["valid"])
-                {
-                    JArray userScopesA = (JArray)o["token"]["authorization"]["scopes"];
-                    List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
-                    foreach (string scope in userScopesA)
-                    {
-                        userScopes.Add(TwitchConstants.StringToScope(scope));
-                    }
-                    return await RetrieveAuthenticatedUser(accessToken, userScopes);
-                }
-                else
-                {
-                    CreateError(accessToken + " is not authorized");
-                    return null;
-                }
-            }
-            else
-            {
-                CreateError(responseString);
-                return null;
-            }
+            return await DoWebData(uri, RequestType.Put, accessToken, content, version);
         }
 
         /// <summary>
-        /// Checks to see if the status code returned was 200.
+        /// Post web data
         /// </summary>
-        /// <param name="response">The response</param>
-        /// <returns>If the status code was ok or not</returns>
-        public static bool GoodStatusCode(string response)
+        /// <param name="uri">URL</param>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="content">JSON object as a string</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
+        public static async Task<string> PostWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.None)
         {
-            return response != "400" &&
-                response != "401" &&
-                response != "404" &&
-                response != "422" &&
-                response != "500" &&
-                response != "503" &&
-                response != "Unknown status code";
+            return await DoWebData(uri, RequestType.Post, accessToken, content, version);
         }
 
-        List<Game> LoadGames(JObject o)
+        /// <summary>
+        /// Delete web data
+        /// </summary>
+        /// <param name="uri">URL</param>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
+        public static async Task<string> DeleteWebData(Uri uri, string accessToken, APIVersion version = APIVersion.None)
         {
-            List<Game> games = new List<Game>();
-            nextGames = new WebUrl((string)o["_links"]["next"]);
-            maxGames = (int?)o["_total"];
-
-            foreach (JObject obj in (JArray)o["top"])
-            {
-                games.Add(new Game((string)obj["game"]["name"],
-                    (JObject)obj["game"]["box"],
-                    (JObject)obj["game"]["logo"],
-                    (long?)obj["game"]["_id"],
-                    (long?)obj["game"]["giantbomb_id"],
-                    (int?)obj["viewers"],
-                    (int?)obj["channels"]));
-            }
-
-            return games;
+            return await DoWebData(uri, RequestType.Delete, accessToken, null, version);
         }
 
-        List<SearchedGame> LoadSearchedGames(JObject o)
-        {
-            List<SearchedGame> games = new List<SearchedGame>();
-            foreach (JObject obj in (JArray)o["games"])
-            {
-                games.Add(new SearchedGame((string)obj["name"],
-                    (JObject)obj["box"],
-                    (JObject)obj["logo"],
-                    (long?)obj["_id"],
-                    (long?)obj["giantbomb_id"],
-                    (int?)obj["viewers"],
-                    (int?)obj["channels"],
-                    (JObject)obj["images"],
-                    (int?)obj["popularity"]));
-            }
-            return games;
-        }
-
-        internal List<Stream> LoadStreams(JObject o)
-        {
-            List<Stream> streams = new List<Stream>();
-            nextStreams = new WebUrl((string)o["_links"]["next"]);
-
-            foreach (JObject obj in (JArray)o["streams"])
-            {
-                streams.Add(LoadStream(obj, (string)o["_links"]["channel"]));
-            }
-
-            return streams;
-        }
-
-        internal Stream LoadStream(JObject o, string channel)
-        {
-            return new Stream(channel,
-                (string)o["broadcaster"],
-                    (long?)o["_id"],
-                    (string)o["preview"],
-                    (string)o["game"],
-                    (JObject)o["channel"],
-                    (string)o["name"],
-                    (int?)o["viewers"],
-                    this);
-        }
-
-        List<FeaturedStream> LoadFeaturedStreams(JObject o)
-        {
-            List<FeaturedStream> streams = new List<FeaturedStream>();
-            nextStreams = new WebUrl((string)o["_links"]["next"]);
-
-            foreach (JObject obj in (JArray)o["featured"])
-            {
-                streams.Add(new FeaturedStream((string)obj["stream"]["channel"]["_links"]["self"], (string)obj["image"], (string)obj["text"], (JObject)obj["stream"], this));
-            }
-
-            return streams;
-        }
-
-        List<Emoticon> LoadEmoticons(JObject o)
-        {
-            List<Emoticon> emoticons = new List<Emoticon>();
-            foreach (JObject obj in (JArray)o["emoticons"])
-            {
-                emoticons.Add(new Emoticon((string)obj["regex"],
-                    (JArray)obj["images"]));
-            }
-
-            return emoticons;
-        }
-
-        internal User LoadUser(JObject o)
-        {
-            User user = new User(this,
-                (string)o["name"],
-                (string)o["logo"],
-                (long)o["_id"],
-                (string)o["display_name"],
-                (bool?)o["staff"],
-                (string)o["created_at"],
-                (string)o["updated_at"],
-                (string)o["bio"]);
-            return user;
-        }
-
-        User LoadAuthUser(JObject o, string accessToken, List<TwitchConstants.Scope> authorizedScopes)
-        {
-            User user = new User(this, accessToken, authorizedScopes,
-                (string)o["name"],
-                (string)o["logo"],
-                (long)o["_id"],
-                (string)o["display_name"],
-                (string)o["email"],
-                (bool?)o["staff"],
-                (bool?)o["partnered"],
-                (string)o["created_at"],
-                (string)o["updated_at"],
-                (string)o["bio"]);
-            return user;
-        }
-
-        internal Team LoadTeam(JObject o)
-        {
-            Team team = new Team((string)o["info"],
-                (string)o["background"],
-                (string)o["banner"],
-                (string)o["name"],
-                (long)o["_id"],
-                (string)o["display_name"],
-                (string)o["logo"]);
-            return team;
-        }
-
-        Video LoadVideo(JObject o)
-        {
-            Video video = new Video((string)o["recorded_at"],
-                (string)o["title"],
-                (string)o["url"],
-                (string)o["_id"],
-                (string)o["_links"]["channel"],
-                (string)o["embed"],
-                (int)o["views"],
-                (string)o["description"],
-                (int)o["length"],
-                (string)o["game"],
-                (string)o["preview"]);
-            return video;
-        }
-
-        Video LoadTopVideo(JObject o)
-        {
-            Video video = new Video((string)o["recorded_at"],
-                (string)o["title"],
-                (string)o["url"],
-                (string)o["_id"],
-                (string)o["_links"]["channel"],
-                (int)o["views"],
-                (string)o["description"],
-                (int)o["length"],
-                (string)o["game"],
-                (string)o["preview"],
-                (string)o["channel"]["name"]);
-            return video;
-        }
-
-        internal Channel LoadChannel(JObject o)
-        {
-            Channel channel = new Channel((string)o["mature"],
-                (string)o["background"],
-                (string)o["updated_at"],
-                (long)o["_id"],
-                (JArray)o["teams"],
-                (string)o["status"],
-                (string)o["logo"],
-                (string)o["url"],
-                (string)o["display_name"],
-                (string)o["game"],
-                (string)o["banner"],
-                (string)o["name"],
-                (string)o["video_banner"],
-                (string)o["_links"]["chat"],
-                (string)o["_links"]["subscriptions"],
-                (string)o["_links"]["features"],
-                (string)o["_links"]["commercial"],
-                (string)o["_links"]["stream_key"],
-                (string)o["_links"]["editors"],
-                (string)o["_links"]["videos"],
-                (string)o["_links"]["self"],
-                (string)o["_links"]["follows"],
-                (string)o["created_at"],
-                (string)o["profile_banner"],
-                (string)o["primary_team_name"],
-                (string)o["primary_team_display_name"],
-                (long?)o["views"],
-                (long?)o["followers"],
-                this);
-            return channel;
-        }
-
-        Ingest LoadIngest(JObject o)
-        {
-            Ingest ingest = new Ingest((string)o["name"],
-                (bool)o["default"],
-                (long)o["_id"],
-                (string)o["url_template"],
-                (double)o["availability"]);
-            return ingest;
-        }
-
-        internal void CreateError(string errorStr)
-        {
-            errorString = errorStr;
-            TwixelErrorEventArgs error = new TwixelErrorEventArgs();
-            error.ErrorString = errorString;
-            TwixelErrorEvent(this, error);
-        }
-
-        public static async Task<string> GetWebData(Uri uri)
+        private static async Task<string> DoWebData(Uri uri, RequestType requestType, string accessToken = null, string content = null, APIVersion version = APIVersion.None)
         {
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            HttpResponseMessage response = await client.GetAsync(uri);
+            if (version == APIVersion.None)
+            {
+                version = APIVersion.v3;
+            }
 
+            if (version == APIVersion.v2)
+            {
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
+            }
+            else if (version == APIVersion.v3)
+            {
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
+            }
+
+            client.DefaultRequestHeaders.Add("Client-ID", clientID);
+
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
+            }
+
+            StringContent stringContent = new StringContent("", Encoding.UTF8, "application/json");
+            if (requestType == RequestType.Put || requestType == RequestType.Post)
+            {
+                stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+            }
+
+            HttpResponseMessage response = null;
+            if (requestType == RequestType.Get)
+            {
+                response = await client.GetAsync(uri);
+            }
+            else if (requestType == RequestType.Put)
+            {
+                response = await client.PutAsync(uri, stringContent);
+            }
+            else if (requestType == RequestType.Post)
+            {
+                response = await client.PostAsync(uri, stringContent);
+            }
+            else if (requestType == RequestType.Delete)
+            {
+                response = await client.DeleteAsync(uri);
+            }
+
+            string responseString;
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                // 200 - OK
-                string responseString = await response.Content.ReadAsStringAsync();
-                return responseString;
-            }
-            else if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // 400 - Bad request
-                return "400";
-            }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                // 401 - Unauthoriezed
-                return "401";
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                // 404 - Summoner not found
-                return "404";
-            }
-            else if ((int)response.StatusCode == 422)
-            {
-                return "422";
-            }
-            else if (response.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                // 500 - Internal server error
-                return "500";
-            }
-            else if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
-            {
-                return "503";
-            }
-            else
-            {
-                Debug.WriteLine((int)response.StatusCode);
-                return "Unknown status code";
-            }
-        }
-
-        public static async Task<string> GetWebData(Uri uri, string accessToken)
-        {
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
-            HttpResponseMessage response = await client.GetAsync(uri);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                // 200 - OK
-                string responseString = await response.Content.ReadAsStringAsync();
-                return responseString;
-            }
-            else if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // 400 - Bad request
-                return "400";
-            }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                // 401 - Unauthoriezed
-                return "401";
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                // 404 - Summoner not found
-                return "404";
-            }
-            else if ((int)response.StatusCode == 422)
-            {
-                return "422";
-            }
-            else if (response.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                // 500 - Internal server error
-                return "500";
-            }
-            else
-            {
-                return "Unknown status code";
-            }
-        }
-
-        public static async Task<string> PutWebData(Uri uri, string accessToken, string content)
-        {
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
-            StringContent stringContent = new StringContent(content, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await client.PutAsync(uri, stringContent);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string responseString = await response.Content.ReadAsStringAsync();
-                return responseString;
-            }
-            else
-            {
-                return "Unknown status code";
-            }
-        }
-
-        public static async Task<string> PostWebData(Uri uri, string accessToken, string content)
-        {
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
-            StringContent stringContent = new StringContent(content, Encoding.UTF8);
-            HttpResponseMessage response = await client.PostAsync(uri, stringContent);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string responseString = await response.Content.ReadAsStringAsync();
-                return responseString;
-            }
-            else if ((int)response.StatusCode == 422)
-            {
-                return "422";
-            }
-            else
-            {
-                return "Unknown status code";
-            }
-        }
-
-        public static async Task<string> DeleteWebData(Uri uri, string accessToken)
-        {
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            client.DefaultRequestHeaders.Add("Client-ID", clientID);
-            client.DefaultRequestHeaders.Add("Authorization", "OAuth " + accessToken);
-            HttpResponseMessage response = await client.DeleteAsync(uri);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string responseString = await response.Content.ReadAsStringAsync();
+                responseString = await response.Content.ReadAsStringAsync();
                 return responseString;
             }
             else if (response.StatusCode == HttpStatusCode.NoContent)
             {
-                string responseString = "";
+                responseString = string.Empty;
                 return responseString;
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return "404";
-            }
-            else if ((int)response.StatusCode == 422)
-            {
-                return "422";
             }
             else
             {
-                return "Unknown status code";
+                responseString = await response.Content.ReadAsStringAsync();
+                throw new TwitchException(JObject.Parse(responseString));
             }
         }
     }

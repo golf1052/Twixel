@@ -1,131 +1,302 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Converters;
 
 namespace TwixelAPI
 {
-    public class Channel
+    /// <summary>
+    /// Channel object
+    /// </summary>
+    public class Channel : TwixelObjectBase
     {
-        public string mature;
-        public WebUrl background;
-        public string updatedAt;
-        public long id;
+        /// <summary>
+        /// Mature status
+        /// v2/v3
+        /// </summary>
+        public bool? mature;
+
+        /// <summary>
+        /// Status
+        /// v2/v3
+        /// </summary>
         public string status;
-        public WebUrl logo;
-        public List<Team> teams;
-        public WebUrl url;
+
+        /// <summary>
+        /// Broadcaster language
+        /// v3
+        /// </summary>
+        public string broadcasterLanguage;
+
+        /// <summary>
+        /// Display name
+        /// v2/v3
+        /// </summary>
         public string displayName;
+
+        /// <summary>
+        /// Current game, can be null
+        /// v2/v3
+        /// </summary>
         public string game;
-        public WebUrl banner;
+
+        /// <summary>
+        /// Current delay
+        /// Partnered channels can have non 0 delay
+        /// v3
+        /// </summary>
+        public int? delay;
+
+        /// <summary>
+        /// Language
+        /// v3
+        /// </summary>
+        public string language;
+
+        /// <summary>
+        /// ID
+        /// v2/v3
+        /// </summary>
+        public long id;
+
+        /// <summary>
+        /// Name
+        /// v2/v3
+        /// </summary>
         public string name;
-        public WebUrl videoBanner;
-        public WebUrl profileBanner;
 
-        public WebUrl chat;
-        public WebUrl subscriptions;
-        public WebUrl features;
-        public WebUrl commercial;
-        public WebUrl streamKey;
-        public WebUrl editors;
-        public WebUrl videos;
-        public WebUrl self;
-        public WebUrl follows;
+        /// <summary>
+        /// Creation date
+        /// v2/v3
+        /// </summary>
+        public DateTime createdAt;
 
-        public string createdAt;
+        /// <summary>
+        /// Last updated
+        /// v2/v3
+        /// </summary>
+        public DateTime updatedAt;
 
-        public string primaryTeamName;
-        public string primaryTeamDisplayName;
+        /// <summary>
+        /// Logo
+        /// v2
+        /// </summary>
+        public Uri logo;
+
+        /// <summary>
+        /// Banner
+        /// v2/v3
+        /// </summary>
+        public Uri banner;
+
+        /// <summary>
+        /// Video banner
+        /// v2/v3
+        /// </summary>
+        public Uri videoBanner;
+
+        /// <summary>
+        /// Background
+        /// v2/v3
+        /// </summary>
+        public Uri background;
+
+        /// <summary>
+        /// Profile banner
+        /// v3
+        /// </summary>
+        public Uri profileBanner;
+
+        /// <summary>
+        /// Profile banner background color
+        /// v3
+        /// </summary>
+        public string profileBannerBackgroundColor;
+
+        /// <summary>
+        /// Twitch partnership status
+        /// v3
+        /// </summary>
+        public bool? partner;
+
+        /// <summary>
+        /// Link to channel
+        /// v2/v3
+        /// </summary>
+        public Uri url;
+
+        /// <summary>
+        /// Number of views
+        /// v3
+        /// </summary>
         public long? views;
+
+        /// <summary>
+        /// Number of followers
+        /// v3
+        /// </summary>
         public long? followers;
 
-        public Channel(string mature,
-            string background,
-            string updatedAt,
-            long id,
-            JArray teamsA,
+        /// <summary>
+        /// Teams this channel is a part of
+        /// v2
+        /// </summary>
+        public List<Team> teams;
+
+        /// <summary>
+        /// Channel constructor, Twitch API v2
+        /// </summary>
+        /// <param name="mature">Mature status</param>
+        /// <param name="status">Status</param>
+        /// <param name="displayName">Display name</param>
+        /// <param name="game">Current game, can be null</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="createdAt">Creation date</param>
+        /// <param name="updatedAt">Last updated</param>
+        /// <param name="logo">Logo</param>
+        /// <param name="banner">Banner</param>
+        /// <param name="videoBanner">Video banner</param>
+        /// <param name="background">Background</param>
+        /// <param name="url">Link to channel</param>
+        /// <param name="teamsA">Teams JSON object</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
+        public Channel(bool? mature,
             string status,
-            string logo,
-            string url,
             string displayName,
             string game,
-            string banner,
+            long id,
             string name,
-            string videoBanner,
-            string chat,
-            string subscriptions,
-            string features,
-            string commercial,
-            string streamKey,
-            string editors,
-            string videos,
-            string self,
-            string follows,
             string createdAt,
-            string profileBanner,
-            string primaryTeamName,
-            string primaryTeamDisplayName,
-            long? views,
-            long? followers,
-            Twixel twixel)
+            string updatedAt,
+            string logo,
+            string banner,
+            string videoBanner,
+            string background,
+            string url,
+            JArray teamsA,
+            JObject baseLinksO) : base(baseLinksO)
         {
-            teams = new List<Team>();
+            this.version = Twixel.APIVersion.v2;
+            this.teams = new List<Team>();
+            this.mature = mature;
+            this.status = status;
+            this.displayName = displayName;
+            this.game = game;
+            this.id = id;
+            this.name = name;
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(logo))
+            {
+                this.logo = new Uri(logo);
+            }
+            if (!string.IsNullOrEmpty(banner))
+            {
+                this.banner = new Uri(banner);
+            }
+            if (!string.IsNullOrEmpty(videoBanner))
+            {
+                this.videoBanner = new Uri(videoBanner);
+            }
+            if (!string.IsNullOrEmpty(background))
+            {
+                this.background = new Uri(background);
+            }
+            if (!string.IsNullOrEmpty(url))
+            {
+                this.url = new Uri(url);
+            }
             if (teamsA != null)
             {
                 foreach (JObject team in teamsA)
                 {
-                    teams.Add(twixel.LoadTeam(team));
+                    teams.Add(HelperMethods.LoadTeam(team, version));
                 }
             }
+        }
+
+        /// <summary>
+        /// Channel constructor, Twitch API v3
+        /// </summary>
+        /// <param name="mature">Mature status</param>
+        /// <param name="status">Status</param>
+        /// <param name="broadcasterLanguage"></param>
+        /// <param name="displayName">Display name</param>
+        /// <param name="game">Current game, can be null</param>
+        /// <param name="delay">Current delay</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="createdAt">Creation date</param>
+        /// <param name="updatedAt">Last updated</param>
+        /// <param name="logo">Logo</param>
+        /// <param name="banner">Banner</param>
+        /// <param name="videoBanner">Video banner</param>
+        /// <param name="background">Background</param>
+        /// <param name="profileBanner">Profile banner</param>
+        /// <param name="profileBannerBackgroundColor">Profile banner background color</param>
+        /// <param name="partner">Twitch partnership status</param>
+        /// <param name="url">Link to channel</param>
+        /// <param name="views">Number of views</param>
+        /// <param name="followers">Number of followers</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
+        public Channel(bool? mature,
+            string status,
+            string broadcasterLanguage,
+            string displayName,
+            string game,
+            int? delay,
+            long id,
+            string name,
+            string createdAt,
+            string updatedAt,
+            string logo,
+            string banner,
+            string videoBanner,
+            string background,
+            string profileBanner,
+            string profileBannerBackgroundColor,
+            bool? partner,
+            string url,
+            long? views,
+            long? followers,
+            JObject baseLinksO) : base(baseLinksO)
+        {
+            this.version = Twixel.APIVersion.v3;
             this.mature = mature;
-            if (background != null)
-            {
-                this.background = new WebUrl(background);
-            }
-            this.updatedAt = updatedAt;
-            this.id = id;
             this.status = status;
-            if (logo != null)
-            {
-                this.logo = new WebUrl(logo);
-            }
-            this.url = new WebUrl(url);
+            this.broadcasterLanguage = broadcasterLanguage;
             this.displayName = displayName;
             this.game = game;
-            if (banner != null)
-            {
-                this.banner = new WebUrl(banner);
-            }
+            this.delay = delay;
+            this.id = id;
             this.name = name;
-            if (videoBanner != null)
+            this.createdAt = DateTime.Parse(createdAt);
+            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(logo))
             {
-                this.videoBanner = new WebUrl(videoBanner);
+                this.logo = new Uri(logo);
             }
-            this.chat = new WebUrl(chat);
-            this.subscriptions = new WebUrl(subscriptions);
-            this.features = new WebUrl(features);
-            this.commercial = new WebUrl(commercial);
-            this.streamKey = new WebUrl(streamKey);
-            this.editors = new WebUrl(editors);
-            this.videos = new WebUrl(videos);
-            this.self = new WebUrl(self);
-            this.follows = new WebUrl(follows);
-            this.createdAt = createdAt;
-            if (profileBanner != null)
+            if (!string.IsNullOrEmpty(banner))
             {
-                this.profileBanner = new WebUrl(profileBanner);
+                this.banner = new Uri(banner);
             }
-            if (primaryTeamName != null)
+            if (!string.IsNullOrEmpty(videoBanner))
             {
-                this.primaryTeamName = primaryTeamName;
+                this.videoBanner = new Uri(videoBanner);
             }
-            if (primaryTeamDisplayName != null)
+            if (!string.IsNullOrEmpty(background))
             {
-                this.primaryTeamDisplayName = primaryTeamDisplayName;
+                this.background = new Uri(background);
+            }
+            if (!string.IsNullOrEmpty(profileBanner))
+            {
+                this.profileBanner = new Uri(profileBanner);
+            }
+            this.profileBannerBackgroundColor = profileBannerBackgroundColor;
+            this.partner = partner;
+            if (!string.IsNullOrEmpty(url))
+            {
+                this.url = new Uri(url);
             }
             this.views = views;
             this.followers = followers;

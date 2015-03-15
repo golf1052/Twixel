@@ -1,45 +1,83 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Converters;
 
 namespace TwixelAPI
 {
-    public class Game
+    /// <summary>
+    /// Game object
+    /// </summary>
+    public class Game : TwixelObjectBase
     {
-        public string name;
-        public WebUrl boxLarge;
-        public WebUrl boxMedium;
-        public WebUrl boxSmall;
-        public WebUrl boxTemplate;
-        public WebUrl logoLarge;
-        public WebUrl logoMedium;
-        public WebUrl logoSmall;
-        public WebUrl logoTemplate;
-        public long? id;
-        public long? giantBombId;
-        public int? viewers;
-        public int? channels;
+        /// <summary>
+        /// Number of viewers.
+        /// Null if game was searched.
+        /// </summary>
+        public long? viewers;
 
-        public Game(string name, JObject boxO, JObject logoO, long? id, long? giantBombId, int? viewers, int? channels)
+        /// <summary>
+        /// Number of channels.
+        /// Null if game was searched
+        /// </summary>
+        public long? channels;
+
+        /// <summary>
+        /// Name
+        /// </summary>
+        public string name;
+
+        /// <summary>
+        /// ID
+        /// </summary>
+        public long? id;
+
+        /// <summary>
+        /// GiantBomb ID
+        /// </summary>
+        public long? giantBombId;
+
+        /// <summary>
+        /// Box image links.
+        /// Dictionary strings: small, medium, large, template
+        /// </summary>
+        public Dictionary<string, Uri> box;
+
+        /// <summary>
+        /// Logo image links.
+        /// Dictionary strings: small, medium, large, template
+        /// </summary>
+        public Dictionary<string, Uri> logo;
+
+        /// <summary>
+        /// Game constructor
+        /// </summary>
+        /// <param name="viewers">Number of viewers</param>
+        /// <param name="channels">Number of channels</param>
+        /// <param name="name">Name</param>
+        /// <param name="id">ID</param>
+        /// <param name="giantBombId">GiantBomb ID</param>
+        /// <param name="boxO">Box JSON object</param>
+        /// <param name="logoO">Logo JSON object</param>
+        /// <param name="version">Twitch API version</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
+        public Game(long? viewers,
+            long? channels,
+            string name,
+            long? id,
+            long? giantBombId,
+            JObject boxO,
+            JObject logoO,
+            Twixel.APIVersion version,
+            JObject baseLinksO) : base (baseLinksO)
         {
-            this.name = name;
-            boxLarge = new WebUrl((string)boxO["large"]);
-            boxMedium = new WebUrl((string)boxO["medium"]);
-            boxSmall = new WebUrl((string)boxO["small"]);
-            boxTemplate = new WebUrl((string)boxO["template"]);
-            logoLarge = new WebUrl((string)logoO["large"]);
-            logoMedium = new WebUrl((string)logoO["medium"]);
-            logoSmall = new WebUrl((string)logoO["small"]);
-            logoTemplate = new WebUrl((string)logoO["template"]);
-            this.id = id;
-            this.giantBombId = giantBombId;
+            this.version = version;
             this.viewers = viewers;
             this.channels = channels;
+            this.name = name;
+            this.id = id;
+            this.giantBombId = giantBombId;
+            this.box = HelperMethods.LoadLinks(boxO);
+            this.logo = HelperMethods.LoadLinks(logoO);
         }
     }
 }
