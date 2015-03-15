@@ -129,8 +129,8 @@ namespace TwixelAPI
             string videoBanner,
             string background,
             string url,
-            JObject linksO,
-            JArray teamsA) : base(linksO)
+            JArray teamsA,
+            JObject baseLinksO) : base(baseLinksO)
         {
             this.version = Twixel.APIVersion.v2;
             this.teams = new List<Team>();
@@ -191,7 +191,7 @@ namespace TwixelAPI
             string url,
             long? views,
             long? followers,
-            JObject linksO) : base(linksO)
+            JObject baseLinksO) : base(baseLinksO)
         {
             this.version = Twixel.APIVersion.v3;
             this.mature = mature;

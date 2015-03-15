@@ -4,6 +4,11 @@ namespace TwixelAPI.Constants
 {
     public static class TwitchConstants
     {
+        public const string baseUrl = "https://api.twitch.tv/kraken/";
+        public const string twitchAPIErrorString = "There was a Twitch API error";
+        public const string v2UnsupportedErrorString = "This function is not supported by Twitch API v2.";
+        public const string unknownErrorString = "Unknown error";
+
         public enum Scope
         {
             None,

@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Converters;
-using System.Diagnostics;
-using TwixelAPI.Constants;
+using System.Text;
+using System.Threading.Tasks;
 using Flurl;
+using Newtonsoft.Json.Linq;
+using TwixelAPI.Constants;
 
 namespace TwixelAPI
 {
@@ -62,8 +58,6 @@ namespace TwixelAPI
         public string redirectUrl = "";
 
         private APIVersion defaultVersion;
-        private const string baseUrl = "https://api.twitch.tv/kraken/";
-        private const string twitchAPIErrorString = "There was a Twitch API error";
 
         /// <summary>
         /// The default version that gets sent to the API
@@ -129,7 +123,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("games", "top");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("games", "top");
 
             if (limit <= 100)
             {
@@ -148,7 +142,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             JObject responseObject = JObject.Parse(responseString);
             List<Game> games = HelperMethods.LoadGames(responseObject, version);
@@ -169,8 +163,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-
-            Url url = new Url(baseUrl).AppendPathSegments("streams", channelName);
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", channelName);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -179,7 +172,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
 
             JObject stream = JObject.Parse(responseString);
@@ -217,7 +210,7 @@ namespace TwixelAPI
                 version = DefaultVersion;
             }
 
-            Url url = new Url(baseUrl).AppendPathSegment("streams");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("streams");
             url.SetQueryParam("game", game);
             if (channels != null && channels.Count > 0)
             {
@@ -257,7 +250,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadStreams(JObject.Parse(responseString), version);
         }
@@ -307,7 +300,7 @@ namespace TwixelAPI
                 version = DefaultVersion;
             }
 
-            Url url = new Url(baseUrl).AppendPathSegments("streams", "featured");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "featured");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -325,7 +318,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadFeaturedStreams(JObject.Parse(responseString), version);
         }
@@ -341,7 +334,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("streams", "summary");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "summary");
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -350,7 +343,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             JObject summary = JObject.Parse(responseString);
             Dictionary<string, int> summaryDict = new Dictionary<string, int>();
@@ -387,17 +380,12 @@ namespace TwixelAPI
                         i--;
                     }
                 }
-                string scopesString = "";
-                foreach (TwitchConstants.Scope scope in scopes)
-                {
-                    scopesString += TwitchConstants.ScopeToString(scope) + " ";
-                }
-                Url url = new Url(baseUrl).AppendPathSegments("oauth2", "authorize").SetQueryParams(new
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("oauth2", "authorize").SetQueryParams(new
                 {
                     response_type = "token",
                     client_id = clientID,
                     redirect_uri = redirectUrl,
-                    scope = scopesString
+                    scope = TwitchConstants.ListOfScopesToStringOfScopes(scopes)
                 });
                 Uri uri = new Uri(url.ToString());
                 return uri;
@@ -405,62 +393,6 @@ namespace TwixelAPI
             else
             {
                 throw new TwixelException("You must have at least 1 scope.");
-            }
-        }
-
-        /// <summary>
-        /// Retrieves an access token for the given user using their credentials
-        /// </summary>
-        /// <param name="loginUrl">The login URL</param>
-        /// <param name="scopes">The permissions you are requesting. Must contain at least one permission.</param>
-        /// <param name="userName">The user's username</param>
-        /// <param name="password">The user's password</param>
-        /// <returns>An access token used for API calls that require authorization</returns>
-        public async Task<string> Login(Uri loginUrl, List<TwitchConstants.Scope> scopes, string userName, string password)
-        {
-            // Send request for Twitch login page
-            HttpClient client = new HttpClient();
-            HttpResponseMessage getResponse = await client.GetAsync(loginUrl);
-            string getResponseString = await getResponse.Content.ReadAsStringAsync();
-
-            // Pull out authenticity token
-            string authTokenString = "authenticity_token";
-            string valueString = "value=\"";
-            int authStringLocation = getResponseString.IndexOf(authTokenString);
-            int valueStringLocation = getResponseString.IndexOf(valueString, authStringLocation);
-            int authTokenEndLocation = getResponseString.IndexOf('"', valueStringLocation + valueString.Length);
-            string authToken = getResponseString.Substring(valueStringLocation + valueString.Length, authTokenEndLocation - valueStringLocation - valueString.Length);
-
-            // Send request with authenticity token and user credentials
-            FormUrlEncodedContent formContent = new FormUrlEncodedContent(new KeyValuePair<string, string>[] {
-                new KeyValuePair<string, string>(authTokenString, authToken),
-                new KeyValuePair<string, string>("login_type", "login"),
-                new KeyValuePair<string, string>("client_id", clientID),
-                new KeyValuePair<string, string>("redirect_uri", redirectUrl),
-                new KeyValuePair<string, string>("response_type", "token"),
-                new KeyValuePair<string, string>("scope", TwitchConstants.ListOfScopesToStringOfScopes(scopes)),
-                new KeyValuePair<string, string>("user[login]", userName),
-                new KeyValuePair<string, string>("user[password]", password)
-            });
-            Url url = new Url("https://api.twitch.tv/kraken/oauth2/login");
-            HttpResponseMessage postResponse = await client.PostAsync(url.ToString(), formContent);
-
-            // Pull out access token
-            string[] splitString = postResponse.RequestMessage.RequestUri.Fragment.Split('=');
-            string[] secondSplitString = splitString[1].Split('&');
-            string accessToken = secondSplitString[0];
-            return accessToken;
-        }
-
-        public async Task<string> Login(string userName, string password, List<TwitchConstants.Scope> scopes)
-        {
-            try
-            {
-                return await Login(Login(scopes), scopes, userName, password);
-            }
-            catch
-            {
-                throw;
             }
         }
 
@@ -477,7 +409,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("users", name);
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -486,7 +418,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadUser(JObject.Parse(responseString), version);
         }
@@ -504,7 +436,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("chat", user);
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -513,7 +445,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadLinks((JObject)JObject.Parse(responseString)["_links"]);
         }
@@ -529,7 +461,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("chat", "emoticons");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", "emoticons");
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -538,7 +470,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadEmoticons(JObject.Parse(responseString), version);
         }
@@ -550,7 +482,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("chat", user, "badges");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user, "badges");
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -559,7 +491,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadBadges(JObject.Parse(responseString), version);
         }
@@ -580,10 +512,9 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-
             if (version == APIVersion.v3)
             {
-                Url url = new Url(baseUrl).AppendPathSegments("search", "channels").SetQueryParam("query", query);
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "channels").SetQueryParam("query", query);
                 if (limit <= 100)
                 {
                     url.SetQueryParam("limit", limit);
@@ -601,19 +532,15 @@ namespace TwixelAPI
                 }
                 catch (TwitchException ex)
                 {
-                    throw new TwixelException(twitchAPIErrorString, ex);
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
                 }
                 JObject responseObject = JObject.Parse(responseString);
-                List<Channel> channels = new List<Channel>();
-                foreach (JObject o in ((JObject)responseObject)["channels"])
-                {
-                    channels.Add(HelperMethods.LoadChannel(o, version));
-                }
+                List<Channel> channels = HelperMethods.LoadChannels(responseObject, version);
                 return HelperMethods.LoadTotal(responseObject, channels, version);
             }
             else
             {
-                throw new TwixelException("This function is not supported by Twitch API v2.");
+                throw new TwixelException("");
             }
         }
 
@@ -632,7 +559,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("search", "streams").SetQueryParam("query", query);
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "streams").SetQueryParam("query", query);
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -658,10 +585,10 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             JObject responseObject = JObject.Parse(responseString);
-            List<Stream> streams = HelperMethods.LoadStreams(JObject.Parse(responseString), version);
+            List<Stream> streams = HelperMethods.LoadStreams(responseObject, version);
             return HelperMethods.LoadTotal(responseObject, streams, version);
         }
 
@@ -679,7 +606,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("search", "games").SetQueryParams(new
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "games").SetQueryParams(new
             {
                 query = query,
                 type = "suggest",
@@ -693,7 +620,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadSearchedGames(JObject.Parse(responseString), version);
         }
@@ -712,7 +639,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegment("teams");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("teams");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -729,14 +656,9 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
-            List<Team> teams = new List<Team>();
-            foreach (JObject o in JObject.Parse(responseString)["teams"])
-            {
-                teams.Add(HelperMethods.LoadTeam(o, version));
-            }
-            return teams;
+            return HelperMethods.LoadTeams(JObject.Parse(responseString), version);
         }
 
         /// <summary>
@@ -751,7 +673,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("teams", name);
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("teams", name);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -760,9 +682,37 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadTeam(JObject.Parse(responseString), version);
+        }
+
+        public async Task<List<Team>> RetrieveTeams(string user,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (version == APIVersion.v3)
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "teams");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadTeams(JObject.Parse(responseString), version);
+            }
+            else
+            {
+                throw new TwixelException(TwitchConstants.v2UnsupportedErrorString);
+            }
         }
 
         /// <summary>
@@ -777,7 +727,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("videos", id);
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", id);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -786,7 +736,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadVideo(JObject.Parse(responseString), version);
         }
@@ -807,7 +757,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("videos", "top");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", "top");
             url.SetQueryParam("game", game);
             if (limit <= 100)
             {
@@ -827,14 +777,9 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
-            List<Video> videos = new List<Video>();
-            foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-            {
-                videos.Add(HelperMethods.LoadVideo(video, version));
-            }
-            return videos;
+            return HelperMethods.LoadVideos(JObject.Parse(responseString), version);
         }
 
         /// <summary>
@@ -844,7 +789,7 @@ namespace TwixelAPI
         /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
         /// <param name="broadcasts">Returns only broadcasts when true. Otherwise only highlights are returned. Default is false.</param>
         /// <returns>A list of videos</returns>
-        public async Task<List<Video>> RetrieveVideos(string channel = null,
+        public async Task<Total<List<Video>>> RetrieveVideos(string channel = null,
             int offset = 0, int limit = 25,
             bool broadcasts = false,
             bool? hls = null,
@@ -854,7 +799,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("channels", channel, "videos");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", channel, "videos");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -885,14 +830,11 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
-            List<Video> videos = new List<Video>();
-            foreach (JObject video in (JArray)JObject.Parse(responseString)["videos"])
-            {
-                videos.Add(HelperMethods.LoadVideo(video, version));
-            }
-            return videos;
+            JObject responseObject = JObject.Parse(responseString);
+            List<Video> videos = HelperMethods.LoadVideos(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, videos, version);
         }
 
         /// <summary>
@@ -901,7 +843,7 @@ namespace TwixelAPI
         /// <param name="user">The name of the user</param>
         /// <param name="limit">How many users to get at one time. Default is 25. Maximum is 100</param>
         /// <returns>A list of users</returns>
-        public async Task<Total<List<Follow>>> RetrieveFollowers(string user,
+        public async Task<Total<List<Follow<User>>>> RetrieveFollowers(string user,
             int offset = 0, int limit = 25,
             TwitchConstants.Direction direction = TwitchConstants.Direction.Decending,
             APIVersion version = APIVersion.None)
@@ -910,7 +852,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("channels", user, "follows");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "follows");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -932,10 +874,10 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             JObject responseObject = JObject.Parse(responseString);
-            List<Follow> follows = HelperMethods.LoadFollows(responseObject, version);
+            List<Follow<User>> follows = HelperMethods.LoadUserFollows(responseObject, version);
             return HelperMethods.LoadTotal(responseObject, follows, version);
         }
 
@@ -951,7 +893,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegments("channels", name);
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -960,7 +902,7 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadChannel(JObject.Parse(responseString), version);
         }
@@ -975,7 +917,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(baseUrl).AppendPathSegment("ingests");
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("ingests");
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -984,42 +926,40 @@ namespace TwixelAPI
             }
             catch (TwitchException ex)
             {
-                throw new TwixelException(twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
-            List<Ingest> ingests = new List<Ingest>();
-            JObject responseObject = JObject.Parse(responseString);
-            foreach (JObject o in (JArray)responseObject["ingests"])
-            {
-                ingests.Add(HelperMethods.LoadIngest(o, (JObject)responseObject["_links"], version));
-            }
-
-            return ingests;
+            return HelperMethods.LoadIngests(JObject.Parse(responseString), version);
         }
 
-        //async Task<User> RetrieveAuthenticatedUser(string accessToken, List<TwitchConstants.Scope> authorizedScopes)
-        //{
-        //    if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
-        //    {
-        //        Uri uri;
-        //        uri = new Uri("https://api.twitch.tv/kraken/user");
-        //        string responseString;
-        //        responseString = await GetWebData(uri, accessToken);
-        //        if (GoodStatusCode(responseString))
-        //        {
-        //            return LoadAuthUser(JObject.Parse(responseString), accessToken, authorizedScopes);
-        //        }
-        //        else
-        //        {
-        //            CreateError(responseString);
-        //            return null;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        CreateError("This user has not given user_read permissions");
-        //        return null;
-        //    }
-        //}
+        private async Task<User> RetrieveAuthenticatedUser(string accessToken,
+            List<TwitchConstants.Scope> authorizedScopes,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("user");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadAuthedUser(JObject.Parse(responseString),
+                    accessToken, authorizedScopes, version);
+            }
+            else
+            {
+                throw new TwixelException("This user has not given user_read permissions");
+            }
+        }
 
         /// <summary>
         /// Gets the status of an access token, if the token is valid this returns an
@@ -1027,53 +967,42 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="accessToken">The access token</param>
         /// <returns>An authorized user</returns>
-        //public async Task<User> RetrieveUserWithAccessToken(string accessToken)
-        //{
-        //    Uri uri;
-        //    uri = new Uri("https://api.twitch.tv/kraken");
-        //    string responseString;
-        //    responseString = await Twixel.GetWebData(uri, accessToken);
-        //    if (GoodStatusCode(responseString))
-        //    {
-        //        JObject o = JObject.Parse(responseString);
-        //        if ((bool)JObject.Parse(responseString)["token"]["valid"])
-        //        {
-        //            JArray userScopesA = (JArray)o["token"]["authorization"]["scopes"];
-        //            List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
-        //            foreach (string scope in userScopesA)
-        //            {
-        //                userScopes.Add(TwitchConstants.StringToScope(scope));
-        //            }
-        //            return await RetrieveAuthenticatedUser(accessToken, userScopes);
-        //        }
-        //        else
-        //        {
-        //            CreateError(accessToken + " is not authorized");
-        //            return null;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        CreateError(responseString);
-        //        return null;
-        //    }
-        //}
-
-        //User LoadAuthUser(JObject o, string accessToken, List<TwitchConstants.Scope> authorizedScopes)
-        //{
-        //    User user = new User(this, accessToken, authorizedScopes,
-        //        (string)o["name"],
-        //        (string)o["logo"],
-        //        (long)o["_id"],
-        //        (string)o["display_name"],
-        //        (string)o["email"],
-        //        (bool?)o["staff"],
-        //        (bool?)o["partnered"],
-        //        (string)o["created_at"],
-        //        (string)o["updated_at"],
-        //        (string)o["bio"]);
-        //    return user;
-        //}
+        public async Task<User> RetrieveUserWithAccessToken(string accessToken,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await Twixel.GetWebData(uri, accessToken, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject responseObject = JObject.Parse(responseString);
+            JObject token = (JObject)responseObject["token"];
+            if ((bool)token["valid"])
+            {
+                JArray userScopesA = (JArray)token["authorization"]["scopes"];
+                List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
+                foreach (string scope in userScopesA)
+                {
+                    userScopes.Add(TwitchConstants.StringToScope(scope));
+                }
+                return await RetrieveAuthenticatedUser(accessToken, userScopes, version);
+            }
+            else
+            {
+                throw new TwixelException(accessToken + " is not a valid access token",
+                    (JObject)responseObject["_links"]);
+            }
+        }
 
         public static async Task<string> GetWebData(Uri uri, APIVersion version = APIVersion.None)
         {

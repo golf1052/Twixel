@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using TwixelAPI.Constants;
 
 namespace TwixelAPI
 {
@@ -21,6 +22,16 @@ namespace TwixelAPI
             }
         }
 
+        internal static List<Channel> LoadChannels(JObject o, Twixel.APIVersion version)
+        {
+            List<Channel> channels = new List<Channel>();
+            foreach (JObject channel in (JArray)o["channels"])
+            {
+                channels.Add(HelperMethods.LoadChannel(channel, version));
+            }
+            return channels;
+        }
+
         internal static Channel LoadChannel(JObject o, Twixel.APIVersion version)
         {
             if (version == Twixel.APIVersion.v2)
@@ -38,8 +49,8 @@ namespace TwixelAPI
                     (string)o["video_banner"],
                     (string)o["background"],
                     (string)o["url"],
-                    (JObject)o["_links"],
-                    (JArray)o["teams"]);
+                    (JArray)o["teams"],
+                    (JObject)o["_links"]);
             }
             else if (version == Twixel.APIVersion.v3)
             {
@@ -71,6 +82,16 @@ namespace TwixelAPI
             }
         }
 
+        internal static List<Team> LoadTeams(JObject o, Twixel.APIVersion version)
+        {
+            List<Team> teams = new List<Team>();
+            foreach (JObject team in (JArray)o["teams"])
+            {
+                teams.Add(HelperMethods.LoadTeam(team, version));
+            }
+            return teams;
+        }
+
         internal static Team LoadTeam(JObject o, Twixel.APIVersion version)
         {
             Team team = new Team((long)o["_id"],
@@ -85,38 +106,6 @@ namespace TwixelAPI
                 version,
                 (JObject)o["_links"]);
             return team;
-        }
-
-        internal static User LoadUser(JObject o,
-            Twixel.APIVersion version)
-        {
-            if (version == Twixel.APIVersion.v2)
-            {
-                return new User((string)o["display_name"],
-                    (long)o["_id"],
-                    (string)o["name"],
-                    (bool)o["staff"],
-                    (string)o["created_at"],
-                    (string)o["updated_at"],
-                    (string)o["logo"],
-                    (JObject)o["_links"]);
-            }
-            else if (version == Twixel.APIVersion.v3)
-            {
-                return new User((string)o["display_name"],
-                    (long)o["_id"],
-                    (string)o["name"],
-                    (string)o["type"],
-                    (string)o["bio"],
-                    (string)o["created_at"],
-                    (string)o["updated_at"],
-                    (string)o["logo"],
-                    (JObject)o["_links"]);
-            }
-            else
-            {
-                throw new TwixelException("User: " + versionCannotBeNoneString);
-            }
         }
 
         internal static List<Stream> LoadStreams(JObject o, Twixel.APIVersion version)
@@ -195,6 +184,16 @@ namespace TwixelAPI
             }
 
             return streams;
+        }
+
+        internal static List<Video> LoadVideos(JObject o, Twixel.APIVersion version)
+        {
+            List<Video> videos = new List<Video>();
+            foreach (JObject video in (JArray)o["videos"])
+            {
+                videos.Add(HelperMethods.LoadVideo(video, version));
+            }
+            return videos;
         }
 
         internal static Video LoadVideo(JObject o, Twixel.APIVersion version)
@@ -279,6 +278,16 @@ namespace TwixelAPI
             return games;
         }
 
+        internal static List<Ingest> LoadIngests(JObject o, Twixel.APIVersion version)
+        {
+            List<Ingest> ingests = new List<Ingest>();
+            foreach (JObject ingest in (JArray)o["ingests"])
+            {
+                ingests.Add(HelperMethods.LoadIngest(ingest, (JObject)o["_links"], version));
+            }
+            return ingests;
+        }
+
         internal static Ingest LoadIngest(JObject o, JObject baseLinksO, Twixel.APIVersion version)
         {
             Ingest ingest = new Ingest((string)o["name"],
@@ -325,23 +334,115 @@ namespace TwixelAPI
             return badges;
         }
 
-        internal static List<Follow> LoadFollows(JObject o, Twixel.APIVersion version)
+        internal static List<Follow<Channel>> LoadChannelFollows(JObject o, Twixel.APIVersion version)
         {
-            List<Follow> follows = new List<Follow>();
+            List<Follow<Channel>> follows = new List<Follow<Channel>>();
             foreach (JObject obj in (JArray)o["follows"])
             {
-                follows.Add(LoadFollow(obj, version));
+                follows.Add(LoadChannelFollow(obj, version));
             }
             return follows;
         }
 
-        internal static Follow LoadFollow(JObject o, Twixel.APIVersion version)
+        internal static List<Follow<User>> LoadUserFollows(JObject o, Twixel.APIVersion version)
         {
-            return new Follow((string)o["created_at"],
+            List<Follow<User>> follows = new List<Follow<User>>();
+            foreach (JObject obj in (JArray)o["follows"])
+            {
+                follows.Add(LoadUserFollow(obj, version));
+            }
+            return follows;
+        }
+
+        internal static Follow<Channel> LoadChannelFollow(JObject o, Twixel.APIVersion version)
+        {
+            return new Follow<Channel>((string)o["created_at"],
                 (bool)o["notifications"],
-                (JObject)o["user"],
+                HelperMethods.LoadChannel((JObject)o["channel"], version),
                 version,
                 (JObject)o["_links"]);
+        }
+
+        internal static Follow<User> LoadUserFollow(JObject o, Twixel.APIVersion version)
+        {
+            return new Follow<User>((string)o["created_at"],
+                (bool)o["notifications"],
+                HelperMethods.LoadUser((JObject)o["user"], version),
+                version,
+                (JObject)o["_links"]);
+        }
+
+        internal static User LoadUser(JObject o,
+            Twixel.APIVersion version)
+        {
+            if (version == Twixel.APIVersion.v2)
+            {
+                return new User((string)o["display_name"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (bool)o["staff"],
+                    (string)o["created_at"],
+                    (string)o["updated_at"],
+                    (string)o["logo"],
+                    (JObject)o["_links"]);
+            }
+            else if (version == Twixel.APIVersion.v3)
+            {
+                return new User((string)o["display_name"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (string)o["type"],
+                    (string)o["bio"],
+                    (string)o["created_at"],
+                    (string)o["updated_at"],
+                    (string)o["logo"],
+                    (JObject)o["_links"]);
+            }
+            else
+            {
+                throw new TwixelException("User: " + versionCannotBeNoneString);
+            }
+        }
+
+        internal static User LoadAuthedUser(JObject o, string accessToken,
+            List<TwitchConstants.Scope> authorizedScopes,
+            Twixel.APIVersion version)
+        {
+            if (version == Twixel.APIVersion.v2)
+            {
+                return new User(accessToken, authorizedScopes,
+                    (string)o["display_name"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (bool)o["staff"],
+                    (string)o["created_at"],
+                    (string)o["updated_at"],
+                    (string)o["logo"],
+                    (string)o["email"],
+                    (bool)o["partnered"],
+                    (JObject)o["notifications"],
+                    (JObject)o["_links"]);
+            }
+            else if (version == Twixel.APIVersion.v3)
+            {
+                return new User(accessToken, authorizedScopes,
+                    (string)o["display_name"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (string)o["type"],
+                    (string)o["bio"],
+                    (string)o["created_at"],
+                    (string)o["updated_at"],
+                    (string)o["logo"],
+                    (string)o["email"],
+                    (bool)o["partnered"],
+                    (JObject)o["notifications"],
+                    (JObject)o["_links"]);
+            }
+            else
+            {
+                throw new TwixelException("User: " + versionCannotBeNoneString);
+            }
         }
 
         internal static Total<T> LoadTotal<T>(JObject o, T t,
