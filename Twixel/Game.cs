@@ -4,43 +4,62 @@ using Newtonsoft.Json.Linq;
 
 namespace TwixelAPI
 {
+    /// <summary>
+    /// Game object
+    /// </summary>
     public class Game : TwixelObjectBase
     {
         /// <summary>
-        /// v2/v3
+        /// Number of viewers.
+        /// Null if game was searched.
         /// </summary>
         public long? viewers;
 
         /// <summary>
-        /// v2/v3
+        /// Number of channels.
+        /// Null if game was searched
         /// </summary>
         public long? channels;
 
         /// <summary>
-        /// v2/v3
+        /// Name
         /// </summary>
         public string name;
 
         /// <summary>
-        /// v2/v3
+        /// ID
         /// </summary>
         public long? id;
 
         /// <summary>
-        /// v2/v3
+        /// GiantBomb ID
         /// </summary>
         public long? giantBombId;
 
         /// <summary>
-        /// v2/v3
+        /// Box image links.
+        /// Dictionary strings: small, medium, large, template
         /// </summary>
         public Dictionary<string, Uri> box;
 
         /// <summary>
-        /// v2/v3
+        /// Logo image links.
+        /// Dictionary strings: small, medium, large, template
         /// </summary>
         public Dictionary<string, Uri> logo;
 
+        /// <summary>
+        /// Game constructor
+        /// </summary>
+        /// <param name="viewers">Number of viewers</param>
+        /// <param name="channels">Number of channels</param>
+        /// <param name="name">Name</param>
+        /// <param name="id">ID</param>
+        /// <param name="giantBombId">GiantBomb ID</param>
+        /// <param name="boxO">Box JSON object</param>
+        /// <param name="logoO">Logo JSON object</param>
+        /// <param name="version">Twitch API version</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
         public Game(long? viewers,
             long? channels,
             string name,

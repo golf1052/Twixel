@@ -3,43 +3,61 @@ using Newtonsoft.Json.Linq;
 
 namespace TwixelAPI
 {
+    /// <summary>
+    /// FeaturedStream object
+    /// </summary>
     public class FeaturedStream : TwixelObjectBase
     {
         /// <summary>
+        /// Description text.
+        /// Contains HTML tags by default.
         /// v2/v3
         /// </summary>
         public string text;
 
         /// <summary>
+        /// Link to image
         /// v2/v3
         /// </summary>
         public Uri image;
 
         /// <summary>
+        /// Title
         /// v3
         /// </summary>
         public string title;
 
         /// <summary>
+        /// Sponsored status
         /// v3
         /// </summary>
         public bool sponsored;
 
         /// <summary>
+        /// Priority
         /// v3
         /// </summary>
         public int priority;
 
         /// <summary>
+        /// Scheduled status
         /// v3
         /// </summary>
         public bool scheduled;
 
         /// <summary>
+        /// Stream object
         /// v2/v3
         /// </summary>
         public Stream stream;
 
+        /// <summary>
+        /// FeaturedStream constructor, Twitch API v2
+        /// </summary>
+        /// <param name="text">Description text</param>
+        /// <param name="image">Link to image</param>
+        /// <param name="streamO">Stream JSON object</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
         public FeaturedStream(string text,
             string image,
             JObject streamO,
@@ -54,6 +72,17 @@ namespace TwixelAPI
             this.stream = HelperMethods.LoadStream(streamO, version);
         }
 
+        /// <summary>
+        /// FeaturedStream constructor, Twitch API v3
+        /// </summary>
+        /// <param name="text">Description text</param>
+        /// <param name="image">Link to image</param>
+        /// <param name="title">Title</param>
+        /// <param name="sponsored">Sponsored status</param>
+        /// <param name="priority">Priority</param>
+        /// <param name="scheduled">Scheduled status</param>
+        /// <param name="streamO">Stream JSON object</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
         public FeaturedStream(string text,
             string image,
             string title,
@@ -76,7 +105,10 @@ namespace TwixelAPI
             this.stream = HelperMethods.LoadStream(streamO, version);
         }
 
-        public void CleanInfoString()
+        /// <summary>
+        /// Remove HTML tags and HTML decode info string
+        /// </summary>
+        public void CleanTextString()
         {
             text = HelperMethods.ConvertAmp(HelperMethods.RemoveHtmlTags(text)).Trim();
             char lastChar = '\0';

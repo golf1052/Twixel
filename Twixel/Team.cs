@@ -3,53 +3,71 @@ using Newtonsoft.Json.Linq;
 
 namespace TwixelAPI
 {
+    /// <summary>
+    /// Team object
+    /// </summary>
     public class Team : TwixelObjectBase
     {
         /// <summary>
-        /// v2/v3
+        /// ID
         /// </summary>
         public long id;
 
         /// <summary>
-        /// v2/v3
+        /// Name
         /// </summary>
         public string name;
 
         /// <summary>
-        /// v2/v3
+        /// Info.
+        /// Contains HTML tags by default.
         /// </summary>
         public string info;
 
         /// <summary>
-        /// v2/v3
+        /// Display name
         /// </summary>
         public string displayName;
 
         /// <summary>
-        /// v2/v3
+        /// Creation date
         /// </summary>
         public DateTime createdAt;
 
         /// <summary>
-        /// v2/v3
+        /// Last updated
         /// </summary>
         public DateTime updatedAt;
 
         /// <summary>
-        /// v2/v3
+        /// Link to logo
         /// </summary>
         public Uri logo;
 
         /// <summary>
-        /// v2/v3
+        /// Link to banner
         /// </summary>
         public Uri banner;
 
         /// <summary>
-        /// v2/v3
+        /// Link to background
         /// </summary>
         public Uri background;
         
+        /// <summary>
+        /// Team constructor
+        /// </summary>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="info">Info</param>
+        /// <param name="displayName">Display name</param>
+        /// <param name="createdAt">Creation date</param>
+        /// <param name="updatedAt">Last updated</param>
+        /// <param name="logo">Link to logo</param>
+        /// <param name="banner">Link to banner</param>
+        /// <param name="background">Link to background</param>
+        /// <param name="version">Twitch API version</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
         public Team(long id,
             string name,
             string info,
@@ -80,6 +98,28 @@ namespace TwixelAPI
             if (background != null)
             {
                 this.background = new Uri(background);
+            }
+        }
+
+        /// <summary>
+        /// Remove HTML tags and HTML decode info string
+        /// </summary>
+        public void CleanInfoString()
+        {
+            info = HelperMethods.ConvertAmp(HelperMethods.RemoveHtmlTags(info)).Trim();
+            char lastChar = '\0';
+            for (int i = 0; i < info.Length; i++)
+            {
+                if (info[i] == '\n')
+                {
+                    if (lastChar == '\n')
+                    {
+                        i -= 1;
+                        info = info.Remove(i);
+                        break;
+                    }
+                }
+                lastChar = info[i];
             }
         }
     }

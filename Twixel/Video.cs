@@ -5,105 +5,161 @@ using Newtonsoft.Json.Linq;
 
 namespace TwixelAPI
 {
+    /// <summary>
+    /// Resolution struct
+    /// </summary>
     public struct Resolution
     {
-        public readonly int x;
-        public readonly int y;
+        /// <summary>
+        /// Width in pixels
+        /// </summary>
+        public readonly int width;
 
-        public Resolution(int x, int y)
+        /// <summary>
+        /// Height in pixels
+        /// </summary>
+        public readonly int height;
+
+        /// <summary>
+        /// Resolution constructor
+        /// </summary>
+        /// <param name="width">Width in pixels</param>
+        /// <param name="height">Height in pixels</param>
+        public Resolution(int width, int height)
         {
-            this.x = x;
-            this.y = y;
+            this.width = width;
+            this.height = height;
         }
     }
 
+    /// <summary>
+    /// Video object
+    /// </summary>
     public class Video : TwixelObjectBase
     {
         /// <summary>
+        /// Title
         /// v2/v3
         /// </summary>
         public string title;
 
         /// <summary>
+        /// Description
         /// v2/v3
         /// </summary>
         public string description;
 
         /// <summary>
+        /// Broadcast ID
         /// v2/v3
         /// </summary>
         public long broadcastId;
 
         /// <summary>
+        /// Status
         /// v2/v3
         /// </summary>
         public string status;
 
         /// <summary>
+        /// Comma seperated string of tags
         /// v3
         /// </summary>
         public string tagList;
 
         /// <summary>
+        /// ID
         /// v2/v3
         /// </summary>
         public string id;
 
         /// <summary>
+        /// Recording date
         /// v2/v3
         /// </summary>
         public DateTime recordedAt;
 
         /// <summary>
+        /// Game, can be null
         /// v2/v3
         /// </summary>
         public string game;
 
         /// <summary>
+        /// Length in seconds
         /// v2/v3
         /// </summary>
         public long length;
 
         /// <summary>
+        /// Link to preview image
         /// v2/v3
         /// </summary>
         public Uri preview;
         
         /// <summary>
+        /// Link to video
         /// v2/v3
         /// </summary>
         public Uri url;
 
         /// <summary>
+        /// Embed string
         /// v2
         /// </summary>
         public string embed;
 
         /// <summary>
+        /// Number of views
         /// v2/v3
         /// </summary>
         public long views;
 
         /// <summary>
+        /// Quality FPS's
+        /// Dictionary strings: chunked, high, medium, low, mobile, audio_only
         /// v3
         /// </summary>
         public Dictionary<string, double> fps;
 
         /// <summary>
+        /// Quality resolutions.
+        /// Dictionary strings: chunked, high, medium, low, mobile
         /// v3
         /// </summary>
         public Dictionary<string, Resolution> resolutions;
 
         /// <summary>
+        /// Broadcast type
         /// v2/v3
         /// </summary>
         public string broadcastType;
 
         /// <summary>
+        /// Channel info
+        /// Dictionary strings: name, display_name
         /// v2/v3
         /// </summary>
         public Dictionary<string, string> channel;
 
+        /// <summary>
+        /// Video constructor, Twitch API v2
+        /// </summary>
+        /// <param name="title">Title</param>
+        /// <param name="description">Description</param>
+        /// <param name="broadcastId">Broadcast ID</param>
+        /// <param name="status">Status</param>
+        /// <param name="id">ID</param>
+        /// <param name="recordedAt">Recording date</param>
+        /// <param name="game">Game, can be null</param>
+        /// <param name="length">Length in seconds</param>
+        /// <param name="preview">Link to preview image</param>
+        /// <param name="url">Link to video</param>
+        /// <param name="embed">Embed string</param>
+        /// <param name="views">Number of views</param>
+        /// <param name="broadcastType">Broadcast type</param>
+        /// <param name="miniChannelO">Mini channel JSON object</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
         public Video(string title,
             string description,
             long broadcastId,
@@ -140,6 +196,26 @@ namespace TwixelAPI
             this.channel = LoadChannel(miniChannelO);
         }
 
+        /// <summary>
+        /// Video constructor, Twitch API v3
+        /// </summary>
+        /// <param name="title">Title</param>
+        /// <param name="description">Description</param>
+        /// <param name="broadcastId">Broadcast ID</param>
+        /// <param name="status">Status</param>
+        /// <param name="tagList">Comma seperated string of tags</param>
+        /// <param name="id">ID</param>
+        /// <param name="recordedAt">Recording date</param>
+        /// <param name="game">Game, can be null</param>
+        /// <param name="length">Length in seconds</param>
+        /// <param name="preview">Link to preview image</param>
+        /// <param name="url">Link to video</param>
+        /// <param name="views">Number of views</param>
+        /// <param name="fps">FPS JSON object</param>
+        /// <param name="resolutions">Resolutions JSON object</param>
+        /// <param name="broadcastType">Broadcast type</param>
+        /// <param name="miniChannelO">Mini channel JSON object</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
         public Video(string title,
             string description,
             long broadcastId,

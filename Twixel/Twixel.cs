@@ -34,6 +34,9 @@ namespace TwixelAPI
             None
         }
 
+        /// <summary>
+        /// Request types
+        /// </summary>
         public enum RequestType
         {
             Get,
@@ -109,13 +112,152 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// Gets games by number of viewers, can specify how many games to get
+        /// Gets the channel of the specified user.
         /// </summary>
+        /// <param name="name">The name of the user</param>
+        /// <param name="version">Twich API version</param>
+        /// <returns>A channel</returns>
+        public async Task<Channel> RetrieveChannel(string name,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadChannel(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Retrieve teams the specified user is a member of.
+        /// </summary>
+        /// <param name="user">The name of the user</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>List of teams</returns>
+        public async Task<List<Team>> RetrieveTeams(string user,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (version == APIVersion.v3)
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "teams");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadTeams(JObject.Parse(responseString), version);
+            }
+            else
+            {
+                throw new TwixelException(TwitchConstants.v2UnsupportedErrorString);
+            }
+        }
+
+        /// <summary>
+        /// Gets the chat URL's for the specified user
+        /// </summary>
+        /// <param name="user">The name of the user</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A dictionary of links</returns>
+        public async Task<Dictionary<string, Uri>> RetrieveChat(string user,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadLinks((JObject)JObject.Parse(responseString)["_links"]);
+        }
+
+        /// <summary>
+        /// Gets the list of emoticons on Twitch
+        /// </summary>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of emoticons</returns>
+        public async Task<List<Emoticon>> RetrieveEmoticons(APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", "emoticons");
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadEmoticons(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Gets the list of badges that can be used in the specified user's channel
+        /// </summary>
+        /// <param name="user">The name of the user</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>List of badges</returns>
+        public async Task<List<Badge>> RetrieveBadges(string user,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user, "badges");
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadBadges(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Gets top games on Twitch.
+        /// </summary>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
         /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <param name="offset"></param>
-        /// <returns>Returns a list of games.
-        /// If the page of games contains no games this will return an empty list.
-        /// If an error occurs this will throw an exception.</returns>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of games</returns>
         public async Task<Total<List<Game>>> RetrieveTopGames(int offset = 0, int limit = 25,
             APIVersion version = APIVersion.None)
         {
@@ -150,12 +292,173 @@ namespace TwixelAPI
         }
 
         /// <summary>
+        /// Gets the list of RTMP ingest points
+        /// </summary>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A list of ingests</returns>
+        public async Task<List<Ingest>> RetrieveIngests(APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("ingests");
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadIngests(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Search channels on Twitch. Twitch API v3 only.
+        /// </summary>
+        /// <param name="query">The search query</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many channels to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Total object containing a list of channels matching the search query</returns>
+        public async Task<Total<List<Channel>>> SearchChannels(string query,
+            int offset = 0, int limit = 25,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (version == APIVersion.v3)
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "channels").SetQueryParam("query", query);
+                if (limit <= 100)
+                {
+                    url.SetQueryParam("limit", limit);
+                }
+                else
+                {
+                    url.SetQueryParam("limit", 100);
+                }
+                url.SetQueryParam("offset", offset);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                JObject responseObject = JObject.Parse(responseString);
+                List<Channel> channels = HelperMethods.LoadChannels(responseObject, version);
+                return HelperMethods.LoadTotal(responseObject, channels, version);
+            }
+            else
+            {
+                throw new TwixelException("");
+            }
+        }
+
+        /// <summary>
+        /// Search streams on Twitch
+        /// </summary>
+        /// <param name="query">The search query</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="hls">If set to true, only returns streams using HLS. If set to false, only returns streams that are non-HLS.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Total object containing a list of streams</returns>
+        public async Task<Total<List<Stream>>> SearchStreams(string query,
+            int offset = 0, int limit = 25, bool? hls = null,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "streams").SetQueryParam("query", query);
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
+            }
+            else
+            {
+                url.SetQueryParam("limit", 100);
+            }
+            url.SetQueryParam("offset", offset);
+            if (version == APIVersion.v3)
+            {
+                if (hls == null)
+                {
+                    hls = false;
+                }
+                url.SetQueryParam("hls", hls);
+            }
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject responseObject = JObject.Parse(responseString);
+            List<Stream> streams = HelperMethods.LoadStreams(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, streams, version);
+        }
+
+        /// <summary>
+        /// Search games on Twitch
+        /// </summary>
+        /// <param name="query">The search query</param>
+        /// <param name="live">If true, only returns games that are live on at least one channel. Default is false.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of searched games</returns>
+        public async Task<List<SearchedGame>> SearchGames(string query,
+            bool live = false,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "games").SetQueryParams(new
+            {
+                query = query,
+                type = "suggest",
+                live = live
+            });
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadSearchedGames(JObject.Parse(responseString), version);
+        }
+
+
+        /// <summary>
         /// Gets a live stream.
         /// If the stream is offline this method will throw an exception.
         /// </summary>
         /// <param name="channelName">The channel stream to get.</param>
-        /// <returns>Returns a stream object.
-        /// If the stream is offline or an error occurs this will throw an exception.</returns>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>
+        /// Returns a stream object.
+        /// If the stream is offline or an error occurs this will throw an exception.
+        /// </returns>
         public async Task<Stream> RetrieveStream(string channelName,
             APIVersion version = APIVersion.None)
         {
@@ -193,12 +496,11 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="game">The game you want streams for.</param>
         /// <param name="channels">Streams from a list of channels.</param>
-        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100.</param>
         /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100.</param>
         /// <param name="clientId">Only show stream with this client ID. Version 3 only.</param>
-        /// <returns>Returns a list of streams.
-        /// If the page of streams contains no streams this will return an empty list.
-        /// If an error occors this will throw an exception.</returns>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of streams</returns>
         public async Task<List<Stream>> RetrieveStreams(string game = null,
             List<string> channels = null,
             int offset = 0, int limit = 25,
@@ -255,43 +557,13 @@ namespace TwixelAPI
             return HelperMethods.LoadStreams(JObject.Parse(responseString), version);
         }
 
-        public async Task<List<Stream>> RetrieveAllStreams(string game = null,
-            List<string> channels = null,
-            string clientId = null,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-
-            List<Stream> streams = new List<Stream>();
-            List<Stream> collector = new List<Stream>();
-            int offset = 0;
-            do
-            {
-                try
-                {
-                    collector = await RetrieveStreams(game, channels, offset, 100, clientId, version);
-                }
-                catch (TwixelException)
-                {
-                    throw;
-                }
-                streams.AddRange(collector);
-                offset += 100;
-            }
-            while (collector.Count > 0);
-            return streams;
-        }
-
         /// <summary>
         /// Gets the featured live streams on Twitch
         /// </summary>
-        /// <param name="limit">How many featured streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>Returns a list of featured streams.
-        /// If the page of featured streams contains no streams this will return an empty list.
-        /// If an error occors this will throw an exception.</returns>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many featured streams to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a list of featured streams</returns>
         public async Task<List<FeaturedStream>> RetrieveFeaturedStreams(int offset = 0, int limit = 25,
             APIVersion version = APIVersion.None)
         {
@@ -326,15 +598,21 @@ namespace TwixelAPI
         /// <summary>
         /// Gets a summary of live streams on Twitch
         /// </summary>
-        /// <returns>A Dictionary with the first key of Viewers and the second key of Channels.
-        /// If an error occurs this will return null.</returns>
-        public async Task<Dictionary<string, int>> RetrieveStreamsSummary(APIVersion version = APIVersion.None)
+        /// <param name="game">Only show stats for this game</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Dictionary with the first key of Viewers and the second key of Channels.</returns>
+        public async Task<Dictionary<string, int>> RetrieveStreamsSummary(string game = null,
+            APIVersion version = APIVersion.None)
         {
             if (version == APIVersion.None)
             {
                 version = DefaultVersion;
             }
             Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "summary");
+            if (!string.IsNullOrEmpty(game))
+            {
+                url.SetQueryParam("game", game);
+            }
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -353,11 +631,180 @@ namespace TwixelAPI
         }
 
         /// <summary>
+        /// Gets the list of teams from Twitch
+        /// </summary>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many teams to get at one time. Default is 25. Maximum is 100.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A list of teams</returns>
+        public async Task<List<Team>> RetrieveTeams(int offset = 0, int limit = 25,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("teams");
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
+            }
+            else
+            {
+                url.SetQueryParam("limit", 100);
+            }
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadTeams(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Gets a team by name
+        /// </summary>
+        /// <param name="name">The name of the team</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A team</returns>
+        public async Task<Team> RetrieveTeam(string name,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("teams", name);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadTeam(JObject.Parse(responseString), version);
+        }
+
+        /// <summary>
+        /// Gets a user by their name
+        /// </summary>
+        /// <param name="name">The name of the user</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>Returns a user</returns>
+        public async Task<User> RetrieveUser(string name,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            return HelperMethods.LoadUser(JObject.Parse(responseString), version);
+        }
+
+
+        private async Task<User> RetrieveAuthenticatedUser(string accessToken,
+            List<TwitchConstants.Scope> authorizedScopes,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("user");
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadAuthedUser(JObject.Parse(responseString),
+                    accessToken, authorizedScopes, version);
+            }
+            else
+            {
+                throw new TwixelException("This user has not given user_read permissions");
+            }
+        }
+
+        /// <summary>
+        /// Gets the status of an access token, if the token is valid this returns an
+        /// authorized user object
+        /// </summary>
+        /// <param name="accessToken">The access token</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>
+        /// An authorized user if the request succeeds.
+        /// Throws an exception if the token is not valid.</returns>
+        public async Task<User> RetrieveUserWithAccessToken(string accessToken,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            Url url = new Url(TwitchConstants.baseUrl);
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await Twixel.GetWebData(uri, accessToken, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject responseObject = JObject.Parse(responseString);
+            JObject token = (JObject)responseObject["token"];
+            if ((bool)token["valid"])
+            {
+                JArray userScopesA = (JArray)token["authorization"]["scopes"];
+                List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
+                foreach (string scope in userScopesA)
+                {
+                    userScopes.Add(TwitchConstants.StringToScope(scope));
+                }
+                return await RetrieveAuthenticatedUser(accessToken, userScopes, version);
+            }
+            else
+            {
+                throw new TwixelException(accessToken + " is not a valid access token",
+                    (JObject)responseObject["_links"]);
+            }
+        }
+
+        /// <summary>
         /// Creates a URL that can be used to authenticate a user
         /// </summary>
         /// <param name="scopes">The permissions you are requesting. Must contain at least one permission.</param>
-        /// <returns>Returns a URL to be used for authenticating a user.
-        /// If the scopes list contained no scopes this returns null.</returns>
+        /// <returns>
+        /// Returns a URL to be used for authenticating a user.
+        /// Throws an exception if the scopes list contained no scopes.
+        /// </returns>
         public Uri Login(List<TwitchConstants.Scope> scopes)
         {
             if (scopes == null)
@@ -397,328 +844,10 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// Gets a user by their name
-        /// </summary>
-        /// <param name="name">The name of the user</param>
-        /// <returns>Returns a user.
-        /// If an error occurs this throws an exception.</returns>
-        public async Task<User> RetrieveUser(string name,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name);
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadUser(JObject.Parse(responseString), version);
-        }
-
-        /// <summary>
-        /// Gets the chat URL's for the specified user
-        /// </summary>
-        /// <param name="user">The name of the user</param>
-        /// <returns>Returns list of URLs.
-        /// If an error occurs this returns null.</returns>
-        public async Task<Dictionary<string, Uri>> RetrieveChat(string user,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadLinks((JObject)JObject.Parse(responseString)["_links"]);
-        }
-
-        /// <summary>
-        /// Gets the list of emoticons on Twitch
-        /// </summary>
-        /// <returns>Returns a list of emoticons.
-        /// If an error occurs this returns null.</returns>
-        public async Task<List<Emoticon>> RetrieveEmoticons(APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", "emoticons");
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadEmoticons(JObject.Parse(responseString), version);
-        }
-
-        public async Task<List<Badge>> RetrieveBadges(string user,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user, "badges");
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadBadges(JObject.Parse(responseString), version);
-        }
-
-        /// <summary>
-        /// Search channels on Twitch. Twitch API v3 only.
-        /// </summary>
-        /// <param name="query">The search query</param>
-        /// <param name="offset">Object offset for pagination. Default is 0.</param>
-        /// <param name="limit">How many channels to get at one time. Default is 25. Maximum is 100.</param>
-        /// <param name="version">Twitch API version</param>
-        /// <returns>A list of channels matching the search query</returns>
-        public async Task<Total<List<Channel>>> SearchChannels(string query,
-            int offset = 0, int limit = 25,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            if (version == APIVersion.v3)
-            {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "channels").SetQueryParam("query", query);
-                if (limit <= 100)
-                {
-                    url.SetQueryParam("limit", limit);
-                }
-                else
-                {
-                    url.SetQueryParam("limit", 100);
-                }
-                url.SetQueryParam("offset", offset);
-                Uri uri = new Uri(url.ToString());
-                string responseString;
-                try
-                {
-                    responseString = await GetWebData(uri, version);
-                }
-                catch (TwitchException ex)
-                {
-                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-                }
-                JObject responseObject = JObject.Parse(responseString);
-                List<Channel> channels = HelperMethods.LoadChannels(responseObject, version);
-                return HelperMethods.LoadTotal(responseObject, channels, version);
-            }
-            else
-            {
-                throw new TwixelException("");
-            }
-        }
-
-        /// <summary>
-        /// Gets a list of live streams based upon a search query
-        /// </summary>
-        /// <param name="query">The search query</param>
-        /// <param name="limit">How many streams to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>Returns list of streams.
-        /// If an error occurs this will return null.</returns>
-        public async Task<Total<List<Stream>>> SearchStreams(string query,
-            int offset = 0, int limit = 25, bool? hls = null, 
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "streams").SetQueryParam("query", query);
-            if (limit <= 100)
-            {
-                url.SetQueryParam("limit", limit);
-            }
-            else
-            {
-                url.SetQueryParam("limit", 100);
-            }
-            url.SetQueryParam("offset", offset);
-            if (version == APIVersion.v3)
-            {
-                if (hls == null)
-                {
-                    hls = false;
-                }
-                url.SetQueryParam("hls", hls);
-            }
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            JObject responseObject = JObject.Parse(responseString);
-            List<Stream> streams = HelperMethods.LoadStreams(responseObject, version);
-            return HelperMethods.LoadTotal(responseObject, streams, version);
-        }
-
-        /// <summary>
-        /// Gets a list of games based upon a search query
-        /// </summary>
-        /// <param name="query">The search query</param>
-        /// <param name="live">If true, only returns games that are live on at least one channel</param>
-        /// <returns>Returns a list of searched games.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<SearchedGame>> SearchGames(string query, bool live = false,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "games").SetQueryParams(new
-            {
-                query = query,
-                type = "suggest",
-                live = live
-            });
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadSearchedGames(JObject.Parse(responseString), version);
-        }
-
-        /// <summary>
-        /// Gets the list of teams from Twitch
-        /// </summary>
-        /// <param name="limit">How many teams to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>A list of teams.
-        /// If the page of teams contains no teams this will return an empty list.
-        /// If an error occurs this will return null.</returns>
-        public async Task<List<Team>> RetrieveTeams(int offset = 0, int limit = 25,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("teams");
-            if (limit <= 100)
-            {
-                url.SetQueryParam("limit", limit);
-            }
-            else
-            {
-                url.SetQueryParam("limit", 100);
-            }
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadTeams(JObject.Parse(responseString), version);
-        }
-
-        /// <summary>
-        /// Gets a team by name
-        /// </summary>
-        /// <param name="name">The name of the team</param>
-        /// <returns>A team</returns>
-        public async Task<Team> RetrieveTeam(string name,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("teams", name);
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadTeam(JObject.Parse(responseString), version);
-        }
-
-        public async Task<List<Team>> RetrieveTeams(string user,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            if (version == APIVersion.v3)
-            {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "teams");
-                Uri uri = new Uri(url.ToString());
-                string responseString;
-                try
-                {
-                    responseString = await GetWebData(uri, version);
-                }
-                catch (TwitchException ex)
-                {
-                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-                }
-                return HelperMethods.LoadTeams(JObject.Parse(responseString), version);
-            }
-            else
-            {
-                throw new TwixelException(TwitchConstants.v2UnsupportedErrorString);
-            }
-        }
-
-        /// <summary>
         /// Gets a video by ID
         /// </summary>
         /// <param name="id">The video ID</param>
+        /// <param name="version">Twitch API version</param>
         /// <returns>A video</returns>
         public async Task<Video> RetrieveVideo(string id,
             APIVersion version = APIVersion.None)
@@ -744,9 +873,11 @@ namespace TwixelAPI
         /// <summary>
         /// Gets the top videos on Twitch
         /// </summary>
-        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
         /// <param name="game">The name of the game to get videos for</param>
         /// <param name="period">The time period you want to look in</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
+        /// <param name="version">Twitch API version</param>
         /// <returns>A list of videos</returns>
         public async Task<List<Video>> RetrieveTopVideos(string game = null,
             TwitchConstants.Period period = TwitchConstants.Period.Week,
@@ -783,12 +914,15 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// Gets a list of videos for a specified channel
+        /// Gets a Total object containing a list of videos for a specified channel
         /// </summary>
         /// <param name="channel">The name of the channel</param>
-        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100.</param>
         /// <param name="broadcasts">Returns only broadcasts when true. Otherwise only highlights are returned. Default is false.</param>
-        /// <returns>A list of videos</returns>
+        /// <param name="hls">Returns only HLS VoDs when true. Otherwise only non-HLS VoDs are returned. Default is false.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Total object containing list of videos</returns>
         public async Task<Total<List<Video>>> RetrieveVideos(string channel = null,
             int offset = 0, int limit = 25,
             bool broadcasts = false,
@@ -838,192 +972,61 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// Gets a list of users following a specified user
+        /// Get web data.
         /// </summary>
-        /// <param name="user">The name of the user</param>
-        /// <param name="limit">How many users to get at one time. Default is 25. Maximum is 100</param>
-        /// <returns>A list of users</returns>
-        public async Task<Total<List<Follow<User>>>> RetrieveFollowers(string user,
-            int offset = 0, int limit = 25,
-            TwitchConstants.Direction direction = TwitchConstants.Direction.Decending,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "follows");
-            if (limit <= 100)
-            {
-                url.SetQueryParam("limit", limit);
-            }
-            else
-            {
-                url.SetQueryParam("limit", 100);
-            }
-            url.SetQueryParams(new
-            {
-                offset = offset,
-                direction = TwitchConstants.DirectionToString(direction)
-            });
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            JObject responseObject = JObject.Parse(responseString);
-            List<Follow<User>> follows = HelperMethods.LoadUserFollows(responseObject, version);
-            return HelperMethods.LoadTotal(responseObject, follows, version);
-        }
-
-        /// <summary>
-        /// Gets the channel of the specified user
-        /// </summary>
-        /// <param name="name">The name of the user</param>
-        /// <returns>A channel</returns>
-        public async Task<Channel> RetrieveChannel(string name,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadChannel(JObject.Parse(responseString), version);
-        }
-
-        /// <summary>
-        /// Gets the list of RTMP ingest points
-        /// </summary>
-        /// <returns>A list of ingests</returns>
-        public async Task<List<Ingest>> RetrieveIngests(APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("ingests");
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await GetWebData(uri, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            return HelperMethods.LoadIngests(JObject.Parse(responseString), version);
-        }
-
-        private async Task<User> RetrieveAuthenticatedUser(string accessToken,
-            List<TwitchConstants.Scope> authorizedScopes,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
-            {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("user");
-                Uri uri = new Uri(url.ToString());
-                string responseString;
-                try
-                {
-                    responseString = await GetWebData(uri, accessToken, version);
-                }
-                catch (TwitchException ex)
-                {
-                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-                }
-                return HelperMethods.LoadAuthedUser(JObject.Parse(responseString),
-                    accessToken, authorizedScopes, version);
-            }
-            else
-            {
-                throw new TwixelException("This user has not given user_read permissions");
-            }
-        }
-
-        /// <summary>
-        /// Gets the status of an access token, if the token is valid this returns an
-        /// authorized user object
-        /// </summary>
-        /// <param name="accessToken">The access token</param>
-        /// <returns>An authorized user</returns>
-        public async Task<User> RetrieveUserWithAccessToken(string accessToken,
-            APIVersion version = APIVersion.None)
-        {
-            if (version == APIVersion.None)
-            {
-                version = DefaultVersion;
-            }
-            Url url = new Url(TwitchConstants.baseUrl);
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
-            {
-                responseString = await Twixel.GetWebData(uri, accessToken, version);
-            }
-            catch (TwitchException ex)
-            {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
-            }
-            JObject responseObject = JObject.Parse(responseString);
-            JObject token = (JObject)responseObject["token"];
-            if ((bool)token["valid"])
-            {
-                JArray userScopesA = (JArray)token["authorization"]["scopes"];
-                List<TwitchConstants.Scope> userScopes = new List<TwitchConstants.Scope>();
-                foreach (string scope in userScopesA)
-                {
-                    userScopes.Add(TwitchConstants.StringToScope(scope));
-                }
-                return await RetrieveAuthenticatedUser(accessToken, userScopes, version);
-            }
-            else
-            {
-                throw new TwixelException(accessToken + " is not a valid access token",
-                    (JObject)responseObject["_links"]);
-            }
-        }
-
+        /// <param name="uri">URL</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
         public static async Task<string> GetWebData(Uri uri, APIVersion version = APIVersion.None)
         {
             return await DoWebData(uri, RequestType.Get, null, null, version);
         }
 
+        /// <summary>
+        /// Get web data with an access token.
+        /// </summary>
+        /// <param name="uri">URL</param>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
         public static async Task<string> GetWebData(Uri uri, string accessToken, APIVersion version = APIVersion.None)
         {
             return await DoWebData(uri, RequestType.Get, accessToken, null, version);
         }
 
+        /// <summary>
+        /// Put web data
+        /// </summary>
+        /// <param name="uri">URL</param>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="content">JSON object as a string</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
         public static async Task<string> PutWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.None)
         {
             return await DoWebData(uri, RequestType.Put, accessToken, content, version);
         }
 
+        /// <summary>
+        /// Post web data
+        /// </summary>
+        /// <param name="uri">URL</param>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="content">JSON object as a string</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
         public static async Task<string> PostWebData(Uri uri, string accessToken, string content, APIVersion version = APIVersion.None)
         {
             return await DoWebData(uri, RequestType.Post, accessToken, content, version);
         }
 
+        /// <summary>
+        /// Delete web data
+        /// </summary>
+        /// <param name="uri">URL</param>
+        /// <param name="accessToken">Access token</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A response string containing a JSON object</returns>
         public static async Task<string> DeleteWebData(Uri uri, string accessToken, APIVersion version = APIVersion.None)
         {
             return await DoWebData(uri, RequestType.Delete, accessToken, null, version);
@@ -1085,7 +1088,7 @@ namespace TwixelAPI
             }
             else if (response.StatusCode == HttpStatusCode.NoContent)
             {
-                responseString = "";
+                responseString = string.Empty;
                 return responseString;
             }
             else

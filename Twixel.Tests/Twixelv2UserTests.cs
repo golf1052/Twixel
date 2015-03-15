@@ -14,11 +14,12 @@ namespace TwixelAPI.Tests
 
         public Twixelv2UserTests()
         {
-            twixel = new Twixel(Secrets.ClientId, Secrets.ClientSecret, Secrets.RedirectUrl, Twixel.APIVersion.v2);
+            twixel = new Twixel(Secrets.ClientId, Secrets.ClientSecret,
+                Secrets.RedirectUrl, Twixel.APIVersion.v2);
         }
 
         [Fact]
-        public async void LoginTest()
+        public void LoginTest()
         {
             // Collect scopes
             List<TwitchConstants.Scope> scopes = new List<TwitchConstants.Scope>();
@@ -50,8 +51,8 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveBlockedUsersTest()
         {
-            User twixelTest = await twixel.RetrieveUserWithAccessToken(accessToken);
-            List<User> blockedUsers = await twixelTest.RetrieveBlockedUsers();
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            List<Block> blockedUsers = await user.RetrieveBlockedUsers();
             Assert.NotNull(blockedUsers);
         }
 
@@ -59,25 +60,32 @@ namespace TwixelAPI.Tests
         public async void BlockUserTest()
         {
             User user = await twixel.RetrieveUserWithAccessToken(accessToken);
-            List<User> blockedUsers = await user.BlockUser("nightblue3");
-            User nightBlue3 = blockedUsers.FirstOrDefault((u) => u.name == "nightblue3");
-            Assert.NotNull(nightBlue3);
+            Block blockedUser = await user.BlockUser("nightblue3");
+            Assert.NotNull(blockedUser);
         }
 
         [Fact]
         public async void UnblockUserTest()
         {
             User user = await twixel.RetrieveUserWithAccessToken(accessToken);
-            List<User> blockedUsers = await user.RetrieveBlockedUsers();
-            foreach (User u in blockedUsers)
+            List<Block> blockedUsers = await user.RetrieveBlockedUsers();
+            bool? unblockedUser = null;
+            foreach (Block u in blockedUsers)
             {
-                if (user.name == "nightblue3")
+                if (u.user.name == "nightblue3")
                 {
-                    blockedUsers = await user.UnblockUser("nightblue3");
+                    unblockedUser = await user.UnblockUser("nightblue3");
                     break;
                 }
             }
-
+            if (unblockedUser != null)
+            {
+                Assert.True(unblockedUser);
+            }
+            else
+            {
+                Assert.True(false);
+            }
             TwixelException ex = await Assert.ThrowsAsync<TwixelException>(async () => await user.UnblockUser("nightblue3"));
         }
 
@@ -95,15 +103,7 @@ namespace TwixelAPI.Tests
             User twixelTest = await twixel.RetrieveUserWithAccessToken(Secrets.SecondAccessToken);
             List<User> editors = await twixelTest.RetrieveChannelEditors();
             // I probably won't be an editor to your channel, might want to edit this.
-            User golf1052 = null;
-            foreach (User user in editors)
-            {
-                if (user.name == "golf1052")
-                {
-                    golf1052 = user;
-                    break;
-                }
-            }
+            User golf1052 = editors.FirstOrDefault((editor) => editor.name == "golf1052");
             Assert.NotNull(golf1052);
         }
 
@@ -145,7 +145,100 @@ namespace TwixelAPI.Tests
         public async void StartCommercialTest()
         {
             User user = await twixel.RetrieveUserWithAccessToken(accessToken);
-            await Assert.ThrowsAsync<TwixelException>(async () => await user.StartCommercial(TwitchConstants.Length.Sec30));
+            await Assert.ThrowsAsync<TwixelException>(async () => await user.StartCommercial(TwitchConstants.CommercialLength.Sec30));
+        }
+
+        [Fact]
+        public async void RetrieveFollowersTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            Total<List<Follow<User>>> followers = await user.RetrieveFollowers();
+            User zeroAurora = followers.wrapped.FirstOrDefault((follower) => follower.wrapped.name == "zero_aurora").wrapped;
+            Assert.NotNull(zeroAurora);
+        }
+
+        [Fact]
+        public async void RetrieveFollowingTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            Total<List<Follow<Channel>>> following = await user.RetrieveFollowing();
+
+            // This test will only work if you are following chaoxlol
+            // and you are not following nightblue3
+            Follow<Channel> chaoxlol = following.wrapped.FirstOrDefault((follow) => follow.wrapped.name == "chaoxlol");
+            Assert.NotNull(chaoxlol.wrapped);
+
+            chaoxlol = null;
+            chaoxlol = await user.RetrieveFollowing("chaoxlol");
+            await Assert.ThrowsAsync<TwixelException>(async () => await user.RetrieveFollowing("nightblue3"));
+            Assert.NotNull(chaoxlol.wrapped);
+        }
+
+        [Fact]
+        public async void FollowChannelTest()
+        {
+            User twixelTest = await twixel.RetrieveUserWithAccessToken(accessToken);
+            Follow<Channel> qtpie = await twixelTest.FollowChannel("imaqtpie");
+            Assert.NotNull(qtpie.wrapped);
+        }
+
+        [Fact]
+        public async void UnfollowChannelTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            bool? unfollowedQtpie = null;
+            Total<List<Follow<Channel>>> following = await user.RetrieveFollowing();
+            Follow<Channel> qtpie = following.wrapped.FirstOrDefault((follow) => follow.wrapped.name == "imaqtpie");
+            Assert.NotNull(qtpie.wrapped);
+            unfollowedQtpie = await user.UnfollowChannel("imaqtpie");
+            if (qtpie == null)
+            {
+                Assert.False((bool)unfollowedQtpie);
+            }
+            else
+            {
+                Assert.True((bool)unfollowedQtpie);
+            }
+        }
+
+        [Fact]
+        public async void RetrieveSubscribersTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            await Assert.ThrowsAsync<TwixelException>(async () => await user.RetriveSubscribers());
+        }
+
+        [Fact]
+        public async void RetrieveSubscriberTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(Secrets.SecondAccessToken);
+            await Assert.ThrowsAsync<TwixelException>(async () => await user.RetrieveSubsciber("golf1052"));
+        }
+
+        [Fact]
+        public async void RetrieveSubscriptionTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            // This will throw an exception if you are not subscribed to clgdoublelift's channel
+            // If you are subscribed you should probably use another channel or change
+            // the test.
+            Subscription<Channel> doublelift = await user.RetrieveSubscription("clgdoublelift");
+            Assert.Null(doublelift);
+        }
+
+        [Fact]
+        public async void RetrieveOnlineFollowedStreamsTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            List<Stream> onlineStreams = await user.RetrieveOnlineFollowedStreams();
+            Assert.NotNull(onlineStreams);
+        }
+
+        [Fact]
+        public async void RetrieveFollowedVideosTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            await Assert.ThrowsAsync<TwixelException>(async () => await user.RetrieveFollowedVideos());
         }
     }
 }

@@ -4,118 +4,162 @@ using Newtonsoft.Json.Linq;
 
 namespace TwixelAPI
 {
+    /// <summary>
+    /// Channel object
+    /// </summary>
     public class Channel : TwixelObjectBase
     {
         /// <summary>
+        /// Mature status
         /// v2/v3
         /// </summary>
         public bool? mature;
 
         /// <summary>
+        /// Status
         /// v2/v3
         /// </summary>
         public string status;
 
         /// <summary>
+        /// Broadcaster language
         /// v3
         /// </summary>
         public string broadcasterLanguage;
 
         /// <summary>
+        /// Display name
         /// v2/v3
         /// </summary>
         public string displayName;
 
         /// <summary>
+        /// Current game, can be null
         /// v2/v3
         /// </summary>
         public string game;
 
         /// <summary>
+        /// Current delay
+        /// Partnered channels can have non 0 delay
         /// v3
         /// </summary>
         public int? delay;
 
         /// <summary>
+        /// Language
         /// v3
         /// </summary>
         public string language;
 
         /// <summary>
+        /// ID
         /// v2/v3
         /// </summary>
         public long id;
 
         /// <summary>
+        /// Name
         /// v2/v3
         /// </summary>
         public string name;
 
         /// <summary>
+        /// Creation date
         /// v2/v3
         /// </summary>
         public DateTime createdAt;
 
         /// <summary>
+        /// Last updated
         /// v2/v3
         /// </summary>
         public DateTime updatedAt;
 
         /// <summary>
+        /// Logo
         /// v2
         /// </summary>
         public Uri logo;
 
         /// <summary>
+        /// Banner
         /// v2/v3
         /// </summary>
         public Uri banner;
 
         /// <summary>
+        /// Video banner
         /// v2/v3
         /// </summary>
         public Uri videoBanner;
 
         /// <summary>
+        /// Background
         /// v2/v3
         /// </summary>
         public Uri background;
 
         /// <summary>
+        /// Profile banner
         /// v3
         /// </summary>
         public Uri profileBanner;
 
         /// <summary>
+        /// Profile banner background color
         /// v3
         /// </summary>
         public string profileBannerBackgroundColor;
 
         /// <summary>
+        /// Twitch partnership status
         /// v3
         /// </summary>
         public bool? partner;
 
         /// <summary>
+        /// Link to channel
         /// v2/v3
         /// </summary>
         public Uri url;
 
         /// <summary>
+        /// Number of views
         /// v3
         /// </summary>
         public long? views;
 
         /// <summary>
+        /// Number of followers
         /// v3
         /// </summary>
         public long? followers;
 
         /// <summary>
+        /// Teams this channel is a part of
         /// v2
         /// </summary>
         public List<Team> teams;
 
+        /// <summary>
+        /// Channel constructor, Twitch API v2
+        /// </summary>
+        /// <param name="mature">Mature status</param>
+        /// <param name="status">Status</param>
+        /// <param name="displayName">Display name</param>
+        /// <param name="game">Current game, can be null</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="createdAt">Creation date</param>
+        /// <param name="updatedAt">Last updated</param>
+        /// <param name="logo">Logo</param>
+        /// <param name="banner">Banner</param>
+        /// <param name="videoBanner">Video banner</param>
+        /// <param name="background">Background</param>
+        /// <param name="url">Link to channel</param>
+        /// <param name="teamsA">Teams JSON object</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
         public Channel(bool? mature,
             string status,
             string displayName,
@@ -171,6 +215,30 @@ namespace TwixelAPI
             }
         }
 
+        /// <summary>
+        /// Channel constructor, Twitch API v3
+        /// </summary>
+        /// <param name="mature">Mature status</param>
+        /// <param name="status">Status</param>
+        /// <param name="broadcasterLanguage"></param>
+        /// <param name="displayName">Display name</param>
+        /// <param name="game">Current game, can be null</param>
+        /// <param name="delay">Current delay</param>
+        /// <param name="id">ID</param>
+        /// <param name="name">Name</param>
+        /// <param name="createdAt">Creation date</param>
+        /// <param name="updatedAt">Last updated</param>
+        /// <param name="logo">Logo</param>
+        /// <param name="banner">Banner</param>
+        /// <param name="videoBanner">Video banner</param>
+        /// <param name="background">Background</param>
+        /// <param name="profileBanner">Profile banner</param>
+        /// <param name="profileBannerBackgroundColor">Profile banner background color</param>
+        /// <param name="partner">Twitch partnership status</param>
+        /// <param name="url">Link to channel</param>
+        /// <param name="views">Number of views</param>
+        /// <param name="followers">Number of followers</param>
+        /// <param name="baseLinksO">Base links JSON object</param>
         public Channel(bool? mature,
             string status,
             string broadcasterLanguage,

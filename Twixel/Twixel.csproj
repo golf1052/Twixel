@@ -37,6 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Badge.cs" />
+    <Compile Include="Block.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="Follow.cs" />
     <Compile Include="HelperMethods.cs" />
