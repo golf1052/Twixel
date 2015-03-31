@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace TwixelAPI
 {
@@ -22,10 +23,16 @@ namespace TwixelAPI
         public string status;
 
         /// <summary>
+        /// Broadcaster language as a string
+        /// v3
+        /// </summary>
+        public string broadcasterLanguageString;
+
+        /// <summary>
         /// Broadcaster language
         /// v3
         /// </summary>
-        public string broadcasterLanguage;
+        public CultureInfo broadcasterLanguage;
 
         /// <summary>
         /// Display name
@@ -47,10 +54,16 @@ namespace TwixelAPI
         public int? delay;
 
         /// <summary>
+        /// Language string
+        /// v3
+        /// </summary>
+        public string languageString;
+
+        /// <summary>
         /// Language
         /// v3
         /// </summary>
-        public string language;
+        public CultureInfo language;
 
         /// <summary>
         /// ID
@@ -220,10 +233,11 @@ namespace TwixelAPI
         /// </summary>
         /// <param name="mature">Mature status</param>
         /// <param name="status">Status</param>
-        /// <param name="broadcasterLanguage"></param>
+        /// <param name="broadcasterLanguage">Broadcaster language</param>
         /// <param name="displayName">Display name</param>
         /// <param name="game">Current game, can be null</param>
         /// <param name="delay">Current delay</param>
+        /// <param name="language">Language</param>
         /// <param name="id">ID</param>
         /// <param name="name">Name</param>
         /// <param name="createdAt">Creation date</param>
@@ -245,6 +259,7 @@ namespace TwixelAPI
             string displayName,
             string game,
             int? delay,
+            string language,
             long id,
             string name,
             string createdAt,
@@ -264,10 +279,33 @@ namespace TwixelAPI
             this.version = Twixel.APIVersion.v3;
             this.mature = mature;
             this.status = status;
-            this.broadcasterLanguage = broadcasterLanguage;
+            this.broadcasterLanguageString = broadcasterLanguage;
+            if (!string.IsNullOrEmpty(broadcasterLanguage))
+            {
+                try
+                {
+                    this.broadcasterLanguage = new CultureInfo(broadcasterLanguage);
+                }
+                catch (CultureNotFoundException ex)
+                {
+                    this.broadcasterLanguage = CultureInfo.InvariantCulture;
+                }
+            }
             this.displayName = displayName;
             this.game = game;
             this.delay = delay;
+            this.languageString = language;
+            if (!string.IsNullOrEmpty(language))
+            {
+                try
+                {
+                    this.language = new CultureInfo(language);
+                }
+                catch (CultureNotFoundException ex)
+                {
+                    this.language = CultureInfo.InvariantCulture;
+                }
+            }
             this.id = id;
             this.name = name;
             this.createdAt = DateTime.Parse(createdAt);

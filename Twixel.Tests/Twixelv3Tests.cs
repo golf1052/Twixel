@@ -130,11 +130,11 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveStreamsTest()
         {
-            List<Stream> topStreams = await twixel.RetrieveStreams();
-            Assert.Equal(25, topStreams.Count);
+            Total<List<Stream>> topStreams = await twixel.RetrieveStreams();
+            Assert.Equal(25, topStreams.wrapped.Count);
 
-            List<Stream> leagueStreams = await twixel.RetrieveStreams("League of Legends");
-            Assert.Equal("League of Legends", leagueStreams[0].game);
+            Total<List<Stream>> leagueStreams = await twixel.RetrieveStreams("League of Legends");
+            Assert.Equal("League of Legends", leagueStreams.wrapped[0].game);
         }
 
         [Fact]
