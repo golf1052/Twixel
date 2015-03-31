@@ -70,6 +70,7 @@ namespace TwixelAPI
                     (string)o["display_name"],
                     (string)o["game"],
                     (int?)o["delay"],
+                    (string)o["language"],
                     (long)o["_id"],
                     (string)o["name"],
                     (string)o["created_at"],

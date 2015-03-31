@@ -501,7 +501,7 @@ namespace TwixelAPI
         /// <param name="clientId">Only show stream with this client ID. Version 3 only.</param>
         /// <param name="version">Twitch API version</param>
         /// <returns>Returns a list of streams</returns>
-        public async Task<List<Stream>> RetrieveStreams(string game = null,
+        public async Task<Total<List<Stream>>> RetrieveStreams(string game = null,
             List<string> channels = null,
             int offset = 0, int limit = 25,
             string clientId = null,
@@ -554,7 +554,9 @@ namespace TwixelAPI
             {
                 throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
-            return HelperMethods.LoadStreams(JObject.Parse(responseString), version);
+            JObject responseObject = JObject.Parse(responseString);
+            List<Stream> streams = HelperMethods.LoadStreams(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, streams, version);
         }
 
         /// <summary>
