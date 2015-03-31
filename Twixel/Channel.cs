@@ -282,7 +282,14 @@ namespace TwixelAPI
             this.broadcasterLanguageString = broadcasterLanguage;
             if (!string.IsNullOrEmpty(broadcasterLanguage))
             {
-                this.broadcasterLanguage = new CultureInfo(broadcasterLanguage);
+                try
+                {
+                    this.broadcasterLanguage = new CultureInfo(broadcasterLanguage);
+                }
+                catch (CultureNotFoundException ex)
+                {
+                    this.broadcasterLanguage = CultureInfo.InvariantCulture;
+                }
             }
             this.displayName = displayName;
             this.game = game;
@@ -290,7 +297,14 @@ namespace TwixelAPI
             this.languageString = language;
             if (!string.IsNullOrEmpty(language))
             {
-                this.language = new CultureInfo(language);
+                try
+                {
+                    this.language = new CultureInfo(language);
+                }
+                catch (CultureNotFoundException ex)
+                {
+                    this.language = CultureInfo.InvariantCulture;
+                }
             }
             this.id = id;
             this.name = name;
