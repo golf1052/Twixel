@@ -197,8 +197,14 @@ namespace TwixelAPI
             this.game = game;
             this.id = id;
             this.name = name;
-            this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(createdAt))
+            {
+                this.createdAt = DateTime.Parse(createdAt);
+            }
+            if (!string.IsNullOrEmpty(updatedAt))
+            {
+                this.updatedAt = DateTime.Parse(updatedAt);
+            }
             if (!string.IsNullOrEmpty(logo))
             {
                 this.logo = new Uri(logo);
@@ -308,8 +314,14 @@ namespace TwixelAPI
             }
             this.id = id;
             this.name = name;
-            this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAt = DateTime.Parse(updatedAt);
+            if (!string.IsNullOrEmpty(createdAt))
+            {
+                this.createdAt = DateTime.Parse(createdAt);
+            }
+            if (!string.IsNullOrEmpty(updatedAt))
+            {
+                this.updatedAt = DateTime.Parse(updatedAt);
+            }
             if (!string.IsNullOrEmpty(logo))
             {
                 this.logo = new Uri(logo);
