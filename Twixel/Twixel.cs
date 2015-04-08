@@ -115,7 +115,7 @@ namespace TwixelAPI
         /// Gets the channel of the specified user.
         /// </summary>
         /// <param name="name">The name of the user</param>
-        /// <param name="version">Twich API version</param>
+        /// <param name="version">Twitch API version</param>
         /// <returns>A channel</returns>
         public async Task<Channel> RetrieveChannel(string name,
             APIVersion version = APIVersion.None)
@@ -595,6 +595,12 @@ namespace TwixelAPI
                 throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
             }
             return HelperMethods.LoadFeaturedStreams(JObject.Parse(responseString), version);
+        }
+
+        public async Task<List<FeaturedStream>> TestFeatured()
+        {
+            string responseString = await GetWebData(new Uri("https://gist.githubusercontent.com/golf1052/bdc137c38b86bfb3429a/raw/25e425061aa364924b692d8ca43805e68ae98469/FeaturedStream"));
+            return HelperMethods.LoadFeaturedStreams(JObject.Parse(responseString), APIVersion.v3);
         }
 
         /// <summary>
