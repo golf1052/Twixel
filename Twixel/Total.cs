@@ -11,7 +11,7 @@ namespace TwixelAPI
         /// <summary>
         /// Total number of objects, not just in wrapped
         /// </summary>
-        public long total;
+        public long? total;
 
         /// <summary>
         /// Wrapped object
@@ -25,7 +25,7 @@ namespace TwixelAPI
         /// <param name="t">Wrapped object</param>
         /// <param name="version">Twitch API version</param>
         /// <param name="baseLinksO">Base links JSON object</param>
-        public Total(long total, T t,
+        public Total(long? total, T t,
             Twixel.APIVersion version, JObject baseLinksO) : base(baseLinksO)
         {
             this.version = version;

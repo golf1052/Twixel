@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TwixelAPI.Constants;
@@ -240,10 +241,18 @@ namespace TwixelAPI
             JObject channelO = (JObject)o["channel"];
             if (version == Twixel.APIVersion.v2)
             {
+                string createdAt = null;
+                try
+                {
+                    createdAt = o["created_at"].ToString();
+                }
+                catch (NullReferenceException ex)
+                {
+                }
                 return new Stream((long?)o["_id"],
                     (string)o["game"],
                     (long?)o["viewers"],
-                    o["created_at"].ToString(),
+                    createdAt,
                     (int?)o["video_height"],
                     (double?)o["average_fps"],
                     (string)o["name"],
@@ -457,7 +466,7 @@ namespace TwixelAPI
                     (long)o["broadcast_id"],
                     (string)o["status"],
                     (string)o["_id"],
-                    (string)o["recorded_at"],
+                    o["recorded_at"].ToString(),
                     (string)o["game"],
                     (long)o["length"],
                     (string)o["preview"],
@@ -476,7 +485,7 @@ namespace TwixelAPI
                     (string)o["status"],
                     (string)o["tag_list"],
                     (string)o["_id"],
-                    (string)o["recorded_at"],
+                    o["recorded_at"].ToString(),
                     (string)o["game"],
                     (long)o["length"],
                     (string)o["preview"],
@@ -509,7 +518,7 @@ namespace TwixelAPI
         internal static Total<T> LoadTotal<T>(JObject o, T t,
             Twixel.APIVersion version)
         {
-            return new Total<T>((long)o["_total"],
+            return new Total<T>((long?)o["_total"],
                 t,
                 version,
                 (JObject)o["_links"]);
