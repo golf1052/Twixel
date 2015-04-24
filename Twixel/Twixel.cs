@@ -597,12 +597,6 @@ namespace TwixelAPI
             return HelperMethods.LoadFeaturedStreams(JObject.Parse(responseString), version);
         }
 
-        public async Task<List<FeaturedStream>> TestFeatured()
-        {
-            string responseString = await GetWebData(new Uri("https://gist.githubusercontent.com/golf1052/bdc137c38b86bfb3429a/raw/25e425061aa364924b692d8ca43805e68ae98469/FeaturedStream"));
-            return HelperMethods.LoadFeaturedStreams(JObject.Parse(responseString), APIVersion.v3);
-        }
-
         /// <summary>
         /// Gets a summary of live streams on Twitch
         /// </summary>

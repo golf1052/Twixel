@@ -145,13 +145,6 @@ namespace TwixelAPI.Tests
         }
 
         [Fact]
-        public async void FeaturedStreamTest()
-        {
-            List<FeaturedStream> featuredStreams = await twixel.TestFeatured();
-            Assert.NotNull(featuredStreams);
-        }
-
-        [Fact]
         public async void RetrieveStreamsSummaryTest()
         {
             Dictionary<string, int> summary = await twixel.RetrieveStreamsSummary();
