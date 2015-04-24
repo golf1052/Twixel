@@ -25,7 +25,7 @@ namespace TwixelAPI
 
         internal static Block LoadBlock(JObject o, Twixel.APIVersion version)
         {
-            return new Block((string)o["updated_at"],
+            return new Block(o["updated_at"].ToString(),
                 (long)o["_id"],
                 (JObject)o["user"],
                 version,
@@ -52,8 +52,8 @@ namespace TwixelAPI
                     (string)o["game"],
                     (long)o["_id"],
                     (string)o["name"],
-                    (string)o["created_at"],
-                    (string)o["updated_at"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
                     (string)o["logo"],
                     (string)o["banner"],
                     (string)o["video_banner"],
@@ -73,8 +73,8 @@ namespace TwixelAPI
                     (string)o["language"],
                     (long)o["_id"],
                     (string)o["name"],
-                    (string)o["created_at"],
-                    (string)o["updated_at"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
                     (string)o["logo"],
                     (string)o["banner"],
                     (string)o["video_banner"],
@@ -149,7 +149,7 @@ namespace TwixelAPI
 
         internal static Follow<Channel> LoadChannelFollow(JObject o, Twixel.APIVersion version)
         {
-            return new Follow<Channel>((string)o["created_at"],
+            return new Follow<Channel>(o["created_at"].ToString(),
                 (bool)o["notifications"],
                 HelperMethods.LoadChannel((JObject)o["channel"], version),
                 version,
@@ -158,7 +158,7 @@ namespace TwixelAPI
 
         internal static Follow<User> LoadUserFollow(JObject o, Twixel.APIVersion version)
         {
-            return new Follow<User>((string)o["created_at"],
+            return new Follow<User>(o["created_at"].ToString(),
                 (bool)o["notifications"],
                 HelperMethods.LoadUser((JObject)o["user"], version),
                 version,
@@ -243,7 +243,7 @@ namespace TwixelAPI
                 return new Stream((long?)o["_id"],
                     (string)o["game"],
                     (long?)o["viewers"],
-                    (string)o["created_at"],
+                    o["created_at"].ToString(),
                     (int?)o["video_height"],
                     (double?)o["average_fps"],
                     (string)o["name"],
@@ -257,7 +257,7 @@ namespace TwixelAPI
                 return new Stream((long?)o["_id"],
                     (string)o["game"],
                     (long?)o["viewers"],
-                    (string)o["created_at"],
+                    o["created_at"].ToString(),
                     (int)o["video_height"],
                     (double)o["average_fps"],
                     (string)o["name"],
@@ -313,7 +313,7 @@ namespace TwixelAPI
 
         internal static Subscription<User> LoadUserSubscription(JObject o, Twixel.APIVersion version)
         {
-            return new Subscription<User>((string)o["created_at"],
+            return new Subscription<User>(o["created_at"].ToString(),
                 (string)o["_id"],
                 HelperMethods.LoadUser((JObject)o["user"], version),
                 version,
@@ -322,7 +322,7 @@ namespace TwixelAPI
 
         internal static Subscription<Channel> LoadChannelSubscription(JObject o, Twixel.APIVersion version)
         {
-            return new Subscription<Channel>((string)o["created_at"],
+            return new Subscription<Channel>(o["created_at"].ToString(),
                 (string)o["_id"],
                 HelperMethods.LoadChannel((JObject)o["channel"], version),
                 version,
@@ -345,8 +345,8 @@ namespace TwixelAPI
                 (string)o["name"],
                 (string)o["info"],
                 (string)o["display_name"],
-                (string)o["created_at"],
-                (string)o["updated_at"],
+                o["created_at"].ToString(),
+                o["updated_at"].ToString(),
                 (string)o["logo"],
                 (string)o["banner"],
                 (string)o["background"],
@@ -374,8 +374,8 @@ namespace TwixelAPI
                     (long)o["_id"],
                     (string)o["name"],
                     (bool)o["staff"],
-                    (string)o["created_at"],
-                    (string)o["updated_at"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
                     (string)o["logo"],
                     (JObject)o["_links"]);
             }
@@ -386,8 +386,8 @@ namespace TwixelAPI
                     (string)o["name"],
                     (string)o["type"],
                     (string)o["bio"],
-                    (string)o["created_at"],
-                    (string)o["updated_at"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
                     (string)o["logo"],
                     (JObject)o["_links"]);
             }
@@ -408,8 +408,8 @@ namespace TwixelAPI
                     (long)o["_id"],
                     (string)o["name"],
                     (bool)o["staff"],
-                    (string)o["created_at"],
-                    (string)o["updated_at"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
                     (string)o["logo"],
                     (string)o["email"],
                     (bool)o["partnered"],
@@ -424,8 +424,8 @@ namespace TwixelAPI
                     (string)o["name"],
                     (string)o["type"],
                     (string)o["bio"],
-                    (string)o["created_at"],
-                    (string)o["updated_at"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
                     (string)o["logo"],
                     (string)o["email"],
                     (bool)o["partnered"],
