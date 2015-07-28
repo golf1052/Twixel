@@ -51,11 +51,6 @@ namespace TwixelAPI
         public static string clientID = "";
 
         /// <summary>
-        /// Your client secret
-        /// </summary>
-        public static string clientSecret = "";
-
-        /// <summary>
         /// Your redirect URL
         /// </summary>
         public string redirectUrl = "";
@@ -91,8 +86,7 @@ namespace TwixelAPI
         /// <param name="secret">Your client secret</param>
         /// <param name="url">Your redirect URL, should not have / at end</param>
         public Twixel(string id,
-            string secret,
-            string url) : this(id, secret, url, APIVersion.v3)
+            string url) : this(id, url, APIVersion.v3)
         {
         }
 
@@ -100,13 +94,11 @@ namespace TwixelAPI
         /// Twixel constructor
         /// </summary>
         /// <param name="id">Your client ID</param>
-        /// <param name="secret">Your client secret</param>
         /// <param name="url">Your redirect URL, should not have / at end</param>
         /// <param name="defaultVersion">The API version you want to use</param>
-        public Twixel(string id, string secret, string url, APIVersion defaultVersion)
+        public Twixel(string id, string url, APIVersion defaultVersion)
         {
             clientID = id;
-            clientSecret = secret;
             redirectUrl = url;
             this.DefaultVersion = defaultVersion;
         }

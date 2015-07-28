@@ -35,6 +35,12 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:Flurl.QueryParamCollection.ToString(System.Boolean)">
+            <summary>
+            Returns serialized, encoded query string. Insertion order is preserved.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:Flurl.StringExtensions">
             <summary>
             A set of string extension methods for working with Flurl URLs
@@ -137,6 +143,21 @@
             Returns the root URL of the given full URL, including the scheme, any user info, host, and port (if specified).
             </summary>
         </member>
+        <member name="M:Flurl.Url.DecodeQueryParamValue(System.String)">
+            <summary>
+            Decodes a URL-encoded query string value.
+            </summary>
+            <param name="value">The encoded query string value.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Flurl.Url.EncodeQueryParamValue(System.Object,System.Boolean)">
+            <summary>
+            URL-encodes a query string value.
+            </summary>
+            <param name="value">The query string value to encode.</param>
+            <param name="value">If true, spaces will be encoded as + signs. Otherwise, they'll be encoded as %20.</param>
+            <returns></returns>
+        </member>
         <member name="M:Flurl.Url.CleanSegment(System.String)">
             <summary>
             Encodes characters that are illegal in a URL path, including '?'. Does not encode reserved characters, i.e. '/', '+', etc.
@@ -209,6 +230,12 @@
             <returns>The Url object trimmed to its root.</returns>
         </member>
         <member name="M:Flurl.Url.ToString">
+            <summary>
+            Converts this Url object to its string representation.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Flurl.Url.ToString(System.Boolean)">
             <summary>
             Converts this Url object to its string representation.
             </summary>

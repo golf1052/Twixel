@@ -14,7 +14,7 @@ namespace TwixelAPI.Tests
 
         public Twixelv3UserTests()
         {
-            twixel = new Twixel(Secrets.ClientId, Secrets.ClientSecret,
+            twixel = new Twixel(Secrets.ClientId,
                 Secrets.RedirectUrl, Twixel.APIVersion.v3);
         }
 
