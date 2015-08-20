@@ -1078,6 +1078,20 @@ namespace TwixelAPI
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 responseString = await response.Content.ReadAsStringAsync();
+                if (responseString.StartsWith("<"))
+                {
+                    string[] initialErrorSplit = responseString.Split(' ');
+                    string potentialErrorCode = initialErrorSplit[0].Substring(initialErrorSplit[0].Length - 3, 3);
+                    int errorCodeNum = -1;
+                    try
+                    {
+                        errorCodeNum = int.Parse(potentialErrorCode);
+                    }
+                    catch
+                    {
+                    }
+                    throw new TwitchException(responseString, responseString, errorCodeNum);
+                }
                 return responseString;
             }
             else if (response.StatusCode == HttpStatusCode.NoContent)
@@ -1088,7 +1102,16 @@ namespace TwixelAPI
             else
             {
                 responseString = await response.Content.ReadAsStringAsync();
-                throw new TwitchException(JObject.Parse(responseString));
+                JObject twitchErrorObject = null;
+                try
+                {
+                    twitchErrorObject = JObject.Parse(responseString);
+                    throw new TwitchException(twitchErrorObject);
+                }
+                catch
+                {
+                    throw new TwitchException(responseString, response.ReasonPhrase, (int)response.StatusCode);
+                }
             }
         }
     }
