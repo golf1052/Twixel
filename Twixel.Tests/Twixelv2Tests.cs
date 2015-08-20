@@ -100,7 +100,7 @@ namespace TwixelAPI.Tests
             Stream stream = null;
             // This stream may be offline so it is suggested you edit
             // this line to get a stream that is online.
-            stream = await twixel.RetrieveStream("RiotGames2");
+            stream = await twixel.RetrieveStream("saltyteemo");
             if (stream != null)
             {
                 Assert.Equal("League of Legends", stream.game);
