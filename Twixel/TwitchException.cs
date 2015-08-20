@@ -27,5 +27,11 @@ namespace TwixelAPI
             Error = (string)errorO["error"];
             Status = (int)errorO["status"];
         }
+        
+        public TwitchException(string message, string error, int status) : base(message)
+        {
+            Error = error;
+            Status = status;
+        }
     }
 }
