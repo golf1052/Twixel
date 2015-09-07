@@ -201,5 +201,17 @@ namespace TwixelAPI.Tests
             Assert.Equal(20, videos.wrapped[0].length);
             Assert.Equal("League of Legends", videos.wrapped[0].game);
         }
+
+        [Fact]
+        public async void GitHubTest()
+        {
+            List<string> listOfChannels = new List<string>();
+            listOfChannels.Add("riotgames");
+            listOfChannels.Add("golf1052");
+            listOfChannels.Add("beatport");
+            listOfChannels.Add("flosd");
+            var result = await twixel.RetrieveStreams(channels: listOfChannels);
+            Assert.True(result.wrapped.Count >= 0);
+        }
     }
 }
