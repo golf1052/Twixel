@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Flurl;
+using Newtonsoft.Json.Linq;
+using TwixelAPI.Constants;
 using Xunit;
 
 namespace TwixelAPI.Tests
@@ -13,6 +16,17 @@ namespace TwixelAPI.Tests
         {
             twixel = new Twixel(Secrets.ClientId,
                 "http://golf1052.com", Twixel.APIVersion.v3);
+        }
+
+        [Fact]
+        public async void ClientIdTest()
+        {
+            // This test doesn't pass https://discuss.dev.twitch.tv/t/problem-with-client-id/6528/2
+            // You know...cause Twitch sucks
+            string responseString = await Twixel.GetWebData(new Uri(new Url(TwitchConstants.baseUrl)), Twixel.APIVersion.v3);
+            JObject responseObject = JObject.Parse(responseString);
+            bool identified = (bool)responseObject["identified"];
+            Assert.True(identified);
         }
 
         [Fact]
