@@ -23,6 +23,16 @@ namespace TwixelAPI.Constants
         public const string v2UnsupportedErrorString = "This method is not supported by Twitch API v2.";
 
         /// <summary>
+        /// Twitch API v5 unsupported method error
+        /// </summary>
+        public const string v5UnsupportedErrorString = "This method is not supported by Twitch API v5.";
+
+        /// <summary>
+        /// Twitch API v5 only method error
+        /// </summary>
+        public const string v5OnlyErrorString = "This method is only supported by Twitch API v5.";
+
+        /// <summary>
         /// Unknown error
         /// </summary>
         public const string unknownErrorString = "Unknown error";

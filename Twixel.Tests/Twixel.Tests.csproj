@@ -40,6 +40,8 @@
   <ItemGroup>
     <Compile Include="Secrets.cs" />
     <Compile Include="Twixelv2UserTests.cs" />
+    <Compile Include="Twixelv5UserTests.cs" />
+    <Compile Include="Twixelv5Tests.cs" />
     <Compile Include="Twixelv3Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Twixelv3UserTests.cs" />

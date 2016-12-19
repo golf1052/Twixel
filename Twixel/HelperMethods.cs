@@ -88,6 +88,31 @@ namespace TwixelAPI
                     (long?)o["followers"],
                     (JObject)o["_links"]);
             }
+            else if (version == Twixel.APIVersion.v5)
+            {
+                return new Channel((bool?)o["mature"],
+                    (string)o["status"],
+                    (string)o["broadcaster_language"],
+                    (string)o["display_name"],
+                    (string)o["game"],
+                    (int?)o["delay"],
+                    (string)o["language"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
+                    (string)o["logo"],
+                    (string)o["banner"],
+                    (string)o["video_banner"],
+                    (string)o["background"],
+                    (string)o["profile_banner"],
+                    (string)o["profile_banner_background_color"],
+                    (bool?)o["partner"],
+                    (string)o["url"],
+                    (long?)o["views"],
+                    (long?)o["followers"],
+                    (JObject)o["_links"]);
+            }
             else
             {
                 throw new TwixelException("Channel: " + versionCannotBeNoneString);
@@ -275,6 +300,20 @@ namespace TwixelAPI
                     channelO,
                     (JObject)o["_links"]);
             }
+            else if (version == Twixel.APIVersion.v5)
+            {
+                return new Stream((long?)o["_id"],
+                    (string)o["game"],
+                    (long?)o["viewers"],
+                    o["created_at"].ToString(),
+                    (int)o["video_height"],
+                    (double)o["average_fps"],
+                    (string)o["name"],
+                    (string)o["broadcaster"],
+                    (JObject)o["preview"],
+                    channelO,
+                    (JObject)o["_links"]);
+            }
             else
             {
                 throw new TwixelException("Stream: " + versionCannotBeNoneString);
@@ -295,6 +334,17 @@ namespace TwixelAPI
                         (JObject)o["_links"]));
                 }
                 else if (version == Twixel.APIVersion.v3)
+                {
+                    streams.Add(new FeaturedStream((string)obj["text"],
+                        (string)obj["image"],
+                        (string)obj["title"],
+                        (bool)obj["sponsored"],
+                        (int)obj["priority"],
+                        (bool)obj["scheduled"],
+                        (JObject)obj["stream"],
+                        (JObject)o["_links"]));
+                }
+                else if (version == Twixel.APIVersion.v5)
                 {
                     streams.Add(new FeaturedStream((string)obj["text"],
                         (string)obj["image"],
@@ -400,6 +450,18 @@ namespace TwixelAPI
                     (string)o["logo"],
                     (JObject)o["_links"]);
             }
+            else if (version == Twixel.APIVersion.v5)
+            {
+                return new User((string)o["display_name"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (string)o["type"],
+                    (string)o["bio"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
+                    (string)o["logo"],
+                    (JObject)o["_links"]);
+            }
             else
             {
                 throw new TwixelException("User: " + versionCannotBeNoneString);
@@ -441,6 +503,22 @@ namespace TwixelAPI
                     (JObject)o["notifications"],
                     (JObject)o["_links"]);
             }
+            else if (version == Twixel.APIVersion.v5)
+            {
+                return new User(accessToken, authorizedScopes,
+                    (string)o["display_name"],
+                    (long)o["_id"],
+                    (string)o["name"],
+                    (string)o["type"],
+                    (string)o["bio"],
+                    o["created_at"].ToString(),
+                    o["updated_at"].ToString(),
+                    (string)o["logo"],
+                    (string)o["email"],
+                    (bool)o["partnered"],
+                    (JObject)o["notifications"],
+                    (JObject)o["_links"]);
+            }
             else
             {
                 throw new TwixelException("User: " + versionCannotBeNoneString);
@@ -450,9 +528,19 @@ namespace TwixelAPI
         internal static List<Video> LoadVideos(JObject o, Twixel.APIVersion version)
         {
             List<Video> videos = new List<Video>();
-            foreach (JObject video in (JArray)o["videos"])
+            if (version == Twixel.APIVersion.v2 || version == Twixel.APIVersion.v3)
             {
-                videos.Add(HelperMethods.LoadVideo(video, version));
+                foreach (JObject video in (JArray)o["videos"])
+                {
+                    videos.Add(HelperMethods.LoadVideo(video, version));
+                }
+            }
+            else if (version == Twixel.APIVersion.v5)
+            {
+                foreach (JObject video in (JArray)o["vods"])
+                {
+                    videos.Add(HelperMethods.LoadVideo(video, version));
+                }
             }
             return videos;
         }
@@ -494,6 +582,28 @@ namespace TwixelAPI
                     o["fps"].ToString(),
                     o["resolutions"].ToString(),
                     (string)o["broadcast_type"],
+                    (JObject)o["channel"],
+                    (JObject)o["_links"]);
+            }
+            else if (version == Twixel.APIVersion.v5)
+            {
+                return new Video((string)o["title"],
+                    (string)o["description"],
+                    (long)o["broadcast_id"],
+                    (string)o["status"],
+                    (string)o["tag_list"],
+                    (string)o["_id"],
+                    (string)o["game"],
+                    (long)o["length"],
+                    o["preview"].ToString(),
+                    (string)o["url"],
+                    (long)o["views"],
+                    o["fps"].ToString(),
+                    o["resolutions"].ToString(),
+                    (string)o["broadcast_type"],
+                    o["thumbnails"].ToString(),
+                    (string)o["language"],
+                    (string)o["viewable"],
                     (JObject)o["channel"],
                     (JObject)o["_links"]);
             }

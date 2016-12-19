@@ -108,6 +108,42 @@ namespace TwixelAPI
         }
 
         /// <summary>
+        /// Converts from a Twitch API v2/v3 username to a Twitch API v5 user ID
+        /// </summary>
+        /// <param name="username">The Twitch API v2/v3 username</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>The Twitch API v5 user ID of the specified username</returns>
+        public async Task<long> GetUserId(string username,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (version == APIVersion.v5)
+            {
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("users")
+                    .SetQueryParam("login", username);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                JObject responseObject = JObject.Parse(responseString);
+                return (long)responseObject["users"][0]["_id"];
+            }
+            else
+            {
+                throw new TwixelException(TwitchConstants.v5OnlyErrorString);
+            }
+        }
+
+        /// <summary>
         /// Gets the channel of the specified user.
         /// </summary>
         /// <param name="name">The name of the user</param>
@@ -147,7 +183,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            if (version == APIVersion.v3)
+            if (version == APIVersion.v3 || version == APIVersion.v5)
             {
                 Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "teams");
                 Uri uri = new Uri(url.ToString());
@@ -181,18 +217,25 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
-            Uri uri = new Uri(url.ToString());
-            string responseString;
-            try
+            if (version == APIVersion.v2 || version == APIVersion.v3)
             {
-                responseString = await GetWebData(uri, version);
+                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                return HelperMethods.LoadLinks((JObject)JObject.Parse(responseString)["_links"]);
             }
-            catch (TwitchException ex)
+            else
             {
-                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                throw new TwixelException(TwitchConstants.v5UnsupportedErrorString);
             }
-            return HelperMethods.LoadLinks((JObject)JObject.Parse(responseString)["_links"]);
         }
 
         /// <summary>
@@ -328,7 +371,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            if (version == APIVersion.v3)
+            if (version == APIVersion.v3 || version == APIVersion.v5)
             {
                 Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "channels").SetQueryParam("query", query);
                 if (limit <= 100)
@@ -356,7 +399,7 @@ namespace TwixelAPI
             }
             else
             {
-                throw new TwixelException("");
+                throw new TwixelException(TwitchConstants.v2UnsupportedErrorString);
             }
         }
 
@@ -387,7 +430,7 @@ namespace TwixelAPI
                 url.SetQueryParam("limit", 100);
             }
             url.SetQueryParam("offset", offset);
-            if (version == APIVersion.v3)
+            if (version == APIVersion.v3 || version == APIVersion.v5)
             {
                 if (hls == null)
                 {
@@ -1045,6 +1088,10 @@ namespace TwixelAPI
             else if (version == APIVersion.v3)
             {
                 client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
+            }
+            else if (version == APIVersion.v5)
+            {
+                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v5+json");
             }
 
             client.DefaultRequestHeaders.Add("Client-ID", clientID);
