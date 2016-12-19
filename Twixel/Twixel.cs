@@ -29,6 +29,10 @@ namespace TwixelAPI
             /// </summary>
             v3,
             /// <summary>
+            /// Version 5 of the API
+            /// </summary>
+            v5,
+            /// <summary>
             /// Not a valid version
             /// </summary>
             None

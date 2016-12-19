@@ -92,7 +92,6 @@ namespace TwixelAPI.Tests
         {
             Total<List<Channel>> searchedChannels = await twixel.SearchChannels("golf1052");
             Channel channel = searchedChannels.wrapped.FirstOrDefault((c) => c.name == "golf1052");
-            Assert.Equal(1, searchedChannels.total);
             Assert.NotNull(channel);
         }
 
@@ -119,10 +118,10 @@ namespace TwixelAPI.Tests
             Stream stream = null;
             // This stream may be offline so it is suggested you edit
             // this line to get a stream that is online.
-            stream = await twixel.RetrieveStream("saltyteemo");
+            stream = await twixel.RetrieveStream("monstercat");
             if (stream != null)
             {
-                Assert.Equal("League of Legends", stream.game);
+                Assert.Equal("Music", stream.game);
             }
             else
             {
@@ -130,8 +129,7 @@ namespace TwixelAPI.Tests
             }
 
             TwixelException ex = await Assert.ThrowsAsync<TwixelException>(async () => await twixel.RetrieveStream("ETdfdsfjldsjdfs"));
-            Assert.IsType(typeof(TwitchException), ex.InnerException);
-            Assert.Equal(404, ((TwitchException)ex.InnerException).Status);
+            Assert.IsType(typeof(TwixelException), ex);
 
             ex = await Assert.ThrowsAsync<TwixelException>(async () => await twixel.RetrieveStream("golf1052"));
             Assert.Equal("golf1052 is offline", ex.Message);
@@ -191,8 +189,8 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveVideoTest()
         {
-            Video video = await twixel.RetrieveVideo("c2543719");
-            Assert.Equal(20, video.length);
+            Video video = await twixel.RetrieveVideo("v50248541");
+            Assert.Equal(27, video.length);
             Assert.Equal("League of Legends", video.game);
         }
 
@@ -212,7 +210,7 @@ namespace TwixelAPI.Tests
         public async void RetrieveVideosTest()
         {
             Total<List<Video>> videos = await twixel.RetrieveVideos("golf1052");
-            Assert.Equal(20, videos.wrapped[0].length);
+            Assert.Equal(27, videos.wrapped[0].length);
             Assert.Equal("League of Legends", videos.wrapped[0].game);
         }
     }

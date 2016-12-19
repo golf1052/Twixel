@@ -87,15 +87,15 @@ namespace TwixelAPI
             this.displayName = displayName;
             this.createdAt = DateTime.Parse(createdAt);
             this.updatedAt = DateTime.Parse(updatedAt);
-            if (logo != null)
+            if (!string.IsNullOrEmpty(logo))
             {
                 this.logo = new Uri(logo);
             }
-            if (banner != null)
+            if (!string.IsNullOrEmpty(banner))
             {
                 this.banner = new Uri(banner);
             }
-            if (background != null)
+            if (!string.IsNullOrEmpty(background))
             {
                 this.background = new Uri(background);
             }

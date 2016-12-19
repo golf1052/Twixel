@@ -39,10 +39,16 @@ namespace TwixelAPI
             List<EmoticonImage> images = new List<EmoticonImage>();
             foreach(JObject o in a)
             {
-                images.Add(new EmoticonImage((int?)o["emoticon_set"],
+                if (!string.IsNullOrEmpty((string)o["height"]) &&
+                    !string.IsNullOrEmpty((string)o["width"]) &&
+                    !string.IsNullOrEmpty((string)o["url"]))
+                {
+                    images.Add(new EmoticonImage((int?)o["emoticon_set"],
                     (int)o["height"],
                     (int)o["width"],
                     (string)o["url"]));
+                }
+                
             }
             return images;
         }

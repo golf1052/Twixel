@@ -273,10 +273,13 @@ namespace TwixelAPI
             Dictionary<string, Resolution> resolutions = new Dictionary<string, Resolution>();
             foreach (var res in tmp)
             {
-                string[] splitRes = res.Value.Split('x');
-                resolutions.Add(res.Key,
-                    new Resolution(int.Parse(splitRes[0]),
-                    int.Parse(splitRes[1])));
+                if (res.Value.Contains("x"))
+                {
+                    string[] splitRes = res.Value.Split('x');
+                    resolutions.Add(res.Key,
+                        new Resolution(int.Parse(splitRes[0]),
+                        int.Parse(splitRes[1])));
+                }
             }
             return resolutions;
         }
