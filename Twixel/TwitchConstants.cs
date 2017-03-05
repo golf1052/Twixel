@@ -103,6 +103,17 @@ namespace TwixelAPI.Constants
         }
 
         /// <summary>
+        /// v5 Broadcast types
+        /// </summary>
+        public enum BroadcastType
+        {
+            None,
+            Archive,
+            Highlight,
+            Upload
+        }
+
+        /// <summary>
         /// Converts a scope to a string representation of that scope
         /// </summary>
         /// <param name="scope">Scope</param>
@@ -459,6 +470,26 @@ namespace TwixelAPI.Constants
             else
             {
                 return CommercialLength.None;
+            }
+        }
+
+        public static string BroadcastTypeToString(BroadcastType broadcastType)
+        {
+            if (broadcastType == BroadcastType.Archive)
+            {
+                return "archive";
+            }
+            else if (broadcastType == BroadcastType.Highlight)
+            {
+                return "highlight";
+            }
+            else if (broadcastType == BroadcastType.Upload)
+            {
+                return "upload";
+            }
+            else
+            {
+                return string.Empty;
             }
         }
     }

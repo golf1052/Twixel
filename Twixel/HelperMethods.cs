@@ -537,9 +537,19 @@ namespace TwixelAPI
             }
             else if (version == Twixel.APIVersion.v5)
             {
-                foreach (JObject video in (JArray)o["vods"])
+                if (o["vods"] != null)
                 {
-                    videos.Add(HelperMethods.LoadVideo(video, version));
+                    foreach (JObject video in (JArray)o["vods"])
+                    {
+                        videos.Add(HelperMethods.LoadVideo(video, version));
+                    }
+                }
+                else if (o["videos"] != null)
+                {
+                    foreach (JObject video in (JArray)o["videos"])
+                    {
+                        videos.Add(HelperMethods.LoadVideo(video, version));
+                    }
                 }
             }
             return videos;

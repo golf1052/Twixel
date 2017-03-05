@@ -1228,20 +1228,47 @@ namespace TwixelAPI
             }
         }
 
+        public async Task<List<Video>> RetrieveFollowedVideos(int offset = 0, int limit = 10, params TwitchConstants.BroadcastType[] broadcastType)
+        {
+            return await RetrieveFollowedVideos(offset, limit, new List<TwitchConstants.BroadcastType>(broadcastType));
+        }
+
         /// <summary>
         /// Get a list of videos from the channels this user follows
         /// </summary>
         /// <param name="offset">Object offset for pagination. Default is 0.</param>
         /// <param name="limit">How many videos to get at once. Default is 25. Maximum is 100.</param>
+        /// <param name="broadcastType">Constrains the type of videos returned. Default is highlight. v5 only.</param>
         /// <returns>A list of videos.</returns>
-        public async Task<List<Video>> RetrieveFollowedVideos(int offset = 0, int limit = 10)
+        public async Task<List<Video>> RetrieveFollowedVideos(int offset = 0, int limit = 10, List<TwitchConstants.BroadcastType> broadcastType = null)
         {
-            if (version == Twixel.APIVersion.v3)
+            if (version == Twixel.APIVersion.v3 ||
+                version == Twixel.APIVersion.v5)
             {
                 TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserRead;
                 if (authorized && authorizedScopes.Contains(relevantScope))
                 {
-                    Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", "followed");
+                    string broadcastTypesString = string.Empty;
+                    if (broadcastType == null || broadcastType.Count == 0)
+                    {
+                        broadcastTypesString = "highlight";
+                    }
+                    else
+                    {
+                        for (int i = 0; i < broadcastType.Count; i++)
+                        {
+                            if (i != broadcastType.Count - 1)
+                            {
+                                broadcastTypesString += $"{TwitchConstants.BroadcastTypeToString(broadcastType[i])},";
+                            }
+                            else
+                            {
+                                broadcastTypesString += TwitchConstants.BroadcastTypeToString(broadcastType[i]);
+                            }
+                        }
+                    }
+                    Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", "followed")
+                        .SetQueryParam("broadcast_type", broadcastTypesString);
                     Uri uri = new Uri(url.ToString());
                     string responseString;
                     try

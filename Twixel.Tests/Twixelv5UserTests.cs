@@ -241,5 +241,13 @@ namespace TwixelAPI.Tests
             List<Video> videos = await user.RetrieveFollowedVideos();
             Assert.NotNull(videos);
         }
+
+        [Fact]
+        public async void RetrieveFollowedVideosTest2()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            List<Video> videos = await user.RetrieveFollowedVideos(0, 10, TwitchConstants.BroadcastType.Archive, TwitchConstants.BroadcastType.Highlight, TwitchConstants.BroadcastType.Upload);
+            Assert.NotNull(videos);
+        }
     }
 }
