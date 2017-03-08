@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Flurl;
+using golf1052.Trexler;
 using Newtonsoft.Json.Linq;
 using TwixelAPI.Constants;
 
@@ -122,7 +122,7 @@ namespace TwixelAPI
             }
             if (version == APIVersion.v5)
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("users")
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegment("users")
                     .SetQueryParam("login", username);
                 Uri uri = new Uri(url.ToString());
                 string responseString;
@@ -156,7 +156,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -185,7 +185,7 @@ namespace TwixelAPI
             }
             if (version == APIVersion.v3 || version == APIVersion.v5)
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "teams");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", user, "teams");
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -219,7 +219,7 @@ namespace TwixelAPI
             }
             if (version == APIVersion.v2 || version == APIVersion.v3)
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -249,7 +249,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", "emoticons");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("chat", "emoticons");
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -276,7 +276,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("chat", user, "badges");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("chat", user, "badges");
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -304,7 +304,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("games", "top");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("games", "top");
 
             if (limit <= 100)
             {
@@ -341,7 +341,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("ingests");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegment("ingests");
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -373,7 +373,7 @@ namespace TwixelAPI
             }
             if (version == APIVersion.v3 || version == APIVersion.v5)
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "channels").SetQueryParam("query", query);
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("search", "channels").SetQueryParam("query", query);
                 if (limit <= 100)
                 {
                     url.SetQueryParam("limit", limit);
@@ -420,7 +420,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "streams").SetQueryParam("query", query);
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("search", "streams").SetQueryParam("query", query);
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -468,11 +468,11 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("search", "games").SetQueryParams(new
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("search", "games").SetQueryParams(new Dictionary<string, object>()
             {
-                query = query,
-                type = "suggest",
-                live = live
+                { "query", query },
+                { "type", "suggest" },
+                { "live", live }
             });
             Uri uri = new Uri(url.ToString());
             string responseString;
@@ -505,7 +505,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", channelName);
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("streams", channelName);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -551,7 +551,7 @@ namespace TwixelAPI
                 version = DefaultVersion;
             }
 
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("streams");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegment("streams");
             url.SetQueryParam("game", game);
             if (channels != null && channels.Count > 0)
             {
@@ -613,7 +613,7 @@ namespace TwixelAPI
                 version = DefaultVersion;
             }
 
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "featured");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("streams", "featured");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -649,7 +649,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "summary");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("streams", "summary");
             if (!string.IsNullOrEmpty(game))
             {
                 url.SetQueryParam("game", game);
@@ -685,7 +685,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("teams");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegment("teams");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -720,7 +720,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("teams", name);
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("teams", name);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -747,7 +747,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name);
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -772,7 +772,7 @@ namespace TwixelAPI
             }
             if (authorizedScopes.Contains(TwitchConstants.Scope.UserRead))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("user");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegment("user");
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -808,7 +808,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl);
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -868,12 +868,12 @@ namespace TwixelAPI
                         i--;
                     }
                 }
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("oauth2", "authorize").SetQueryParams(new
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("oauth2", "authorize").SetQueryParams(new Dictionary<string, object>
                 {
-                    response_type = "token",
-                    client_id = clientID,
-                    redirect_uri = redirectUrl,
-                    scope = TwitchConstants.ListOfScopesToStringOfScopes(scopes)
+                    { "response_type", "token" },
+                    { "client_id", clientID },
+                    { "redirect_uri", redirectUrl },
+                    { "scope", TwitchConstants.ListOfScopesToStringOfScopes(scopes) }
                 });
                 Uri uri = new Uri(url.ToString());
                 return uri;
@@ -897,7 +897,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", id);
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("videos", id);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -929,7 +929,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", "top");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("videos", "top");
             url.SetQueryParam("game", game);
             if (limit <= 100)
             {
@@ -974,7 +974,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", channel, "videos");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", channel, "videos");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -983,10 +983,10 @@ namespace TwixelAPI
             {
                 url.SetQueryParam("limit", 100);
             }
-            url.SetQueryParams(new
+            url.SetQueryParams(new Dictionary<string, object>()
             {
-                broadcasts = broadcasts,
-                offset = offset
+                { "broadcasts", broadcasts },
+                { "offset", offset }
             });
             if (version == APIVersion.v3)
             {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Flurl;
+using golf1052.Trexler;
 using Newtonsoft.Json.Linq;
 using TwixelAPI.Constants;
 
@@ -353,7 +353,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserBlocksRead;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks");
                 if (limit <= 100)
                 {
                     url.SetQueryParam("limit", limit);
@@ -404,7 +404,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserBlocksEdit;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks", username);
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks", username);
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -450,7 +450,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserBlocksEdit;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks", username);
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name, "blocks", username);
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -510,7 +510,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelRead;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegment("channel");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegment("channel");
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -554,7 +554,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelRead;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "editors");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "editors");
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -604,7 +604,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelEditor;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name);
                 Uri uri = new Uri(url.ToString());
                 JObject content = new JObject();
                 content["channel"] = new JObject();
@@ -662,7 +662,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelStream;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "stream_key");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "stream_key");
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -718,7 +718,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelCommercial;
             if (authorized && authorizedScopes.Contains(relevantScope) && partnered)
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "commercial");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "commercial");
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -777,7 +777,7 @@ namespace TwixelAPI
         public async Task<Total<List<Follow<User>>>> RetrieveFollowers(int offset = 0, int limit = 25,
             TwitchConstants.Direction direction = TwitchConstants.Direction.Decending)
         {
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "follows");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "follows");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -786,10 +786,10 @@ namespace TwixelAPI
             {
                 url.SetQueryParam("limit", 100);
             }
-            url.SetQueryParams(new
+            url.SetQueryParams(new Dictionary<string, object>()
             {
-                offset = offset,
-                direction = TwitchConstants.DirectionToString(direction)
+                { "offset", offset },
+                { "direction", TwitchConstants.DirectionToString(direction) }
             });
             Uri uri = new Uri(url.ToString());
             string responseString;
@@ -818,7 +818,7 @@ namespace TwixelAPI
             TwitchConstants.Direction direction = TwitchConstants.Direction.Decending,
             TwitchConstants.SortBy sortBy = TwitchConstants.SortBy.CreatedAt)
         {
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels");
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels");
             if (limit <= 100)
             {
                 url.SetQueryParam("limit", limit);
@@ -827,11 +827,11 @@ namespace TwixelAPI
             {
                 url.SetQueryParam("limit", 100);
             }
-            url.SetQueryParams(new
+            url.SetQueryParams(new Dictionary<string, object>()
             {
-                offset = offset,
-                direction = TwitchConstants.DirectionToString(direction),
-                sortby = TwitchConstants.SortByToString(sortBy)
+                { "offset", offset },
+                { "direction", TwitchConstants.DirectionToString(direction) },
+                { "sortby", TwitchConstants.SortByToString(sortBy) }
             });
             Uri uri = new Uri(url.ToString());
             string responseString;
@@ -858,7 +858,7 @@ namespace TwixelAPI
         /// </returns>
         public async Task<Follow<Channel>> RetrieveFollowing(string channel)
         {
-            Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels", channel);
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels", channel);
             Uri uri = new Uri(url.ToString());
             string responseString;
             try
@@ -899,7 +899,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserFollowsEdit;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name,
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name,
                     "follows", "channels", channel).SetQueryParam("notifications", notifications);
                 Uri uri = new Uri(url.ToString());
                 string responseString;
@@ -953,7 +953,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserFollowsEdit;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels", channel);
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name, "follows", "channels", channel);
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -1017,7 +1017,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelSubscriptions;
             if (authorized && authorizedScopes.Contains(relevantScope) && partnered)
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "subscriptions");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "subscriptions");
                 if (limit <= 100)
                 {
                     url.SetQueryParam("limit", limit);
@@ -1026,10 +1026,10 @@ namespace TwixelAPI
                 {
                     url.SetQueryParam("limit", 100);
                 }
-                url.SetQueryParams(new
+                url.SetQueryParams(new Dictionary<string, object>()
                 {
-                    offset = offset,
-                    direction = TwitchConstants.DirectionToString(direction)
+                    { "offset", offset },
+                    { "direction", TwitchConstants.DirectionToString(direction) }
                 });
                 Uri uri = new Uri(url.ToString());
                 string responseString;
@@ -1079,7 +1079,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelCheckSubscription;
             if (authorized && authorizedScopes.Contains(relevantScope) && partnered)
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "subcriptions", username);
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "subcriptions", username);
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -1135,7 +1135,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserSubcriptions;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("users", name, "subscriptions", channel);
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("users", name, "subscriptions", channel);
                 Uri uri = new Uri(url.ToString());
                 string responseString;
                 try
@@ -1189,7 +1189,7 @@ namespace TwixelAPI
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.UserRead;
             if (authorized && authorizedScopes.Contains(relevantScope))
             {
-                Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("streams", "followed");
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("streams", "followed");
                 if (limit <= 100)
                 {
                     url.SetQueryParam("limit", limit);
@@ -1267,7 +1267,7 @@ namespace TwixelAPI
                             }
                         }
                     }
-                    Url url = new Url(TwitchConstants.baseUrl).AppendPathSegments("videos", "followed")
+                    TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("videos", "followed")
                         .SetQueryParam("broadcast_type", broadcastTypesString);
                     Uri uri = new Uri(url.ToString());
                     string responseString;

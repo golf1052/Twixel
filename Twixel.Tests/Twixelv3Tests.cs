@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Flurl;
+using golf1052.Trexler;
 using Newtonsoft.Json.Linq;
 using TwixelAPI.Constants;
 using Xunit;
@@ -23,7 +23,7 @@ namespace TwixelAPI.Tests
         {
             // This test doesn't pass https://discuss.dev.twitch.tv/t/problem-with-client-id/6528/2
             // You know...cause Twitch sucks
-            string responseString = await Twixel.GetWebData(new Uri(new Url(TwitchConstants.baseUrl)), Twixel.APIVersion.v3);
+            string responseString = await Twixel.GetWebData(new Uri(new TrexUri(TwitchConstants.baseUrl)), Twixel.APIVersion.v3);
             JObject responseObject = JObject.Parse(responseString);
             bool identified = (bool)responseObject["identified"];
             Assert.True(identified);

@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30324.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Twixel", "Twixel\Twixel.csproj", "{DFD0DB77-DBC7-4B79-8747-F9CAF6274DBE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Twixel.Tests", "Twixel.Tests\Twixel.Tests.csproj", "{F7330052-1CA3-4B82-BC2A-3C962FD243B9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "golf1052.Trexler", "..\Trexler\golf1052.Trexler\golf1052.Trexler.csproj", "{C9978181-B464-49F7-8FAB-6CA89B4293BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,22 @@ Global
 		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Release|ARM.ActiveCfg = Release|Any CPU
 		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Release|x64.ActiveCfg = Release|Any CPU
 		{F7330052-1CA3-4B82-BC2A-3C962FD243B9}.Release|x86.ActiveCfg = Release|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Debug|ARM.Build.0 = Debug|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Debug|x64.Build.0 = Debug|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Debug|x86.Build.0 = Debug|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Release|ARM.ActiveCfg = Release|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Release|ARM.Build.0 = Release|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Release|x64.ActiveCfg = Release|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Release|x64.Build.0 = Release|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Release|x86.ActiveCfg = Release|Any CPU
+		{C9978181-B464-49F7-8FAB-6CA89B4293BB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
