@@ -21,10 +21,6 @@ namespace TwixelAPI
         public enum APIVersion
         {
             /// <summary>
-            /// Version 2 of the API
-            /// </summary>
-            v2,
-            /// <summary>
             /// Version 3 of the API
             /// </summary>
             v3,
@@ -74,7 +70,7 @@ namespace TwixelAPI
             {
                 if (value == APIVersion.None)
                 {
-                    defaultVersion = APIVersion.v3;
+                    defaultVersion = APIVersion.v5;
                 }
                 else
                 {
@@ -84,13 +80,13 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// Default Twixel constructor, sets API version to v3
+        /// Default Twixel constructor, sets API version to v5
         /// </summary>
         /// <param name="id">Your client ID</param>
         /// <param name="secret">Your client secret</param>
         /// <param name="url">Your redirect URL, should not have / at end</param>
         public Twixel(string id,
-            string url) : this(id, url, APIVersion.v3)
+            string url) : this(id, url, APIVersion.v5)
         {
         }
 
@@ -108,9 +104,9 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// Converts from a Twitch API v2/v3 username to a Twitch API v5 user ID
+        /// Converts from a Twitch API v3 username to a Twitch API v5 user ID
         /// </summary>
-        /// <param name="username">The Twitch API v2/v3 username</param>
+        /// <param name="username">The Twitch API v3 username</param>
         /// <param name="version">Twitch API version</param>
         /// <returns>The Twitch API v5 user ID of the specified username</returns>
         public async Task<long> GetUserId(string username,
@@ -146,7 +142,7 @@ namespace TwixelAPI
         /// <summary>
         /// Gets the channel of the specified user.
         /// </summary>
-        /// <param name="name">The name of the user</param>
+        /// <param name="name">The name of the user if v3. The ID of the user if v5.</param>
         /// <param name="version">Twitch API version</param>
         /// <returns>A channel</returns>
         public async Task<Channel> RetrieveChannel(string name,
@@ -217,7 +213,7 @@ namespace TwixelAPI
             {
                 version = DefaultVersion;
             }
-            if (version == APIVersion.v2 || version == APIVersion.v3)
+            if (version == APIVersion.v3)
             {
                 TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("chat", user);
                 Uri uri = new Uri(url.ToString());
@@ -848,6 +844,20 @@ namespace TwixelAPI
         /// </returns>
         public Uri Login(List<TwitchConstants.Scope> scopes)
         {
+            return Login(scopes, false);
+        }
+
+        /// <summary>
+        /// Creates a URL that can be used to authenticate a user
+        /// </summary>
+        /// <param name="scopes">The permissions you are requesting. Must contain at least one permission.</param>
+        /// <param name="forceVerify">Force the user to confirm authorization. Defaults to false.</param>
+        /// <returns>
+        /// Returns a URL to be used for authenticating a user.
+        /// Throws an exception if the scopes list contained no scopes.
+        /// </returns>
+        public Uri Login(List<TwitchConstants.Scope> scopes, bool forceVerify = false)
+        {
             if (scopes == null)
             {
                 throw new TwixelException("The list of scopes cannot be null.");
@@ -873,7 +883,8 @@ namespace TwixelAPI
                     { "response_type", "token" },
                     { "client_id", clientID },
                     { "redirect_uri", redirectUrl },
-                    { "scope", TwitchConstants.ListOfScopesToStringOfScopes(scopes) }
+                    { "scope", TwitchConstants.ListOfScopesToStringOfScopes(scopes) },
+                    { "force_verify", forceVerify }
                 });
                 Uri uri = new Uri(url.ToString());
                 return uri;
@@ -955,9 +966,9 @@ namespace TwixelAPI
         }
 
         /// <summary>
-        /// Gets a Total object containing a list of videos for a specified channel
+        /// Twitch API v3. Gets a Total object containing a list of videos for a specified channel
         /// </summary>
-        /// <param name="channel">The name of the channel</param>
+        /// <param name="channel">The name of the channel.</param>
         /// <param name="offset">Object offset for pagination. Default is 0.</param>
         /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100.</param>
         /// <param name="broadcasts">Returns only broadcasts when true. Otherwise only highlights are returned. Default is false.</param>
@@ -996,6 +1007,75 @@ namespace TwixelAPI
                 }
                 url.SetQueryParam("hls", hls);
             }
+
+            Uri uri = new Uri(url.ToString());
+            string responseString;
+            try
+            {
+                responseString = await GetWebData(uri, version);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+            JObject responseObject = JObject.Parse(responseString);
+            List<Video> videos = HelperMethods.LoadVideos(responseObject, version);
+            return HelperMethods.LoadTotal(responseObject, videos, version);
+        }
+
+        /// <summary>
+        /// Twitch API v5. Gets a Total object containing a list of videos for a specified channel
+        /// </summary>
+        /// <param name="channel">The ID of the channel.</param>
+        /// <param name="offset">Object offset for pagination. Default is 0.</param>
+        /// <param name="limit">How many videos to get at one time. Default is 10. Maximum is 100.</param>
+        /// <param name="version">Twitch API version</param>
+        /// <returns>A Total object containing list of videos</returns>
+        public async Task<Total<List<Video>>> RetrieveVideos(string channel = null,
+            int offset = 0, int limit = 10,
+            TwitchConstants.BroadcastType broadcastType = TwitchConstants.BroadcastType.Highlight,
+            List<string> languages = null,
+            TwitchConstants.ChannelSort sort = TwitchConstants.ChannelSort.Time,
+            APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", channel, "videos");
+            if (limit <= 100)
+            {
+                url.SetQueryParam("limit", limit);
+            }
+            else
+            {
+                url.SetQueryParam("limit", 100);
+            }
+            string languagesString = string.Empty;
+            if (languages != null)
+            {
+                for (int i = 0; i < languages.Count; i++)
+                {
+                    if (i == languages.Count - 1)
+                    {
+                        languagesString += languages[i];
+                    }
+                    else
+                    {
+                        languagesString += $"{languages[i]},";
+                    }
+                }
+            }
+            if (!string.IsNullOrEmpty(languagesString))
+            {
+                url.SetQueryParam("language", languagesString);
+            }
+            url.SetQueryParams(new Dictionary<string, object>()
+            {
+                { "offset", offset },
+                { "broadcast_type", TwitchConstants.BroadcastTypeToString(broadcastType) },
+                { "sort", TwitchConstants.ChannelSortToString(sort) }
+            });
 
             Uri uri = new Uri(url.ToString());
             string responseString;
@@ -1081,11 +1161,7 @@ namespace TwixelAPI
                 version = APIVersion.v3;
             }
 
-            if (version == APIVersion.v2)
-            {
-                client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v2+json");
-            }
-            else if (version == APIVersion.v3)
+            if (version == APIVersion.v3)
             {
                 client.DefaultRequestHeaders.Add("Accept", "application/vnd.twitchtv.v3+json");
             }
@@ -1104,6 +1180,10 @@ namespace TwixelAPI
             StringContent stringContent = new StringContent("", Encoding.UTF8, "application/json");
             if (requestType == RequestType.Put || requestType == RequestType.Post)
             {
+                if (string.IsNullOrEmpty(content))
+                {
+                    content = string.Empty;
+                }
                 stringContent = new StringContent(content, Encoding.UTF8, "application/json");
             }
 

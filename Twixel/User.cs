@@ -143,88 +143,6 @@ namespace TwixelAPI
         public string streamKey;
 
         /// <summary>
-        /// User constructor. Unauthorized. Twitch API v2.
-        /// </summary>
-        /// <param name="displayName">Display name</param>
-        /// <param name="id">ID</param>
-        /// <param name="name">Name</param>
-        /// <param name="staff">Are they staff</param>
-        /// <param name="createdAt">Time created at</param>
-        /// <param name="updatedAt">Time updated at</param>
-        /// <param name="logo">Logo link</param>
-        /// <param name="baseLinksO">Base links JSON object</param>
-        public User(string displayName,
-            long id,
-            string name,
-            bool staff,
-            string createdAt,
-            string updatedAt,
-            string logo,
-            JObject baseLinksO) : base(baseLinksO)
-        {
-            Initv2(displayName, id, name, staff, createdAt, updatedAt, logo);
-            this.authorized = false;
-            this.accessToken = "";
-            this.authorizedScopes = new List<TwitchConstants.Scope>();
-        }
-
-        /// <summary>
-        /// User constructor. Authorized. Twitch API v2.
-        /// </summary>
-        /// <param name="accessToken">Access token</param>
-        /// <param name="authorizedScopes">List of authorized scopes</param>
-        /// <param name="displayName">Display name</param>
-        /// <param name="id">ID</param>
-        /// <param name="name">Name</param>
-        /// <param name="staff">Are they staff</param>
-        /// <param name="createdAt">Time created at</param>
-        /// <param name="updatedAt">Time updated at</param>
-        /// <param name="logo">Logo link</param>
-        /// <param name="email">Email</param>
-        /// <param name="partnered">Are they partnered</param>
-        /// <param name="notificationsO">Notification status</param>
-        /// <param name="baseLinksO">Base links JSON object</param>
-        public User(string accessToken,
-            List<TwitchConstants.Scope> authorizedScopes,
-            string displayName,
-            long id,
-            string name,
-            bool staff,
-            string createdAt,
-            string updatedAt,
-            string logo,
-            string email,
-            bool partnered,
-            JObject notificationsO,
-            JObject baseLinksO) : base(baseLinksO)
-        {
-            InitAuth(accessToken, authorizedScopes, email, partnered, notificationsO);
-            Initv2(displayName, id, name, staff, createdAt, updatedAt, logo);
-            this.authorized = true;
-        }
-
-        private void Initv2(string displayName,
-            long id,
-            string name,
-            bool staff,
-            string createdAt,
-            string updatedAt,
-            string logo)
-        {
-            this.version = Twixel.APIVersion.v2;
-            this.displayName = displayName;
-            this.id = id;
-            this.name = name;
-            this.staff = staff;
-            this.createdAt = DateTime.Parse(createdAt);
-            this.updatedAt = DateTime.Parse(updatedAt);
-            if (!string.IsNullOrEmpty(logo))
-            {
-                this.logo = new Uri(logo);
-            }
-        }
-
-        /// <summary>
         /// User constructor. Unauthorized. Twitch API v3.
         /// </summary>
         /// <param name="displayName">Display name</param>
@@ -594,12 +512,13 @@ namespace TwixelAPI
         /// <param name="status">The new status</param>
         /// <param name="game">The new game</param>
         /// <param name="delay">Delay, requires Twitch partnership if above 0</param>
+        /// <param name="channelFeedEnabled">If true, the channel's feed is turned on. Default is false.</param>
         /// <returns>
         /// Returns the channel if the request succeeded.
         /// Throws an exception if the user is not allowed to use delay.
         /// </returns>
         public async Task<Channel> UpdateChannel(string status = "", string game = "",
-            int delay = 0)
+            int delay = 0, bool channelFeedEnabled = false)
         {
             TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelEditor;
             if (authorized && authorizedScopes.Contains(relevantScope))
@@ -610,10 +529,8 @@ namespace TwixelAPI
                 content["channel"] = new JObject();
                 content["channel"]["status"] = status;
                 content["channel"]["game"] = game;
-                if (version == Twixel.APIVersion.v3)
-                {
-                    content["channel"]["delay"] = delay;
-                }
+                content["channel"]["delay"] = delay;
+                content["channel"]["channel_feed_enabled"] = channelFeedEnabled;
                 string responseString;
                 try
                 {
@@ -1300,6 +1217,108 @@ namespace TwixelAPI
             else
             {
                 throw new TwixelException(TwitchConstants.v2UnsupportedErrorString);
+            }
+        }
+
+        public async Task<Community> RetrieveCommunity()
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelEditor;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "community");
+                Uri uri = new Uri(url);
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.GetWebData(uri, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                JObject responseObject = JObject.Parse(responseString);
+                return Community.LoadCommunity(responseObject, version);
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        public async Task UpdateCommunity(string communityId)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelEditor;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "community", communityId);
+                Uri uri = new Uri(url);
+                try
+                {
+                    await Twixel.PutWebData(uri, accessToken, null, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        public async Task DeleteCommunity()
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelEditor;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("channels", name, "community");
+                Uri uri = new Uri(url);
+                try
+                {
+                    await Twixel.DeleteWebData(uri, accessToken, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
             }
         }
 

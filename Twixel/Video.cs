@@ -193,60 +193,6 @@ namespace TwixelAPI
         public Dictionary<string, Thumbnail> thumbnails;
 
         /// <summary>
-        /// Video constructor, Twitch API v2
-        /// </summary>
-        /// <param name="title">Title</param>
-        /// <param name="description">Description</param>
-        /// <param name="broadcastId">Broadcast ID</param>
-        /// <param name="status">Status</param>
-        /// <param name="id">ID</param>
-        /// <param name="recordedAt">Recording date</param>
-        /// <param name="game">Game, can be null</param>
-        /// <param name="length">Length in seconds</param>
-        /// <param name="preview">Link to preview image</param>
-        /// <param name="url">Link to video</param>
-        /// <param name="embed">Embed string</param>
-        /// <param name="views">Number of views</param>
-        /// <param name="broadcastType">Broadcast type</param>
-        /// <param name="miniChannelO">Mini channel JSON object</param>
-        /// <param name="baseLinksO">Base links JSON object</param>
-        public Video(string title,
-            string description,
-            long broadcastId,
-            string status,
-            string id,
-            string recordedAt,
-            string game,
-            long length,
-            string preview,
-            string url,
-            string embed,
-            long views,
-            string broadcastType,
-            JObject miniChannelO,
-            JObject baseLinksO) : base(baseLinksO)
-        {
-            this.version = Twixel.APIVersion.v2;
-            this.title = title;
-            this.description = description;
-            this.broadcastId = broadcastId;
-            this.status = status;
-            this.id = id;
-            this.recordedAt = DateTime.Parse(recordedAt);
-            this.game = game;
-            this.length = length;
-            if (!string.IsNullOrEmpty(preview))
-            {
-                this.preview = new Uri(preview);
-            }
-            this.url = new Uri(url);
-            this.embed = embed;
-            this.views = views;
-            this.broadcastType = broadcastType;
-            this.channel = LoadChannel(miniChannelO);
-        }
-
-        /// <summary>
         /// Video constructor, Twitch API v3
         /// </summary>
         /// <param name="title">Title</param>

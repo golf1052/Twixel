@@ -52,27 +52,6 @@ namespace TwixelAPI
         public Stream stream;
 
         /// <summary>
-        /// FeaturedStream constructor, Twitch API v2
-        /// </summary>
-        /// <param name="text">Description text</param>
-        /// <param name="image">Link to image</param>
-        /// <param name="streamO">Stream JSON object</param>
-        /// <param name="baseLinksO">Base links JSON object</param>
-        public FeaturedStream(string text,
-            string image,
-            JObject streamO,
-            JObject baseLinksO) : base(baseLinksO)
-        {
-            this.version = Twixel.APIVersion.v2;
-            this.text = text;
-            if (!string.IsNullOrEmpty(image))
-            {
-                this.image = new Uri(image);
-            }
-            this.stream = HelperMethods.LoadStream(streamO, version);
-        }
-
-        /// <summary>
         /// FeaturedStream constructor, Twitch API v3
         /// </summary>
         /// <param name="text">Description text</param>

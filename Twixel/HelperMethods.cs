@@ -45,25 +45,7 @@ namespace TwixelAPI
 
         internal static Channel LoadChannel(JObject o, Twixel.APIVersion version)
         {
-            if (version == Twixel.APIVersion.v2)
-            {
-                return new Channel((bool?)o["mature"],
-                    (string)o["status"],
-                    (string)o["display_name"],
-                    (string)o["game"],
-                    (long)o["_id"],
-                    (string)o["name"],
-                    o["created_at"].ToString(),
-                    o["updated_at"].ToString(),
-                    (string)o["logo"],
-                    (string)o["banner"],
-                    (string)o["video_banner"],
-                    (string)o["background"],
-                    (string)o["url"],
-                    (JArray)o["teams"],
-                    (JObject)o["_links"]);
-            }
-            else if (version == Twixel.APIVersion.v3)
+            if (version == Twixel.APIVersion.v3)
             {
                 return new Channel((bool?)o["mature"],
                     (string)o["status"],
@@ -264,29 +246,7 @@ namespace TwixelAPI
         internal static Stream LoadStream(JObject o, Twixel.APIVersion version)
         {
             JObject channelO = (JObject)o["channel"];
-            if (version == Twixel.APIVersion.v2)
-            {
-                string createdAt = null;
-                try
-                {
-                    createdAt = o["created_at"].ToString();
-                }
-                catch (NullReferenceException ex)
-                {
-                }
-                return new Stream((long?)o["_id"],
-                    (string)o["game"],
-                    (long?)o["viewers"],
-                    createdAt,
-                    (int?)o["video_height"],
-                    (double?)o["average_fps"],
-                    (string)o["name"],
-                    (string)o["broadcaster"],
-                    (string)o["preview"],
-                    channelO,
-                    (JObject)o["_links"]);
-            }
-            else if (version == Twixel.APIVersion.v3)
+            if (version == Twixel.APIVersion.v3)
             {
                 return new Stream((long?)o["_id"],
                     (string)o["game"],
@@ -326,14 +286,7 @@ namespace TwixelAPI
 
             foreach (JObject obj in (JArray)o["featured"])
             {
-                if (version == Twixel.APIVersion.v2)
-                {
-                    streams.Add(new FeaturedStream((string)obj["text"],
-                        (string)obj["image"],
-                        (JObject)obj["stream"],
-                        (JObject)o["_links"]));
-                }
-                else if (version == Twixel.APIVersion.v3)
+                if (version == Twixel.APIVersion.v3)
                 {
                     streams.Add(new FeaturedStream((string)obj["text"],
                         (string)obj["image"],
@@ -427,18 +380,7 @@ namespace TwixelAPI
         internal static User LoadUser(JObject o,
             Twixel.APIVersion version)
         {
-            if (version == Twixel.APIVersion.v2)
-            {
-                return new User((string)o["display_name"],
-                    (long)o["_id"],
-                    (string)o["name"],
-                    (bool)o["staff"],
-                    o["created_at"].ToString(),
-                    o["updated_at"].ToString(),
-                    (string)o["logo"],
-                    (JObject)o["_links"]);
-            }
-            else if (version == Twixel.APIVersion.v3)
+            if (version == Twixel.APIVersion.v3)
             {
                 return new User((string)o["display_name"],
                     (long)o["_id"],
@@ -472,22 +414,7 @@ namespace TwixelAPI
             List<TwitchConstants.Scope> authorizedScopes,
             Twixel.APIVersion version)
         {
-            if (version == Twixel.APIVersion.v2)
-            {
-                return new User(accessToken, authorizedScopes,
-                    (string)o["display_name"],
-                    (long)o["_id"],
-                    (string)o["name"],
-                    (bool)o["staff"],
-                    o["created_at"].ToString(),
-                    o["updated_at"].ToString(),
-                    (string)o["logo"],
-                    (string)o["email"],
-                    (bool)o["partnered"],
-                    (JObject)o["notifications"],
-                    (JObject)o["_links"]);
-            }
-            else if (version == Twixel.APIVersion.v3)
+            if (version == Twixel.APIVersion.v3)
             {
                 return new User(accessToken, authorizedScopes,
                     (string)o["display_name"],
@@ -528,7 +455,7 @@ namespace TwixelAPI
         internal static List<Video> LoadVideos(JObject o, Twixel.APIVersion version)
         {
             List<Video> videos = new List<Video>();
-            if (version == Twixel.APIVersion.v2 || version == Twixel.APIVersion.v3)
+            if (version == Twixel.APIVersion.v3)
             {
                 foreach (JObject video in (JArray)o["videos"])
                 {
@@ -557,25 +484,7 @@ namespace TwixelAPI
 
         internal static Video LoadVideo(JObject o, Twixel.APIVersion version)
         {
-            if (version == Twixel.APIVersion.v2)
-            {
-                return new Video((string)o["title"],
-                    (string)o["description"],
-                    (long)o["broadcast_id"],
-                    (string)o["status"],
-                    (string)o["_id"],
-                    o["recorded_at"].ToString(),
-                    (string)o["game"],
-                    (long)o["length"],
-                    (string)o["preview"],
-                    (string)o["url"],
-                    (string)o["embed"],
-                    (long)o["views"],
-                    (string)o["broadcast_type"],
-                    (JObject)o["channel"],
-                    (JObject)o["_links"]);
-            }
-            else if (version == Twixel.APIVersion.v3)
+            if (version == Twixel.APIVersion.v3)
             {
                 return new Video((string)o["title"],
                     (string)o["description"],

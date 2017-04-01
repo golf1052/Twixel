@@ -113,6 +113,13 @@ namespace TwixelAPI.Constants
             Upload
         }
 
+        public enum ChannelSort
+        {
+            None,
+            Views,
+            Time
+        }
+
         /// <summary>
         /// Converts a scope to a string representation of that scope
         /// </summary>
@@ -486,6 +493,22 @@ namespace TwixelAPI.Constants
             else if (broadcastType == BroadcastType.Upload)
             {
                 return "upload";
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        public static string ChannelSortToString(ChannelSort channelSort)
+        {
+            if (channelSort == ChannelSort.Time)
+            {
+                return "time";
+            }
+            else if (channelSort == ChannelSort.Views)
+            {
+                return "views";
             }
             else
             {

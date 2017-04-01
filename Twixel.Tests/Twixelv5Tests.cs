@@ -209,7 +209,7 @@ namespace TwixelAPI.Tests
         [Fact]
         public async void RetrieveVideosTest()
         {
-            Total<List<Video>> videos = await twixel.RetrieveVideos("22747608");
+            Total<List<Video>> videos = await twixel.RetrieveVideos("22747608", sort: TwitchConstants.ChannelSort.Time);
             Assert.Equal(27, videos.wrapped[0].length);
             Assert.Equal("League of Legends", videos.wrapped[0].game);
         }

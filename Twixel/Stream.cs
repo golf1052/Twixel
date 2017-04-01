@@ -77,51 +77,6 @@ namespace TwixelAPI
         public Channel channel;
 
         /// <summary>
-        /// Stream constructor, Twitch API v2
-        /// </summary>
-        /// <param name="id">ID</param>
-        /// <param name="game">Current game, can be null</param>
-        /// <param name="viewers">Number of viewers</param>
-        /// <param name="createdAt">Creation date</param>
-        /// <param name="videoHeight">Video height</param>
-        /// <param name="averageFps">Average FPS</param>
-        /// <param name="name">Name</param>
-        /// <param name="broadcaster">Broadcaster softare used</param>
-        /// <param name="preview">Link to preview image</param>
-        /// <param name="channelO">Channel JSON object</param>
-        /// <param name="baseLinksO">Base links JSON object</param>
-        public Stream(long? id,
-            string game,
-            long? viewers,
-            string createdAt,
-            int? videoHeight,
-            double? averageFps,
-            string name,
-            string broadcaster,
-            string preview,
-            JObject channelO,
-            JObject baseLinksO) : base(baseLinksO)
-        {
-            this.version = Twixel.APIVersion.v2;
-            this.id = id;
-            this.game = game;
-            this.viewers = viewers;
-            if (!string.IsNullOrEmpty(createdAt))
-            {
-                this.createdAt = DateTime.Parse(createdAt);
-            }
-            this.videoHeight = videoHeight;
-            this.averageFps = averageFps;
-            this.name = name;
-            this.broadcaster = broadcaster;
-            if (!string.IsNullOrEmpty(preview))
-            {
-                this.preview = new Uri(preview);
-            }
-            this.channel = HelperMethods.LoadChannel(channelO, version);
-        }
-
-        /// <summary>
         /// Stream constructor, Twitch API v3
         /// </summary>
         /// <param name="id">ID</param>
