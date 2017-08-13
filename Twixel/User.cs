@@ -1344,7 +1344,7 @@ namespace TwixelAPI
                     { "game", game },
                     { "language", language },
                     { "tag_list", tagList },
-                    //{ "viewable", TwitchConstants.ViewableToString(viewable) }
+                    { "viewable", TwitchConstants.ViewableToString(viewable) }
                 });
                 if (viewable == TwitchConstants.Viewable.Private && viewableAt != null)
                 {
@@ -1419,7 +1419,6 @@ namespace TwixelAPI
                     { "part", partNumber },
                     { "upload_token", createVideoResponse.Upload.Token }
                 });
-                //uploadClient.DefaultRequestHeaders.Add("Content-Length", contentLength.ToString());
                 HttpResponseMessage response = await uploadClient.PutAsync(url, content);
                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 {
