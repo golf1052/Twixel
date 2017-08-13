@@ -1,0 +1,614 @@
+{
+  "homepages": [],
+  "source_base_path": "C:/Users/Sanders/OneDrive/Projects/Twixel/Documentation",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Badge.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Badge.html",
+          "hash": "ZIunE22Eryggt7RR3Lhbow=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Block.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Block.html",
+          "hash": "cmm7YMD9jaz2mi2y8FXkNw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Channel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Channel.html",
+          "hash": "gcPsJ1/nigd+T28MVuH6BQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Cheermote.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Cheermote.html",
+          "hash": "zCPz0HP+ODWpEM9R97gQDw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.CheermoteTier.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.CheermoteTier.html",
+          "hash": "kXFDwWZo6zjNWnQLQtFKMA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Community.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Community.html",
+          "hash": "TDKm97bdzmvYuPz5KRUXOQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.BroadcastType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.BroadcastType.html",
+          "hash": "028nWnhx85yLSlpQ73tMeQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.ChannelSort.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.ChannelSort.html",
+          "hash": "bWFRqL7FqGi2dOIGIWK0ig=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.CommercialLength.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.CommercialLength.html",
+          "hash": "gOu8y1FeJ4vKqS9JbfLFxA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.Direction.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.Direction.html",
+          "hash": "NpRxPNjZWIfVq/xLI4J+Tw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.Period.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.Period.html",
+          "hash": "YrOs5JH8XmYW4HUatdS+4g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.Scope.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.Scope.html",
+          "hash": "Tjw7lEDn7goaxSq2yPJOAg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.SortBy.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.SortBy.html",
+          "hash": "ZGM5A4DpdYti6mXB+gxeVg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.Viewable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.Viewable.html",
+          "hash": "xyhDk1WvkLW0S40zt7WxmA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.TwitchConstants.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.TwitchConstants.html",
+          "hash": "0GAzk+M6mCTMKnFLSsQrjw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Constants.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Constants.html",
+          "hash": "sXRU/wEmjmAskrLNai8PNw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Emoticon.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Emoticon.html",
+          "hash": "5ISthLwLBjqRUqfgVcfGDA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.EmoticonImage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.EmoticonImage.html",
+          "hash": "8rSdKlJrmPOIj3PzzXLLFA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.FeaturedStream.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.FeaturedStream.html",
+          "hash": "sE/89VrGob/BTS0DICOSyQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Follow-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Follow-1.html",
+          "hash": "bsMIo0ztoxrxR9nMBi/Edw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Game.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Game.html",
+          "hash": "tP+k/kbxbYT0CcXMJ0BBVw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.HelperMethods.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.HelperMethods.html",
+          "hash": "8zORdEtGMKk9EKDyqxlSIg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Ingest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Ingest.html",
+          "hash": "fVTO2mSfOGn5vpbSNt2BoQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Notification.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Notification.html",
+          "hash": "m1lCGIDpvhjfn7MgH8N+iQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Resolution.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Resolution.html",
+          "hash": "yrwM37Tp6VULh68q6J7Zsg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.SearchedGame.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.SearchedGame.html",
+          "hash": "2wsIPwoCRPbjx/hODa11wg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Stream.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Stream.html",
+          "hash": "uE1x5TidoIx3ixIIllCsTQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Subscription-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Subscription-1.html",
+          "hash": "OsXskEPmumY8dfgKLCtu8Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Team.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Team.html",
+          "hash": "OMV89lxPCV6DSwtw0gaBDQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Thumbnail.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Thumbnail.html",
+          "hash": "OFHxf0a6iPVJPWhccTvakg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Total-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Total-1.html",
+          "hash": "fgTUx1cVIy8E/FNtGPPC1g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.TwitchException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.TwitchException.html",
+          "hash": "cQF2RRISF1msEQRAmFLqAQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Twixel.APIVersion.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Twixel.APIVersion.html",
+          "hash": "KeWL8PNTBxSwOX/GVPF1SA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Twixel.RequestType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Twixel.RequestType.html",
+          "hash": "s/lF6CqgMAWkV+fKVPu2Tw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Twixel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Twixel.html",
+          "hash": "t1QzYd7PAWjcyPxIo337Yw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.TwixelException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.TwixelException.html",
+          "hash": "BpYk0I6jA2SgyhYJYQJnwQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.TwixelObjectBase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.TwixelObjectBase.html",
+          "hash": "ZFXRpnrmyX5CUydz8nrDCA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.User.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.User.html",
+          "hash": "WSb0BbUOTlJXWXIsLQ/vyg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.Video.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.Video.html",
+          "hash": "stvF0KZMOLwNVsdIPFPXmA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.VideoObject.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.VideoObject.html",
+          "hash": "EALE1iWzsnUhxkNvj7HItQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/TwixelAPI.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/TwixelAPI.html",
+          "hash": "A8DvkHLV4gyDLHa77hz2lw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html",
+          "hash": "CaIadXl/se7U2eI96yhePg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html",
+          "hash": "ifMcUB7Z6HXjTLYihhcaeA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/intro.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/intro.html",
+          "hash": "9W5DUy5++nTAmwWT/V6Ptg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/toc.html",
+          "hash": "MthxFYC+doDRUguh/vpudA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html",
+          "hash": "jU3cGn6smf4mtSL68Ywcvg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html",
+          "hash": "3mzO2XU3vGs/pY6w/BFtNw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    }
+  ],
+  "incremental_info": [
+    {
+      "status": {
+        "can_incremental": false,
+        "details": "Cannot build incrementally because config changed.",
+        "incrementalPhase": "build"
+      },
+      "processors": {
+        "ResourceDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor ResourceDocumentProcessor cannot suppport incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build"
+        },
+        "RestApiDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor RestApiDocumentProcessor cannot suppport incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build"
+        },
+        "TocDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor TocDocumentProcessor cannot suppport incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build"
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": false,
+          "incrementalPhase": "build"
+        },
+        "ConceptualDocumentProcessor": {
+          "can_incremental": false,
+          "incrementalPhase": "build"
+        }
+      }
+    },
+    {
+      "status": {
+        "can_incremental": true,
+        "details": "Can support incremental post processing.",
+        "incrementalPhase": "postProcessing"
+      },
+      "processors": {}
+    }
+  ],
+  "version_info": {}
+}
