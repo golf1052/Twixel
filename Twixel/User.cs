@@ -1324,7 +1324,7 @@ namespace TwixelAPI
             }
         }
 
-        public async Task CreateVideo(string videoTitle, System.IO.Stream videoData,
+        public async Task<VideoObject> CreateVideo(string videoTitle, System.IO.Stream videoData,
             string description = null,
             string game = null,
             string language = null,
@@ -1360,11 +1360,11 @@ namespace TwixelAPI
                 {
                     throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
                 }
-                JObject responseObject = JObject.Parse(responseString);
-                CreateVideoResponse createVideoResponse = JsonConvert.DeserializeObject<CreateVideoResponse>(responseObject["upload"].ToString());
+                CreateVideoResponse createVideoResponse = JsonConvert.DeserializeObject<CreateVideoResponse>(responseString);
                 try
                 {
                     await UploadVideo(videoData, createVideoResponse);
+                    return createVideoResponse.Video;
                 }
                 catch (TwitchException ex)
                 {
@@ -1403,7 +1403,7 @@ namespace TwixelAPI
             }
 
             HttpClient uploadClient = new HttpClient();
-            TrexUri url = new TrexUri(createVideoResponse.Url);
+            TrexUri url = new TrexUri(createVideoResponse.Upload.Url);
 
             long partNumber = 1;
             for (long i = 0; i < videoData.Length; i += maxPartSize)
@@ -1417,7 +1417,7 @@ namespace TwixelAPI
                 url.SetQueryParams(new Dictionary<string, object>
                 {
                     { "part", partNumber },
-                    { "upload_token", createVideoResponse.Token }
+                    { "upload_token", createVideoResponse.Upload.Token }
                 });
                 //uploadClient.DefaultRequestHeaders.Add("Content-Length", contentLength.ToString());
                 HttpResponseMessage response = await uploadClient.PutAsync(url, content);
@@ -1441,8 +1441,8 @@ namespace TwixelAPI
 
         private async Task CompleteUpload(HttpClient uploadClient, CreateVideoResponse createVideoResponse)
         {
-            TrexUri url = new TrexUri(createVideoResponse.Url);
-            url.AppendPathSegment("complete").SetQueryParam("upload_token", createVideoResponse.Token);
+            TrexUri url = new TrexUri(createVideoResponse.Upload.Url);
+            url.AppendPathSegment("complete").SetQueryParam("upload_token", createVideoResponse.Upload.Token);
             HttpResponseMessage response = await uploadClient.PostAsync(url, new StringContent(string.Empty));
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
