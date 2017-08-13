@@ -6,3 +6,7 @@ packages/
 .vs/
 *.nupkg
 *.suo
+LICENSE
+README.md
+*.sln
+*.gitattributes
