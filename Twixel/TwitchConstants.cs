@@ -120,6 +120,13 @@ namespace TwixelAPI.Constants
             Time
         }
 
+        public enum Viewable
+        {
+            None,
+            Public,
+            Private
+        }
+
         /// <summary>
         /// Converts a scope to a string representation of that scope
         /// </summary>
@@ -509,6 +516,22 @@ namespace TwixelAPI.Constants
             else if (channelSort == ChannelSort.Views)
             {
                 return "views";
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        public static string ViewableToString(Viewable viewable)
+        {
+            if (viewable == Viewable.Public)
+            {
+                return "public";
+            }
+            else if (viewable == Viewable.Private)
+            {
+                return "private";
             }
             else
             {

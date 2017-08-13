@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using golf1052.Trexler;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TwixelAPI.Constants;
 
@@ -102,6 +103,34 @@ namespace TwixelAPI
             redirectUrl = url;
             this.DefaultVersion = defaultVersion;
         }
+
+        public async Task<List<Cheermote>> RetrieveCheermotes(string channelId = null, APIVersion version = APIVersion.None)
+        {
+            if (version == APIVersion.None)
+            {
+                version = DefaultVersion;
+            }
+            if (version == APIVersion.v5)
+            {
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegments("bits", "actions").SetQueryParam("channel_id", channelId);
+                Uri uri = new Uri(url.ToString());
+                string responseString;
+                try
+                {
+                    responseString = await GetWebData(uri, version);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                JObject responseObject = JObject.Parse(responseString);
+                return HelperMethods.LoadCheermotes(responseObject);
+            }
+            else
+            {
+                throw new TwixelException(TwitchConstants.v5OnlyErrorString);
+            }
+        } 
 
         /// <summary>
         /// Converts from a Twitch API v3 username to a Twitch API v5 user ID

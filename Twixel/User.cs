@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using golf1052.Trexler;
 using Newtonsoft.Json.Linq;
 using TwixelAPI.Constants;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace TwixelAPI
 {
@@ -1319,6 +1321,133 @@ namespace TwixelAPI
                 {
                     throw new TwixelException(TwitchConstants.unknownErrorString);
                 }
+            }
+        }
+
+        public async Task CreateVideo(string videoTitle, System.IO.Stream videoData,
+            string description = null,
+            string game = null,
+            string language = null,
+            string tagList = null,
+            TwitchConstants.Viewable viewable = TwitchConstants.Viewable.Public,
+            DateTimeOffset? viewableAt = null)
+        {
+            TwitchConstants.Scope relevantScope = TwitchConstants.Scope.ChannelEditor;
+            if (authorized && authorizedScopes.Contains(relevantScope))
+            {
+                
+                TrexUri url = new TrexUri(TwitchConstants.baseUrl).AppendPathSegment("videos").SetQueryParams(new Dictionary<string, object>
+                {
+                    { "channel_id", id },
+                    { "title", videoTitle },
+                    { "description", description },
+                    { "game", game },
+                    { "language", language },
+                    { "tag_list", tagList },
+                    //{ "viewable", TwitchConstants.ViewableToString(viewable) }
+                });
+                if (viewable == TwitchConstants.Viewable.Private && viewableAt != null)
+                {
+                    url.SetQueryParam("viewable_at", viewableAt.Value.ToString());
+                }
+                Uri uri = new Uri(url);
+                string responseString;
+                try
+                {
+                    responseString = await Twixel.PostWebData(uri, accessToken, null, Twixel.APIVersion.v5);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                JObject responseObject = JObject.Parse(responseString);
+                CreateVideoResponse createVideoResponse = JsonConvert.DeserializeObject<CreateVideoResponse>(responseObject["upload"].ToString());
+                try
+                {
+                    await UploadVideo(videoData, createVideoResponse);
+                }
+                catch (TwitchException ex)
+                {
+                    throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+                }
+                catch (TwixelException)
+                {
+                    throw;
+                }
+            }
+            else
+            {
+                if (!authorized)
+                {
+                    throw new TwixelException(NotAuthedError());
+                }
+                else if (!authorizedScopes.Contains(relevantScope))
+                {
+                    throw new TwixelException(MissingPermissionError(relevantScope));
+                }
+                else
+                {
+                    throw new TwixelException(TwitchConstants.unknownErrorString);
+                }
+            }
+        }
+
+        private async Task UploadVideo(System.IO.Stream videoData, CreateVideoResponse createVideoResponse)
+        {
+            const int maxPartSize = 26214400; // 25 MB
+            const long maxVideoSize = 10737418240; // 10 GB
+            
+            if (videoData.Length > maxVideoSize)
+            {
+                throw new TwixelException("Video data is greater than 10 GB.");
+            }
+
+            HttpClient uploadClient = new HttpClient();
+            TrexUri url = new TrexUri(createVideoResponse.Url);
+
+            long partNumber = 1;
+            for (long i = 0; i < videoData.Length; i += maxPartSize)
+            {
+                long contentLength = Math.Min(videoData.Length - i, maxPartSize);
+                byte[] contentArray = new byte[contentLength];
+                // offset is always 0 because Stream.Position has been updated
+                // we're doing the offset from Stream.Position not the beginning :|
+                videoData.Read(contentArray, 0, (int)contentLength);
+                ByteArrayContent content = new ByteArrayContent(contentArray);
+                url.SetQueryParams(new Dictionary<string, object>
+                {
+                    { "part", partNumber },
+                    { "upload_token", createVideoResponse.Token }
+                });
+                //uploadClient.DefaultRequestHeaders.Add("Content-Length", contentLength.ToString());
+                HttpResponseMessage response = await uploadClient.PutAsync(url, content);
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+                    throw new TwitchException(responseString, response.ReasonPhrase, (int)response.StatusCode);
+                }
+                partNumber++;
+            }
+
+            try
+            {
+                await CompleteUpload(uploadClient, createVideoResponse);
+            }
+            catch (TwitchException ex)
+            {
+                throw new TwixelException(TwitchConstants.twitchAPIErrorString, ex);
+            }
+        }
+
+        private async Task CompleteUpload(HttpClient uploadClient, CreateVideoResponse createVideoResponse)
+        {
+            TrexUri url = new TrexUri(createVideoResponse.Url);
+            url.AppendPathSegment("complete").SetQueryParam("upload_token", createVideoResponse.Token);
+            HttpResponseMessage response = await uploadClient.PostAsync(url, new StringContent(string.Empty));
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                string responseString = await response.Content.ReadAsStringAsync();
+                throw new TwitchException(responseString, response.ReasonPhrase, (int)response.StatusCode);
             }
         }
 

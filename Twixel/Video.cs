@@ -355,8 +355,11 @@ namespace TwixelAPI
             Dictionary<string, Thumbnail> thumbnails = new Dictionary<string, Thumbnail>();
             foreach (var thumbnail in tmp)
             {
-                thumbnails.Add(thumbnail.Key, new Thumbnail((string)thumbnail.Value[0]["url"],
-                    (string)thumbnail.Value[0]["type"]));
+                if (thumbnail.Value.Count > 0)
+                {
+                    thumbnails.Add(thumbnail.Key, new Thumbnail((string)thumbnail.Value[0]["url"],
+                        (string)thumbnail.Value[0]["type"]));
+                }
             }
             return thumbnails;
         }

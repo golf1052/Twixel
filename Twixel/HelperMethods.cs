@@ -14,6 +14,12 @@ namespace TwixelAPI
     {
         private const string versionCannotBeNoneString = "Version cannot be none.";
 
+        internal static List<Cheermote> LoadCheermotes(JObject o)
+        {
+            JArray actions = (JArray)o["actions"];
+            return JsonConvert.DeserializeObject<List<Cheermote>>(actions.ToString());
+        }
+
         internal static List<Block> LoadBlocks(JObject o, Twixel.APIVersion version)
         {
             List<Block> blocks = new List<Block>();

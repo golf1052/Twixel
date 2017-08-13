@@ -19,6 +19,14 @@ namespace TwixelAPI.Tests
         }
 
         [Fact]
+        public async void GetCheermotes()
+        {
+            List<Cheermote> cheermotes = await twixel.RetrieveCheermotes();
+            Cheermote kappa = cheermotes.First(c => c.Prefix == "Kappa");
+            Assert.Equal("Kappa", kappa.Prefix);
+        }
+
+        [Fact]
         public async void GetUserIdTest()
         {
             long id = await twixel.GetUserId("golf1052");

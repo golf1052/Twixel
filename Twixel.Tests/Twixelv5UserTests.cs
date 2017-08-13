@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using TwixelAPI.Constants;
 using Xunit;
@@ -248,6 +249,14 @@ namespace TwixelAPI.Tests
             User user = await twixel.RetrieveUserWithAccessToken(accessToken);
             List<Video> videos = await user.RetrieveFollowedVideos(0, 10, TwitchConstants.BroadcastType.Archive, TwitchConstants.BroadcastType.Highlight, TwitchConstants.BroadcastType.Upload);
             Assert.NotNull(videos);
+        }
+
+        [Fact]
+        public async void CreateVideoTest()
+        {
+            User user = await twixel.RetrieveUserWithAccessToken(accessToken);
+            FileStream video = File.OpenRead(@"C:\Users\Sanders\OneDrive\Videos\Double Dash\DoubleDash.Windows 4_18_2017 2_37_02 AM.mp4");
+            await user.CreateVideo("twixeltestvideo", video);
         }
     }
 }
