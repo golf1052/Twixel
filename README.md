@@ -1,9 +1,10 @@
-Twixel
-======
+# Twixel
 
-Unofficial C# Twitch.TV API Wrapper Portable Class Library  
-Supports Twitch API v2 and v3  
-Official documentation can be found here: https://github.com/justintv/Twitch-API  
-NuGet Package. Available [here](https://www.nuget.org/packages/Twixel/2.0.4)
+Unofficial C# Twitch.TV API Wrapper  
+Supports Twitch API v3 and most of v5  
+Supports .NET Core/.NET Standard  
+Official documentation can be found [here](https://dev.twitch.tv/docs)  
 
-In regards to [sending the Client-ID in request headers](https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843#.auvhv4rma) this library already sends the header.
+[NuGet package supporting v2 and v3](https://www.nuget.org/packages/Twixel/2.0.4)  
+[Beta release of v5 support](https://preview.nuget.org/packages/Twixel/3.0.0-beta)  
+
