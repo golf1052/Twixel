@@ -10,6 +10,6 @@ Official documentation can be found [here](https://dev.twitch.tv/docs)
 
 ## Current Status
 
-Twitch announced the next version of their API on August 31, 2017. v5 was deprecated and both v3 and v5 will be removed on December 31, 2018. Because of this the next updates to this library will be updates supporting the next version of Twitch's API.
+Twitch announced the next version of their API on August 31, 2017. See [link](https://blog.twitch.tv/the-new-twitch-api-be3fb2b078e6) v5 was deprecated and both v3 and v5 will be removed on December 31, 2018. Because of this the next updates to this library will be updates supporting the next version of Twitch's API.
 
-Whenever that happens.
+[Whenever that happens.](https://dev.twitch.tv/roadmap)
